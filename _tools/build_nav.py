@@ -40,7 +40,7 @@ def nav_html(base):
     parts = []
     sel = ['<select aria-label="章节跳转">']
     sel.append(f'<option value="{base}index.html">📖 目录</option>')
-    for key, gname, _ in PARTS:
+    for key, gname in PARTS:
         group = [c for c in CHAPTERS if c[2] == key]
         sel.append(f'<optgroup label="{gname}">')
         for cid, title, _p in group:
