@@ -3,32 +3,245 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 12 章 · 逆概率加权与边际结构模型 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 12 章 · 逆概率加权与边际结构模型 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 12 章 · 逆概率加权与边际结构模型</h1>
-<p class="muted">第二部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第二部分 · 基于模型的因果推断 · Part II — Causal inference with models</p>
+  <h1>第 12 章 · 逆概率加权与边际结构模型</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 12. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">第二部分全篇围绕一个因果问题组织："戒烟对体重增加的平均因果效应是什么？"本章要讲的，就是如何用 IP 加权从观察性数据里把这个效应估计出来。IP 加权在第 2 章已经出场，但当时我们只把它描述为一种非参数方法。现在我们要讨论模型与 IP 加权的联手使用——在附加假设之下，这套组合使我们能够应对协变量众多、处理变量非二值的高维问题。</p>
+
+<p>估计戒烟对体重增加的影响，我们会用 NHEFS 的真实数据。NHEFS 是（准备好听一个很长的名字了吗？）National Health and Nutrition Examination Survey Data I Epidemiologic Follow-up Study 的缩写。NHEFS 由美国国家卫生统计中心（National Center for Health Statistics）与国家老龄研究所（National Institute on Aging）联合发起，美国公共卫生服务局的其他机构也参与了合作。NHEFS 的详细说明，连同公开可得的数据集与文档，可以在 wwwn.cdc.gov/nchs/nhanes/nhefs/ 查到。从本章往后，我们会使用本书网站上提供的 NHEFS 数据子集。我们欢迎读者对我们的分析提出改进与完善。</p>
+
+<h2 id="s-12-1">12.1 因果问题</h2>
+
+<p>我们的目标是估计戒烟（处理）A 对体重增加（结局）Y 的平均因果效应。为此，我们使用 NHEFS 中 1566 名年龄在 25 至 74 岁之间的香烟吸烟者的数据；这些人在 NHEFS 中都完成了基线访视，以及大约十年之后的一次随访访视。若某人自述在随访访视之前已经戒烟，就把他划为已处理 <code>A = 1</code>，否则划为未处理 <code>A = 0</code>。每个人的体重增加 <code>Y</code> 以千克计，定义为随访访视时的体重减去基线访视时的体重。大多数人都增了重，但戒烟者平均增重更多。戒烟者的平均体重增加为 <code>E[Y|A = 1] = 4.5</code> 千克，未戒烟者为 <code>E[Y|A = 0] = 2.0</code> 千克。因此 <code>E[Y|A = 1] − E[Y|A = 0]</code> 的估计值是 2.5，95% 置信区间从 1.7 到 3.4。</p>
+
+<p>我们把分析限制在这样一批人身上：他们在基线（1971—1975 年）与随访（1982 年）两次访视中，性别、年龄、种族、体重、身高、教育程度、饮酒情况与吸烟强度均为已知，并且在基线时回答了病史问卷。见精细辨析 12.1。</p>
+
+<p>我们把 <code>E[Y<sup>a=1</sup>]</code> 定义为：如果人群中所有个体都在随访访视前戒了烟，本应被观测到的平均体重增加；把 <code>E[Y<sup>a=0</sup>]</code> 定义为：如果所有个体都没有戒烟，本应被观测到的平均体重增加。我们把加性尺度上的平均因果效应定义为 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>，也就是"如果人人都接受处理"与"如果人人都不接受处理"这两种情形下平均体重之差。这就是本章以及接下来几章我们主要关心的因果效应。</p>
+
+<p>本节第一段估计出来的关联差 <code>E[Y|A = 1] − E[Y|A = 0]</code>，一般不同于因果差 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>。如果戒烟者与未戒烟者在某些影响体重增加的特征上存在差异，那么关联差一般就没有因果解释。举个例子：戒烟者平均比未戒烟者大 4 岁（戒烟者年龄超过 50 岁的可能性比未戒烟者高 44%），而无论戒不戒烟，年长者增重都比年轻者少。我们说年龄是 A 对 Y 效应的（替代）混杂因素（surrogate confounder，参见精细辨析 7.3），我们的分析需要对年龄作调整。未调整的估计值 2.5 可能低估了真实的因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>。</p>
+
+<figure class="fig"><img src="../figures/ch12--table-12_1.png" alt="表 12.1：戒烟者与未戒烟者的基线特征均值对比">
+<figcaption><strong>表 12.1</strong>　戒烟者（<code>A = 1</code>）与未戒烟者（<code>A = 0</code>）的基线特征均值：年龄 46.2 对 42.8 岁，男性 54.6% 对 46.6%，白人 91.1% 对 85.4%，上过大学 15.4% 对 9.9%，体重 72.4 对 70.3 千克，每日吸烟 18.6 对 21.2 支，吸烟年数 26.0 对 24.1 年，很少运动 40.7% 对 37.9%，体力活动不足 11.2% 对 8.9%。</figcaption></figure>
+
+<p>如表 12.1 所示，戒烟者与未戒烟者在性别、种族、教育、基线体重、吸烟强度等其他变量的分布上也有差异。如果这些变量是混杂因素，它们同样需要在分析中加以调整。第 18 章讨论混杂因素选择的各种策略。这里我们假定下列 9 个变量（全部在基线测量）足以完成混杂调整：性别（0：男，1：女）、年龄（岁）、种族（0：白人，1：其他）、教育程度（5 类）、吸烟强度与吸烟时长（每日支数与吸烟年数）、日常生活中的体力活动（3 类）、休闲运动（3 类）、体重（千克）。也就是说，<code>L</code> 表示由 9 个测量协变量构成的向量。下一节我们用 IP 加权来调整这些协变量。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.1。计算本节给出的描述性统计。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 12.1　树立一个反面榜样</span>
+<p>我们这个戒烟的例子用起来很方便：它不需要专门领域知识的深挖，数据也公开可得。为这份方便付出的代价，是可能存在的选择偏倚。</p>
+<p>我们把个体划为已处理 <code>A = 1</code> 的条件是：他自述 (i) 在 1971—1975 年的基线时是吸烟者，并且 (ii) 在 1982 年的调查时已经戒烟。条件 (ii) 意味着，进入我们研究的这些人在基线与 1982 年之间没有死亡，也没有以其他方式失访——否则他们无从回答 1982 年的调查。也就是说，我们是在以一个事件（是否回答 1982 年调查）为条件来挑选研究对象，而这个事件发生在处理（戒烟）开始之后。如果处理会影响被选入研究的概率，我们就可能存在第 8 章所说的选择偏倚。（由于不同的人戒烟时间不同，<code>A</code> 实际上是一个时变处理，不过第二部分全篇我们都将忽略这一点。时变处理在第三部分讨论。）</p>
+<p>如果戒烟做的是随机化试验，就不会有这个问题。每个个体在基线时就被分配到戒烟或不戒烟，因此即便他没能活到 1982 年的访视，他的处理组归属仍然是已知的。在 12.6 节我们会讨论如何应对结局删失或缺失数据可能带来的选择偏倚——这种事在观察性研究和随机化试验里都可能发生——但本精细辨析描述的情形不同：这里缺失的是处理本身的信息。Hernán 等（2008，附录 3）用敏感性分析处理过这类选择偏倚。</p>
+<p>选用这个例子，也让我们得以在自己的分析里描述一个普遍存在的问题：凡是模拟目标试验（target trial emulation）的观察性数据分析，几乎都会碰到随访起点上处理分配与纳入资格错位（misalignment of treatment assignment and eligibility at the start of follow-up，Hernán 等 2016）。为了保持分析的简洁，我们决定先绕开这个问题；但在真实研究中，教学上的便利不构成回避这类偏倚的好理由。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（NHEFS 数据与中文文献中的对应数据集）</strong>：NHEFS 是美国 1971—1975 年 NHANES I 调查对象的十年随访研究，常被称作"吸烟与体重"经典数据集，本章与第 13 章的数字都出自它。国内目前没有同等规模的公开吸烟随访队列，常被用作替代的公开数据包括 UK Biobank、Whitehall II 与中国的 CHARLS、CLHLS（这两个以中老年人为主，缺少 25—34 岁的重度吸烟者）；此外中国双生子队列（China Twin Registry）与"脑卒中后随访"类专病队列常被用于类似的"戒烟—体重"问题。做类似分析时须留意：NHEFS 的处理定义是"自述已戒烟"，没有区分"完全戒断"与"减量"，也没有记录戒烟的时点，因此其 <code>A</code> 变量同时混杂了戒烟意愿、健康意识与自报偏倚——这正是精细辨析 12.1 所说的处理本身信息缺失的问题。</p>
+</aside>
+
+<h2 id="s-12-2">12.2 通过建模估计 IP 权重</h2>
+
+<p>IP 加权构造出一个伪人群（pseudo-population），其中从协变量 <code>L</code> 指向处理 <code>A</code> 的那条箭头被抹掉了。更精确地说，这个伪人群具有以下两条性质：<code>A</code> 与 <code>L</code> 统计独立；伪人群中的均值 <code>E<sup>ps</sup>[Y|A = a]</code> 等于真实人群中的标准化均值 <code>∑<sub>l</sub> E[Y|A = a, L = l] Pr[L = l]</code>。即使条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 在真实人群中并不成立，这两条性质照样为真（见技术要点 2.3）。而如果条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 在真实人群中成立，那么这两条性质就意味着：(i) <code>Y<sup>a</sup></code> 的均值在两个人群中相同；(ii) 无条件可交换性（即无混杂）在伪人群中成立；(iii) 真实人群中的反事实均值 <code>E[Y<sup>a</sup>]</code> 等于伪人群中的 <code>E<sup>ps</sup>[Y|A = a]</code>；(iv) 在伪人群中，关联即因果。如果你需要重温 IP 加权，请回到第 2 章。</p>
+
+<p>非正式地说，伪人群是这样造出来的：给每个个体一个权重，等于"他实际收到的那个处理水平，在给定协变量条件下的概率"的倒数。处理 A 的个体特异性 IP 权重定义为 <code>W<sup>A</sup> = 1/f(A|L)</code>。对我们的二值处理 A，IP 权重的分母 <code>f(A|L)</code> 对戒烟者是给定所测混杂因素后戒烟的条件概率 <code>Pr[A = 1|L]</code>，对未戒烟者是给定所测混杂因素后不戒烟的条件概率 <code>Pr[A = 0|L]</code>。我们只需估计 <code>Pr[A = 1|L]</code>，因为 <code>Pr[A = 0|L] = 1 − Pr[A = 1|L]</code>。</p>
+
+<p><span class="box-label">边注</span>　处理的条件概率 <code>Pr[A = 1|L]</code> 被称为<strong>倾向性评分</strong>（propensity score）。关于倾向性评分的更多内容见第 15 章。</p>
+
+<p>在 2.4 节里，我们曾以非参数方式估计 <code>Pr[A = 1|L]</code>：只要在 <code>L</code> 的每一层里数一数接受处理（<code>A = 1</code>）的人数，再除以该层的个体数即可。计算所需的全部信息都来自一棵带 4 个分支（<code>L</code> 的 2 个分支乘以 <code>A</code> 的 2 个分支）的、按因果解释的树状图。但像我们这个例子这样，混杂因素众多、其中若干还有许多水平时，非参数估计 <code>Pr[A = 1|L]</code> 根本行不通。即便我们愿意把除年龄以外的 9 个混杂因素全部重编码成至多 6 类，树也仍然有超过 200 万个分支；如果按吸烟时长、吸烟强度和体重的实际取值范围来分层，还要再多个几百万。当 1566 个个体散布在数百万个层中，我们得不到有意义的非参数分层估计。只能求助于建模。</p>
+
+<p>要在 <code>L</code> 所定义的数百万个层中拿到 <code>Pr[A = 1|L]</code> 的参数化估计，我们拟合了一个戒烟概率的 logistic 回归模型，把 9 个混杂因素全部作为协变量放进去。对于（准）连续的协变量——年龄、体重、吸烟强度、吸烟时长——我们用了线性项与二次项；协变量之间不放任何乘积项。也就是说，我们的模型把 <code>Pr[A = 1|L]</code> 的可能取值限制成如下形态：在 logit 尺度上，连续协变量与戒烟风险之间的条件关系可以由一条抛物线表示，并且每个协变量对（风险 logit 的）贡献都独立于其他协变量的贡献。在这些参数化限制之下，我们得以对 <code>L</code> 的每一种取值组合给出估计值 <code>Pr<sup>c</sup>[A = 1|L]</code>，从而对研究人群中 1566 个个体中的每一个都给出一个估计值。</p>
+
+<p>下一步是计算由估计出的 IP 权重所构造的伪人群中的差值 <code>Ê<sup>ps</sup>[Y|A = 1] − Ê<sup>ps</sup>[Y|A = 0]</code>。如果伪人群中 A 的效应不存在混杂，并且 <code>Pr[A = 1|L]</code> 的模型是正确的，那么关联即因果，伪人群中关联差 <code>E<sup>ps</sup>[Y|A = 1] − E<sup>ps</sup>[Y|A = 0]</code> 的无偏估计量，同时也是真实人群中因果差 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 的无偏估计量。</p>
+
+<p><span class="box-label">边注</span>　<code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 是一个饱和模型，因为它有 2 个参数 <code>θ<sub>0</sub></code> 和 <code>θ<sub>1</sub></code> 用来估计两个量 <code>E[Y|A = 1]</code> 与 <code>E[Y|A = 0]</code>。在该模型中 <code>θ<sub>1</sub> = E[Y|A = 1] − E[Y|A = 0]</code>。</p>
+
+<p>我们估计 <code>E<sup>ps</sup>[Y|A = 1] − E<sup>ps</sup>[Y|A = 0]</code> 的做法，是在伪人群数据上用加权最小二乘法拟合（饱和的）线性均值模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code>，其中个体按其估计的 IP 权重加权：戒烟者取 <code>1/Pr<sup>c</sup>[A = 1|L]</code>，未戒烟者取 <code>1/(1 − Pr<sup>c</sup>[A = 1|L])</code>。参数估计 <code>θ̂<sub>1</sub></code> 为 3.4。也就是说，我们估计戒烟平均使体重增加 <code>θ̂<sub>1</sub> = 3.4</code> 千克。估计量的形式定义见技术要点 12.1。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.2。估计出的 IP 权重 <code>W<sup>A</sup></code> 取值从 1.05 到 16.7，均值为 2.00。</p>
+
+<p><span class="box-label">边注</span>　权重为 <code>W</code> 的加权最小二乘估计 <code>θ̂<sub>0</sub></code>、<code>θ̂<sub>1</sub></code> 是 <code>∑<sub>i</sub> W<sub>i</sub>[Y<sub>i</sub> − (θ<sub>0</sub> + θ<sub>1</sub>A<sub>i</sub>)]<sup>2</sup></code> 的极小化点。若所有个体 <code>i</code> 都取 <code>Ŵ<sub>i</sub> = 1</code>，我们得到的就是上一章描述的普通最小二乘估计。</p>
+
+<p>要为点估计 <code>θ̂<sub>1</sub> = 3.4</code> 求一个 95% 置信区间，需要某种能把 IP 加权计入的方法。一种可能是用统计理论推导出相应的方差估计量。这条路要求数据分析者自己动手编写估计量程序，标准统计软件里通常没有现成的。另一种可能是用非参数自助法（nonparametric bootstrapping，见技术要点 13.1）来近似方差；面对大数据库，这条路需要足够的计算资源，或者足够的耐心。第三种可能是使用稳健方差估计量（robust variance estimator，例如 GEE 模型在独立工作相关结构下所用的那种），这是绝大多数统计软件包里的标准选项。</p>
+
+<p>基于稳健方差估计量的 95% 置信区间是有效的，但与前面提到的解析估计量和自助法估计量不同，它是保守的——它覆盖超级总体参数的概率高于 95%。<code>θ̂<sub>1</sub></code> 的这个保守 95% 置信区间是 (2.4, 4.5)。本章中，IP 加权估计的所有置信区间都是保守的。若 <code>Pr[A = 1|L]</code> 的模型设定有误，<code>θ<sub>0</sub></code> 与 <code>θ<sub>1</sub></code> 的估计就会有偏，而且正如上一章讨论过的，置信区间覆盖真值的比例可能低于 95%。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 12.1　Horvitz-Thompson 估计量</span>
+<p>在技术要点 3.1 中，我们为处理水平 <code>a</code> 定义了"表面上的"IP 加权均值 <code>E{ I(A = a)Y / f(A|L) }</code>；在可阳性性与可交换性之下，它等于反事实均值 <code>E[Y<sup>a</sup>]</code>。这个 IP 加权均值可由原始的 Horvitz-Thompson（1952）估计量 <code>Ê{ I(A = a)Y / f(A|L) }</code> 一致估计，其中 <code>Ê</code> 为样本平均算子，且假定 <code>f(A|L)</code> 已知。然而在本章中，我们是通过 IP 加权最小二乘估计 <code>Ê(θ̂<sub>0</sub> + θ̂<sub>1</sub>A)</code> 来估计 <code>E[Y<sup>a</sup>]</code> 的；对于二值的 A，这是一个经过修改的 Horvitz-Thompson 估计量，通常称为 Hajek 估计量（Hajek 1971）：</p>
+<p style="text-align:center"><code>Ê{ I(A = a)Y / f(A|L) }　/　Ê{ I(A = a) / f(A|L) }</code></p>
+<p>Hajek 估计量是 <code>E{ I(A = a)Y / f(A|L) }</code> 的（渐近）无偏估计量，因为在可阳性性之下后者等于 <code>E[Y<sup>a</sup>]</code>，此处用到了 <code>E{ I(A = a) / f(A|L) } = 1</code>。实践中人们更偏爱 Hajek 估计量：与 Horvitz-Thompson 估计量不同，即便 <code>f(A|L)</code> 未知、被错设模型的拟合值 <code>f̂(A|L)</code> 所替代，Hajek 估计量仍被保证落在 0 与 1 之间（对二值的 <code>Y</code>）。</p>
+<p>另一方面，若可阳性性不成立，那么上述比值等于 <code>∑<sub>l</sub> E[Y|A = a, L = l, L ∈ Q(a)] Pr[L = l|L ∈ Q(a)]</code>，并且若可交换性成立，它等于 <code>E[Y<sup>a</sup>|L ∈ Q(a)]</code>，其中 <code>Q(a) = {l; Pr(A = a|L = l) &gt; 0}</code> 是这样一组 <code>l</code> 的取值：以正概率观测到 <code>A = a</code> 的 <code>L</code> 值。因此，如技术要点 3.1 所讨论，在缺乏可阳性性的情况下，<code>a = 1</code> 与 <code>a = 0</code> 两个 Hajek 估计量之差不再有因果解释。非可阳性时，Horvitz-Thompson 估计量的极限与 Hajek 估计量的极限之比不再是 1，而是 <code>Pr[Q(a)]</code>——因为 Hajek 估计量的分母收敛到 <code>Pr[Q(a)]</code> 而不是 1。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（加权之后为什么必须用稳健（三明治）方差）</strong>：这一点在国内论文里被忽略的比例相当高。普通回归的标准误假定"每个个体对参数估计的贡献是同分布的独立样本"。IP 加权破坏了这个假定，有三重理由：(1) 加权最小二乘的"有效样本"不再是 <code>n</code>，其方差公式里必须出现 <code>W<sub>i</sub><sup>2</sup></code> 而不是 <code>W<sub>i</sub></code>；(2) 权重本身是<em>估计出来的</em>（来自倾向性评分模型），带有模型误差，会向下游传播，普通加权最小二乘的标准误完全无视这一点；(3) 加权后残差 <code>Y<sub>i</sub> − (θ̂<sub>0</sub> + θ̂<sub>1</sub>A<sub>i</sub>)</code> 的条件方差不再是常数——因为不同处理组的权重跨度可以差很多（本章 <code>W<sup>A</sup></code> 从 1.05 到 16.7），异方差极为明显。三明治稳健方差把这些问题一次性打包处理：<code>V = (X<sup>T</sup>WX)<sup>−1</sup>(X<sup>T</sup>W<sup>2</sup>RX)(X<sup>T</sup>WX)<sup>−1</sup></code>，其中 <code>R = diag(r<sub>i</sub><sup>2</sup>)</code>。实践含义很直接：在 Stata 里，IPW 回归只写 <code>reg y a [pw=sw]</code> 是不够的，必须再跟一个 <code>, robust</code>（等价于 <code>vce(robust)</code>），或者用 <code>svy</code> 子命令；在 R 里对应 <code>weights = …, sandwich</code>。反过来，加权 + <code>cluster(robust)</code> 又是另一套东西：若把同一个个体的多条记录当独立观测而未聚类，是国内多中心数据里另一个常见的标准误低估来源。</p>
+</aside>
+
+<h2 id="s-12-3">12.3 稳定化 IP 权重</h2>
+
+<p>IP 加权的目标，是造出一个 <code>L</code> 与 <code>A</code> 之间不存在关联的伪人群。在第 2 章里，我们展示了如何用 IP 权重 <code>W<sup>A</sup> = 1/f(A|L)</code> 把图 2.1 中的原始研究人群变成图 2.3 中的伪人群。伪人群的规模是原始研究人群的两倍，这反映了权重 <code>W<sup>A</sup></code> 的均值为 2 这样一个事实。非正式地说，这些权重模拟出的伪人群，是由原研究人群的两份拷贝拼成的，一份接受处理，另一份不接受处理。</p>
+
+<p>不过，造出"与 <code>L</code> 独立"这一伪人群，还有别的办法。比如，可以造出这样一个人群：不论 <code>L</code> 取何值，每个人接受 <code>A = 1</code> 的概率都是 0.5，接受 <code>A = 0</code> 的概率也都是 0.5。这样的人是用 IP 权重 <code>0.5/f(A|L)</code> 造出来的。这个伪人群的规模与研究人群相同；如果把所有权重都除以 2，它在代数上就等于上一段那个伪人群。因此，权重 <code>0.5/f(A|L)</code> 的期望均值是 1，而用 <code>0.5/f(A|L)</code> 造出的伪人群所得到的效应估计，与用 <code>1/f(A|L)</code> 造出的伪人群所得完全相同。（你可以用图 2.1 的数据实证检验这一点，或者看技术要点 12.2 的证明。）对任何其他形式的 IP 权重 <code>p/f(A|L)</code>（<code>0 &lt; p ≤ 1</code>）也是一样的。权重 <code>W<sup>A</sup> = 1/f(A|L)</code> 只是 <code>p = 1</code> 这一族 IP 权重中的一个特例。</p>
+
+<p>再把思路推进一步。做混杂调整的关键要求是：在伪人群中，处理 <code>A</code> 的概率不依赖于混杂因素 <code>L</code>。我们可以给伪人群中的每个人指派同一个概率 <code>p</code> 来达到这一点。但我们也可以靠另一种办法：造出这样一个人群，其中不同的人有不同的处理概率，只要这个概率不依赖于 <code>L</code> 的取值就行。一种常见做法是：给已处理者指派原人群中接受处理的概率 <code>Pr[A = 1]</code>，给未处理者指派原人群中不接受处理的概率 <code>Pr[A = 0]</code>。于是 IP 权重对已处理者是 <code>Pr[A = 1]/f(A|L)</code>，对未处理者是 <code>Pr[A = 0]/f(A|L)</code>，更紧凑地写成 <code>f(A)/f(A|L)</code>。</p>
+
+<figure class="fig"><img src="../figures/ch12--figure-12_1.png" alt="图 12.1：用稳定化 IP 权重 f(A)/f(A|L) 作用于图 2.1 数据后得到的伪人群树状图">
+<figcaption><strong>图 12.1</strong>　把稳定化 IP 权重 <code>SW<sup>A</sup> = f(A)/f(A|L)</code> 作用于图 2.1 的数据后得到的伪人群。<code>Pr[A = 1] = 13/20 = 0.65</code>，<code>Pr[A = 0] = 7/20 = 0.35</code>。左侧圆圈为 <code>L</code> 的两层（<code>L = 0</code> 占 0.4，<code>L = 1</code> 占 0.6），中间分支标出处理分配及其概率，右侧圆圈内是 <code>Y</code> 的分裂；每个节点旁标出该分支的伪人群规模，最右侧一列是权重值，例如 <code>65/.5 = 1.3</code>。在第 3 章的可识别性条件下，这个伪人群类似于一项假想的随机化试验：研究人群中 65% 的人被随机分到 <code>A = 1</code>，35% 分到 <code>A = 0</code>。</figcaption></figure>
+
+<p>图 12.1 展示的就是把 IP 权重 <code>f(A)/f(A|L)</code> 作用于图 2.1 数据后得到的伪人群，其中 <code>Pr[A = 1] = 13/20 = 0.65</code>，<code>Pr[A = 0] = 7/20 = 0.35</code>。在第 3 章的可识别性条件下，这个伪人群就像一项假想的随机化试验：研究人群中 65% 的人被随机分配到 <code>A = 1</code>，35% 分配到 <code>A = 0</code>。注意，为保持 65/35 的比例，每个分支上的个体数不可能是整数。所幸，在数学里，半个人不算什么大事。</p>
+
+<p>在我们的戒烟例子中，IP 权重 <code>f(A)/f(A|L)</code> 的取值范围是 0.33 到 4.30，而 IP 权重 <code>1/f(A|L)</code> 的取值范围是 1.05 到 16.7。分子里那个起稳定化作用的因子 <code>f(A)</code>，正是 <code>f(A)/f(A|L)</code> 这一权重范围更窄的原因。IP 权重 <code>W<sup>A</sup> = 1/f(A|L)</code> 被称为非稳定化权重（nonstabilized weights），IP 权重 <code>SW<sup>A</sup> = f(A)/f(A|L)</code> 被称为稳定化权重（stabilized weights）。稳定化权重的均值期望为 1，因为伪人群的规模与研究人群相同。</p>
+
+<p><span class="box-label">边注</span>　在数据分析中，应当检查估计出的权重 <code>SW<sup>A</sup></code> 的均值是否为 1（Hernán 与 Robins 2006a）。偏离 1 提示模型设定有误，或可阳性性被违反、或接近违反。检查可阳性性的更多内容见精细辨析 12.2。</p>
+
+<p>现在我们用稳定化 IP 权重 <code>SW<sup>A</sup></code> 重新估计一次戒烟对体重的影响。首先，我们需要一个 <code>Pr[A = 1|L]</code> 的估计值来构造权重的分母。我们沿用 12.2 节中那个 logistic 模型，为研究人群中的 1566 个个体各自求出参数估计值 <code>Pr<sup>c</sup>[A = 1|L]</code>。其次，我们需要 <code>Pr[A = 1]</code> 的估计值来构造权重的分子。这个值可以非参数地估计为比值 403/1566；等价地，也可以拟合一个带截距、不含任何协变量的饱和 logistic 模型来估计 <code>Pr[A = 1]</code>。最后，我们把均值模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 拟合到伪人群数据上，个体按其估计的稳定化 IP 权重加权：戒烟者取 <code>Pr<sup>c</sup>[A = 1]/Pr<sup>c</sup>[A = 1|L]</code>，未戒烟者取 <code>(1 − Pr<sup>c</sup>[A = 1])/(1 − Pr<sup>c</sup>[A = 1|L])</code>。在我们的假设下，我们估计戒烟平均使体重增加 <code>θ̂<sub>1</sub> = 3.4</code> 千克（95% 置信区间：2.4, 4.5）。这与此前用非稳定化 IP 权重 <code>W<sup>A</sup></code> 得到的估计完全一样。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.3。估计出的 IP 权重 <code>SW<sup>A</sup></code> 取值从 0.33 到 4.30，均值为 1.00。</p>
+
+<p>既然非稳定化与稳定化 IP 权重给出同一个估计，为什么还要用稳定化权重？因为稳定化权重通常会带来比非稳定化权重更窄的 95% 置信区间。不过，稳定化权重在统计上的这种优势，只有当（IP 加权后的）模型不是饱和模型时才出现。在我们上面的例子中，两参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 是饱和的，因为处理 <code>A</code> 只能取 2 个值。在许多场合（例如时变处理或连续处理），加权模型不可能是饱和的，因此就会用上稳定化权重。下一节讲稳定化权重在连续处理上的用法。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 12.2　检查可阳性性</span>
+<p>在我们的研究里，有 4 位 66 岁的白人女性，她们无一戒烟。也就是说，在（<code>L</code> 的一个子集）给定的情况下，<code>A = 1</code> 的概率为 0。作为 IP 加权的一个前提条件，可阳性性（positivity）在经验层面被违反了。可阳性性的违反有两种可能的方式：</p>
 <ul>
-<li>阅读<a href="chch11.html">上一章</a>与<a href="chch13.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li><strong>结构性违反</strong>：第 3 章所描述的那一类。取某些 <code>L</code> 值的个体根本不可能被处理（或不可能不被处理）。举个例子：在估计某种化学物质暴露对死亡率的影响时，是否在岗是一个重要混杂因素，因为不在岗的人更容易生病、更容易死亡，而暴露的决定因素之一恰恰是"人只有在岗时才可能接触这种化学物质"。也就是说，问题的结构保证了在给定"不在岗"时处理的概率恰好为 0（结构性零）。只要按这个混杂因素分层，我们总会找到零单元。</li>
+<li><strong>随机性违反</strong>：本精细辨析第一段描述的那一类。我们的样本是有限的，所以只要按若干混杂因素分层，即便目标人群中处理的概率并不真的为零，也会在某些地方开始出现零单元。这是一种随机而非结构性的可阳性性违反，因为这些零会在目标人群的不同样本中随机地出现在不同位置。举个例子：本研究恰好在"66 岁白人女性"与"67 岁白人女性"这两层里没有接受处理的个体，而在"65 岁白人女性"与"69 岁白人女性"这两层里接受处理的人数则大于 0。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>12.1 The causal question</li>
-    <li>12.2 Estimating IP weights via modeling</li>
-    <li>12.3 Stabilized IP weights</li>
-    <li>12.4 Marginal structural models</li>
-    <li>12.5 Effect modification and marginal structural models</li>
-    <li>12.6 Censoring and missing data</li></ul>
-</div>
+<p>两类可阳性性违反的后果各不相同。存在结构性违反时，无法用 IP 加权或标准化对整个人群作因果推断；推断必须限制在结构性可阳性成立的层内。细节见技术要点 12.1。存在随机性违反时，我们用参数模型、借其他层个体的数据，去估计那些出现随机零的层里的处理概率。换句话说，我们是用参数模型把这些零"抹平"。例如 12.2 节用的 logistic 模型，是把研究中所有其他个体的信息都插值进来，才估出 66 岁白人女性的戒烟概率。每当我们在存在零单元的情况下用参数方法估计 IP 权重（像我们估计 <code>θ̂<sub>1</sub> = 3.4</code> 时那样），我们实质上都在假定随机性非可阳性。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（权重爆炸、可阳性性违反，以及评审时该看什么）</strong>：本章的非稳定化权重最大到 16.7，最小只有 1.05，相差近 16 倍；换成稳定化权重后是 0.33 到 4.30，相差 13 倍。这个差距远没有到骇人的地步，但已经把问题的本质露出来了：权重 <code>W<sup>A</sup> = 1/f(A|L)</code> 的最大值直接由倾向性评分的最小值决定，<code>1/0.06 ≈ 16.7</code> 意味着有某些个体的估计戒烟概率低到 0.06，而正是他们撑起了整个估计。国内期刊评审中，"报告了权重均值和范围"常被当成加分项，但真正该盯的三件事是：(1) <strong>权重的偏度与有效样本量</strong>，Kish 有效样本量 <code>n<sub>eff</sub> = (∑W<sub>i</sub>)<sup>2</sup>/∑W<sub>i</sub><sup>2</sup></code>，若 <code>n<sub>eff</sub></code> 只有名义样本量的三分之一，估计的方差就比样本量显示的大得多；(2) <strong>倾向性评分分布的两端</strong>，0 附近和 1 附近的密度往往就是可阳性性问题的可视化；(3) <strong>极端权重个体占结局事件的比例</strong>，如果一个稀疏层贡献了大部分死亡事件，删掉这一层结论就翻转，那说明识别结论完全悬于少数人身上。常见的补救做法（截尾 trimming、把所有观测归入处理组或对照组、倾向性评分分层后各层单独报告）都各自有代价：截尾把可阳性性违反换成了人为的偏倚，单独分层则牺牲效率。Hernán 等对这类"为模拟目标试验而设的数据集"的诊断流程（见精细辨析 12.1 引用的 2016 年那篇）建议的顺序是：先做可阳性性的经验检查与目标人群-数据集的资格对齐，再谈模型。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（稳定化权重的方差收益从哪来）</strong>：非稳定化权重 <code>W<sup>A</sup> = 1/f(A|L)</code> 与稳定化权重 <code>SW<sup>A</sup> = f(A)/f(A|L)</code> 相差一个因子 <code>f(A)</code>。这个因子对处理水平 <code>a</code> 是常数（它不依赖于 <code>L</code>），在估计方程中它会被归一化项吸收掉，所以点估计完全不变；变的是权重的<em>离散程度</em>。粗略地说，若权重变异系数为 CV，稳定化能把估计量的方差按 <code>(1 + CV<sup>2</sup>)⁻¹</code> 的因子压下来——这正是本章权重范围从 16.7 倍收窄到 13 倍所换来的收益。技术要点 12.2 会说明 <code>g(A)</code> 可以取任何不依赖于 <code>L</code> 的函数，取值范围比 <code>f(A)</code> 更自由，因此实际研究中还可以进一步针对结局调整分子（例如把 <code>g(A)</code> 取成与 <code>Y</code> 相关的一种分层权重）。软件里这个选项通常叫 <code>stabilize</code>：R 的 <code>WeightIt</code> 中是 <code>weighting.function = "glm"</code> 加 <code>stabilize = TRUE</code>，Stata 里 <code>stset … , survival()</code> 之后由 <code>ipweight</code> 自动生成。中文文献里"稳定化加权""稳定权重""stabilized IPW"都出现过，指的是同一件事。</p>
+</aside>
+
+<h2 id="s-12-4">12.4 边际结构模型</h2>
+
+<p>考虑处理水平 <code>a</code> 下平均结局的如下线性模型：</p>
+
+<p style="text-align:center"><code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub>a</code></p>
+
+<p>这个模型与我们迄今为止描述过的所有模型都不同：它的结局变量是反事实的，因而一般无法观测。所以，这个模型无法拟合到任何真实研究的数据上。凡是针对反事实结局的边际均值所建立的模型，都称为<strong>边际结构模型</strong>（marginal structural model）。</p>
+
+<p><span class="box-label">边注</span>　这是二值处理 <code>A</code> 的一个（饱和）边际结构均值模型。</p>
+
+<p>结构均值模型中处理的参数对应的是平均因果效应。在上面这个模型里，参数 <code>β<sub>1</sub></code> 等于 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>，因为在 <code>a = 0</code> 时 <code>E[Y<sup>a</sup>] = β<sub>0</sub></code>，在 <code>a = 1</code> 时 <code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub></code>。在前几节中，我们估计的正是戒烟 A 对体重变化 Y 的平均因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>。换句话说，我们估计的是一个边际结构模型的参数 <code>β<sub>1</sub></code>。具体地说，我们用 IP 加权构造出一个伪人群，再用 IP 加权最小二乘法把模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 拟合到伪人群数据上。在我们的假设下，伪人群中关联即因果。也就是说，IP 加权后的关联模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 的参数 <code>θ<sub>1</sub></code>，可以被赋予与结构模型 <code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub>a</code> 的参数 <code>β<sub>1</sub></code> 相同的因果解释。由此可知，伪人群中关联参数 <code>θ<sub>1</sub></code> 的一致估计 <code>θ̂<sub>1</sub></code>，也是人群中因果效应 <code>β<sub>1</sub> = E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 的一致估计量。</p>
+
+<p>边际结构模型 <code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub>a</code> 是饱和的，因为处理 <code>A</code>（戒烟）是二值的。也就是说，方程两侧各有两个未知量：左侧是 <code>E[Y<sup>a=1</sup>]</code> 与 <code>E[Y<sup>a=0</sup>]</code>，右侧是 <code>β<sub>0</sub></code> 与 <code>β<sub>1</sub></code>。因此，只要在伪人群里算一算样本均值，就足以估计我们关心的因果效应。但处理往往是多值的或连续的。例如，考虑一项新处理 A"吸烟强度的变化"，定义为 1982 年每日吸烟支数减去基线时每日吸烟支数。处理 A 现在可以取很多值，比如 −25 表示某人把每日吸烟支数减少了 25 支，40 表示某人把每日吸烟支数增加了 40 支。假设我们感兴趣的是：在基线时每日吸烟不超过 25 支的那 1162 名个体中，不同吸烟强度变化下的平均体重变化之差。也就是说，我们想对任意 <code>a</code> 与 <code>a′</code> 估计 <code>E[Y<sup>a</sup>] − E[Y<sup>a′</sup>]</code>。</p>
+
+<p><span class="box-label">边注</span>　边际结构模型一个称心的性质是<strong>秩保持</strong>（null preservation，见第 9 章）：当"平均因果效应为零"的零假设为真时，边际结构模型永不错设。例如，在这一零假设下，边际结构模型 <code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub>a + β<sub>2</sub>a<sup>2</sup></code> 在 <code>β<sub>1</sub> = β<sub>2</sub> = 0</code>、<code>β<sub>0</sub> = E[Y<sup>a</sup>]</code>（对任意 <code>a</code>）时是正确设定的。若条件可交换性成立，则 <code>E[Y] = β<sub>0</sub></code>。</p>
+
+<p>由于处理 A 可以取几十个值，配上同样多个参数的饱和模型就变得不切实际。我们不得不考虑一个非饱和的结构模型，来刻画处理 A 对平均结局 Y 的剂量-反应曲线。如果我们相信一条抛物线足以恰当地描述这条剂量-反应曲线，那么我们会提出边际结构模型</p>
+
+<p style="text-align:center"><code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub>a + β<sub>2</sub>a<sup>2</sup></code></p>
+
+<p>其中 <code>a<sup>2</sup> = a × a</code> 是 a 的平方，而 <code>E[Y<sup>a=0</sup>] = β<sub>0</sub></code> 是 <code>a = 0</code> 时的平均体重增加，也就是基线到 1982 年间吸烟强度没有变化时的平均增重。</p>
+
+<p><span class="box-label">边注</span>　这是连续处理 <code>A</code> 的一个（非饱和）边际结构均值模型。</p>
+
+<p>假设我们想估计"每日吸烟增加 20 支"相对于"无变化"的平均因果效应，即 <code>E[Y<sup>a=20</sup>] − E[Y<sup>a=0</sup>]</code>。按我们的结构模型，<code>E[Y<sup>a=20</sup>] = β<sub>0</sub> + 20β<sub>1</sub> + 400β<sub>2</sub></code>，于是 <code>E[Y<sup>a=20</sup>] − E[Y<sup>a=0</sup>] = 20β<sub>1</sub> + 400β<sub>2</sub></code>。现在我们需要估计参数 <code>β<sub>1</sub></code> 与 <code>β<sub>2</sub></code>。为此，我们需要估计稳定化权重 <code>SW<sup>A</sup></code>，以构造出没有 <code>L</code> 混杂的伪人群，然后把关联模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code> 拟合到伪人群数据上。</p>
+
+<p>要估计稳定化权重 <code>SW<sup>A</sup> = f(A)/f(A|L)</code>，我们需要估计 <code>f(A|L)</code>。对二值处理 <code>A</code>，<code>f(A|L)</code> 是一个概率，所以我们用 logistic 模型估计 <code>Pr[A = 1|L]</code>。对连续处理 <code>A</code>，<code>f(A|L)</code> 就是一个概率密度函数（pdf）。遗憾的是，pdf 一般很难估计，特别是当 <code>L</code> 高维且含连续成分时——这也正是对连续处理使用 IP 加权往往很危险的原因。在我们的例子里，我们假定密度 <code>f(A|L)</code> 是正态（高斯）的，均值为 <code>μ<sub>L</sub> = E[A|L]</code>，方差恒为 <code>σ<sup>2</sup></code>。于是我们用线性回归模型估计所有 <code>L</code> 取值组合下的 <code>E[A|L]</code>，以及残差方差 <code>σ<sup>2</sup></code>。我们同时假定分子中的密度 <code>f(A)</code> 也是正态的。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.4。估计出的 <code>SW<sup>A</sup></code> 取值从 0.19 到 5.10，均值为 1.00。我们假定了方差恒定（同方差性），这在查看残差图之后显得是合理的。换用别的分布假设（例如带异方差的截断正态）得到了相近的估计。</p>
+
+<p><span class="box-label">边注</span>　开发出能更稳定地估计 IP 权重的各种方法仍是一个活跃的研究领域。可参见 Imai 与 Ratkovic（2015）、Wang 与 Zuberburieta（2020）、Kallus 与 Santacatterina（2018）、Avagyan 与 Vansteelandt（2021）的工作。</p>
+
+<p>在对连续处理使用 IP 加权时应当格外小心，因为效应估计可能对用于估计条件密度 <code>f(A|L)</code> 的模型或算法极其敏感。我们用 IP 加权得到的边际结构模型参数估计是 <code>β̂<sub>0</sub> = 2.005</code>、<code>β̂<sub>1</sub> = −0.109</code>、<code>β̂<sub>2</sub> = 0.003</code>。按这些估计，如果所有个体在基线到 1982 年间都保持吸烟强度不变，平均体重增加为 2.0 千克（95% 置信区间 1.4, 2.6）；如果所有个体都把每日吸烟量增加 20 支，平均体重增加为 0.9 千克（95% 置信区间 −1.7, 3.5）。</p>
+
+<p>也可以为二值结局构造边际结构模型。比如，若感兴趣的是戒烟 A（1：是，0：否）对 1992 年前死亡风险 D（1：是，0：否）的因果效应，可以考虑这样的边际结构 logistic 模型：</p>
+
+<p style="text-align:center"><code>logit Pr[D<sup>a</sup> = 1] = α<sub>0</sub> + α<sub>1</sub>a</code></p>
+
+<p>其中 <code>exp(α<sub>1</sub>)</code> 是戒烟相对于不吸烟的死亡因果比值比。在我们的假设下，这个模型的参数可以通过在 IP 加权所构造的伪人群上拟合 logistic 模型 <code>logit Pr[D = 1|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 而得到一致估计。我们估计的因果比值比为 <code>exp(θ̂<sub>1</sub>) = 1.0</code>（95% 置信区间：0.8, 1.4）。</p>
+
+<p><span class="box-label">边注</span>　这是二值处理的饱和边际结构 logistic 模型。若处理是连续的，则需要设定一个非饱和的 logistic 模型。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.5。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（连续处理 + IPW 为什么危险，中文文献里通常怎么做）</strong>：二值处理下，倾向性评分 <code>Pr[A = 1|L]</code> 是一个<em>概率</em>，logistic 模型就能稳定地估出来；连续处理下，<code>f(A|L)</code> 变成了<em>条件密度</em>，麻烦骤然升级：密度可以被任意"削峰"（把观测到的处理取值范围之外的概率质量搬走），从而用完全不同的密度估计得到大不相同的加权结果；有限样本中的极端估计密度还可能产生数值上极不稳定的权重。原书自己就把"对连续处理使用 IP 加权往往很危险"写进了正文。国内文献在剂量-反应问题上的主流替代方案是：(a) <strong>不建密度的 g-computation</strong>——拟合 <code>E[Y|A,L]</code> 与 <code>E[A|L]</code>，再对结局协变量做标准化积分（见第 13 章），密度估计问题被绕开；(b) <strong>受限立方样条</strong>拟合 <code>E[Y|A,L]</code> 中的剂量-反应曲线；(c) <strong>参数化权重</strong>，例如取 <code>SW<sup>A</sup> ∝ 1/(σ̂ · φ((A − Ê[A|L])/σ̂))</code> 这类显式形式，其中 <code>φ</code> 为正态密度——这就是本章采用的方案。需要提醒的是，方案 (c) 中"<code>f(A|L)</code> 近似正态"这一假定本身就是把模型引入来了，此时 <code>β̂<sub>1</sub></code> 与 <code>β̂<sub>2</sub></code> 的解读依赖于该假定，其标准误也不应按第 12.2 节那条"保守但有效"的路子来理解。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（边际结构模型这个中文译名的两副面孔）</strong>：<em>边际结构模型</em>译自 marginal structural model，缩写 MSM。国内读者在中文文献里见到 "MSM" 时需要先分辨它指哪一个：一是<strong>边际结构模型</strong>（本节内容，Robins、 Hernán 等人倡导，与倾向性评分、加权类方法绑定）；二是<strong>多状态模型</strong>（multi-state model，疾病进展的 Markov/illness-death 模型，生物统计与临床研究里用得极多）；三是<strong>边际结构均值模型</strong>的另一种译法"边际化结构模型"。判断办法很简单：若文中出现 IP 权重、倾向性评分、g-formula、g 计算，那就一定是前者。本书全篇统一译作"边际结构模型"，与之配套的"边际结构 logistic 模型""结构均值模型""结构模型"分别对应 marginal structural logistic model、structural mean model 与 structural model。另外提醒一句：中文语境里 MS 开头也常指多发性硬化症（multiple sclerosis），跨学科读者看文献时容易串味。</p>
+</aside>
+
+<h2 id="s-12-5">12.5 效应修饰与边际结构模型</h2>
+
+<p>当目标参数是人群中的平均因果效应时，边际结构模型中不包含协变量。不过，人们可以往边际结构模型里放入协变量——这些协变量未必是混杂因素——以考察效应修饰。假设我们猜想戒烟的效应随性别 V（0：男，1：女）而变化。为检验这个猜想，我们把协变量 <code>V</code> 加进边际结构均值模型：</p>
+
+<p style="text-align:center"><code>E[Y<sup>a</sup>|V] = β<sub>0</sub> + β<sub>1</sub>a + β<sub>2</sub>Va + β<sub>3</sub>V</code></p>
+
+<p>若 <code>β<sub>2</sub> ≠ 0</code>，就存在<strong>加性效应修饰</strong>。严格说来，这一模型已经不再是边际模型了——因为它条件于 <code>V</code>——但"边际结构模型"这个叫法仍然照用。</p>
+
+<p>我们可以通过加权最小二乘法拟合线性回归模型 <code>E[Y|A, V] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>VA + θ<sub>3</sub>V</code> 来估计模型参数，权重取 <code>W<sup>A</sup></code> 或 <code>SW<sup>A</sup></code>。在多数场合，协变量向量 <code>L</code> 应当包含 <code>V</code>。即便 <code>V</code> 与 <code>A</code> 在给定 <code>L</code> 其余成分的条件下是独立的、且 <code>V</code> 并不为保证可交换性所必需，把 <code>V</code> 放进 <code>L</code> 通常仍会提高边际结构模型参数估计的效率。</p>
+
+<p><span class="box-label">边注</span>　参数 <code>β<sub>3</sub></code> 一般没有关于 <code>V</code> 效应的因果解释。要记住：我们假定的是处理 <code>A</code> 满足可交换性、可阳性性与一致性，而不是性别 <code>V</code> 满足这些条件。</p>
+
+<p>因为我们现在考虑的是 <code>V</code> 各水平内部的处理效应模型，所以在稳定化权重的分子里，可以选择用 <code>f[A]</code>，也可以选择用 <code>f[A|V]</code>。基于稳定化权重 <code>SW<sup>A</sup>(V) = f[A|V] / f[A|L]</code> 的 IP 加权，一般会使效应估计的置信区间更窄。稳定化权重 <code>SW<sup>A</sup>(V)</code> 之所以一般能带来更高的统计效率，直觉是这样的：权重 <code>SW<sup>A</sup>(V)</code> 的方差小于权重 <code>SW<sup>A</sup></code> 的方差。估计 <code>SW<sup>A</sup>(V)</code> 的做法与估计 <code>SW<sup>A</sup></code> 完全一样，只是在权重的分子那个 logistic 模型中额外加入协变量 <code>V</code>。</p>
+
+<p>研究者选择要放进边际结构模型的那部分 <code>L</code> 的子集 <code>V</code>，只应当反映研究者的实质性兴趣。举个例子：只有当研究者既相信 <code>V</code> 可能是效应修饰因子，又比"整个人群中的因果效应"更关心"<code>V</code> 各水平内部的处理因果效应"时，<code>V</code> 才应当被放进边际结构模型。在我们的例子里，我们没有找到性别存在效应修饰的强证据，因为参数估计 <code>θ̂<sub>2</sub></code> 的 95% 置信区间是 (−2.2, 1.9)。如果研究者选择把 <code>L</code> 中的所有变量都放进边际结构模型，那么稳定化权重 <code>SW<sup>A</sup>(L)</code> 等于 1，IP 加权变得不必要——因为在条件可交换性下，此时的边际结构模型就是那个（不加权的）结局回归模型，而它已经充分调整了 <code>L</code> 所带来的全部混杂（见第 15 章）。出于这个原因，我们略带幽默地把那种条件于为保证可交换性所需的全部变量 <code>L</code> 的边际结构模型称作<strong>伪边际结构模型</strong>（faux marginal structural model）。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.6。</p>
+
+<p><span class="box-label">边注</span>　如果我们感兴趣的是两项处理 <code>A</code> 与 <code>B</code> 之间的交互作用（而不是处理 <code>A</code> 被变量 <code>V</code> 修饰，见第 5 章），那么我们会在边际结构模型中同时放入 <code>A</code> 与 <code>B</code> 的参数，并且用两项处理的联合概率作为分母来估计 IP 权重。此时我们对 <code>A</code> 与 <code>B</code> 都假定可交换性、可阳性性与一致性。</p>
+
+<p>第一部分我们讨论过，效应修饰与混杂在逻辑上是两个不同的概念。尽管如此，许多学生仍难以理解这一区分，因为同一套统计方法——分层（第 4 章）或回归（第 15 章）——既常被用于混杂调整，也常被用于检出效应修饰。因此，用边际结构模型来讲授这两个概念或许有一定好处：在这里，用于混杂调整的方法（IP 加权）与用于检出效应修饰的方法（在边际结构模型里加入处理与协变量的乘积项）是彼此分明的。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（"分层各自算"与"协变量进模型"的混淆）</strong>：本节末尾那段关于教学的观察，在中文文献审读中是高频问题的来源。一个常见的错误做法是：先按 <code>V</code>（如性别、城乡、医保类型、基线风险分层）分层，<em>在每一层内</em>分别调整混杂因素，然后把各层的效应估计当作"效应修饰"的证据，然后据此下"某亚组获益更大、可以只对亚组推荐"的结论。问题在于两点：一是若每层内的可交换性没有各自检验或论证，分层与调整的差别被抹掉了；二是即便交互项真的显著，<code>β<sub>2</sub></code> 的显著性检验回答的是"效应是否随 <code>V</code> 变化"，而不是"<code>V</code> 的哪个水平更值得干预"——后者需要额外的成本效果或决策分析。相应地，国内报告规范（比如临床研究的 STRICLA 与流行病学研究的 STROBE 扩展）中要求把交互作用项的<em>报告</em>与<em>预设</em>分开写：交互项最好事先在方案中声明，而不是看完结果再补一个"进一步分析"。另外请注意本节的 <code>β<sub>3</sub></code>：它只是模型中性别这一项的边际系数，一般不能解释成"性别本身的因果效应"，因为我们从未为 <code>V</code> 假定过可交换性。</p>
+</aside>
+
+<h2 id="s-12-6">12.6 删失与缺失数据</h2>
+
+<p>在估计戒烟 A 对体重增加 Y 的因果效应时，我们把分析限制在 1982 年随访结束时测到体重的 1566 名个体身上。然而，另有 63 名个体满足了我们的纳入标准，却因为 1982 年的体重未知而被排除在分析之外。只挑选结局值不缺失的个体——也就是把缺失者从分析中删失掉——可能引入第 8 章讨论过的选择偏倚。</p>
+
+<p>令删失变量 C 为"1982 年是否测到体重"的指示变量：体重未测到时 C = 1（即被删失），测到时 C = 0（即未被删失）。我们的分析必然被限制在未删失的个体，也就是 <code>C = 0</code> 的那些人，因为只有他们的结局 <code>Y</code> 是已知的。也就是说，在 12.2 与 12.4 节中，我们拟合的并不是（加权的）结局回归模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code>，而是限制在 <code>C = 0</code> 个体上的模型 <code>E[Y|A, C = 0] = θ<sub>0</sub> + θ<sub>1</sub>A</code>。</p>
+
+<p>遗憾的是，即便在零假设下，只挑未删失者做分析也会在 <code>C</code> 位于处理 <code>A</code> 与结局 <code>Y</code> 之间某条路径上的碰撞因子、或是某个碰撞因子的后代时产生偏倚。可参见图 8.3 至 8.6 的因果图。我们的数据与那些图所描绘的结构相符：处理 <code>A</code> 与删失 <code>C</code> 相关——戒烟者中有 5.8% 被删失，未戒烟者中有 3.2% 被删失——而且 <code>Y</code> 的至少某些预测因子也与 <code>C</code> 相关：被删失者的基线平均体重是 76.6 千克，未被删失者则是 70.8 千克。</p>
+
+<p>由于失访造成的删失可能引入选择偏倚，我们一般感兴趣的是"假如研究人群中没有人被删失"时的因果效应。在我们的例子里，目标于是变成估计：如果所有人都戒烟且没有人的结局被删失，平均体重增加是多少，即 <code>E[Y<sup>a=1,c=0</sup>]</code>；以及如果所有人都没有戒烟且没有人的结局被删失，平均体重增加是多少，即 <code>E[Y<sup>a=0,c=0</sup>]</code>。此时感兴趣的因果效应是 <code>E[Y<sup>a=1,c=0</sup>] − E[Y<sup>a=0,c=0</sup>]</code>，正如第 8 章讨论的，这是 <code>A</code> 与 <code>C</code> 的联合效应。上标 <code>c = 0</code> 把一件事讲得明白：许多人在说"处理 <code>A</code> 的因果效应"时，心里想的正是这个因果对比，只不过他们未必真把上标 <code>c = 0</code> 写出来。</p>
+
+<p><span class="box-label">边注</span>　删失与处理的联合 IP 权重是 <code>W<sup>A,C</sup> = W<sup>A</sup> × W<sup>C</sup></code>，其中未删失个体的 <code>W<sup>C</sup> = 1/Pr[C = 0|L, A]</code>，被删失个体的 <code>W<sup>C</sup> = 0</code>。<code>A</code> 与 <code>C</code> 的联合密度被分解为 <code>f(A, C = 0|L) = f(A|L) × Pr[C = 0|L, A]</code>。</p>
+
+<p>这个因果效应可以用 IP 权重 <code>W<sup>A,C</sup> = W<sup>A</sup> × W<sup>C</sup></code> 来估计，其中未删失个体 <code>W<sup>C</sup> = 1/Pr[C = 0|L, A]</code>，被删失个体 <code>W<sup>C</sup> = 0</code>。在下列可识别性条件下，IP 权重 <code>W<sup>A,C</sup></code> 能同时调整混杂与选择偏倚：联合处理 <code>(A, C)</code> 给定 <code>L</code> 满足可交换性——也就是 <code>Y<sup>a,c=0</sup> ⊥⊥ (A, C)|L</code>——对 <code>(A = a, C = 0)</code> 满足联合可阳性性，以及一致性。如果 <code>L</code> 中有些变量像图 8.4 那样受处理 <code>A</code> 影响，那么条件独立 <code>Y<sup>a,c=0</sup> ⊥⊥ (A, C)|L</code> 一般就不成立。第三部分会表明，存在另一些可交换性条件，可以让我们在 <code>L</code> 的部分成分受处理影响时，仍然用 IP 加权估计 <code>A</code> 与 <code>C</code> 的联合效应。</p>
+
+<p><span class="box-label">边注</span>　<code>L</code> 中有些变量在 <code>f(A|L)</code> 的模型中系数为零，但在 <code>Pr[C = 0|L, A]</code> 的模型中不为零，反之亦然。尽管如此，在大样本中，把所有独立预测结局的 <code>L</code> 中的变量都保留在两个模型里，总归更有效率。</p>
+
+<p>别忘了，权重 <code>W<sup>C</sup> = 1/Pr[C = 0|L, A]</code> 造出的是一个规模与删失<em>之前</em>的原研究人群相同的伪人群，其中 <code>L</code> 与 <code>A</code> 都没有箭头指向 <code>C</code>。在我们的例子里，删失 IP 权重 <code>W<sup>C</sup></code> 的估计值会造出一个约含 1566 + 63 = 1629 人的伪人群，在我们的假设下它没有选择偏倚，因为其中根本不存在选择。也就是说，我们用权重 <code>W<sup>A,C</sup></code> 拟合加权模型 <code>E[Y|A, C = 0] = θ<sub>0</sub> + θ<sub>1</sub>A</code>，以估计整个人群中边际结构模型 <code>E[Y<sup>a,c=0</sup>] = β<sub>0</sub> + β<sub>1</sub>a</code> 的参数。</p>
+
+<p>另一种做法是用稳定化 IP 权重 <code>SW<sup>A,C</sup> = SW<sup>A</sup> × SW<sup>C</sup></code>。删失权重 <code>SW<sup>C</sup> = Pr[C = 0|A] / Pr[C = 0|L, A]</code> 造出的是一个规模与删失<em>之后</em>的原研究人群相同的伪人群，其中 <code>L</code> 没有箭头指向 <code>C</code>。在我们的例子里，删失 IP 权重 <code>SW<sup>C</sup></code> 的估计值会造出一个约含 1566 名未删失个体的伪人群。也就是说，稳定化权重并不在伪人群中消除删失，而是让删失相对于所测协变量 <code>L</code> <em>随机</em>发生。因此，在我们关于给定 <code>L</code>（与 <code>A</code>）后删失者与未删失者条件可交换的假设下，伪人群中被删失者的比例与研究人群中的相同：有选择，但没有选择偏倚。</p>
+
+<p><span class="box-label">边注</span>　当 <code>Pr[C = 0|A]</code> 的模型正确设定时，估计出的删失 IP 权重 <code>SW<sup>C</sup></code> 均值为 1。关于稳定化权重的更多内容见技术要点 12.2。</p>
+
+<p>为了在我们的例子里得到 <code>Pr[C = 0|L, A]</code> 的参数估计，我们对研究人群中的 1629 名个体拟合了一个"未被删失概率"的 logistic 回归模型。该模型包含与我们此前估计处理权重时相同的协变量。在这些参数化限制之下，我们得到了 <code>Pr<sup>c</sup>[C = 0|L, A]</code> 的估计值，以及 1566 名未删失个体各自的 <code>SW<sup>C</sup></code> 估计值。用稳定化权重 <code>SW<sup>A,C</sup> = SW<sup>A</sup> × SW<sup>C</sup></code>，我们估计出戒烟平均使体重增加 <code>θ̂<sub>1</sub> = 3.5</code> 千克（95% 置信区间：2.5, 4.5）。这与此前仅用 IP 权重 <code>SW<sup>A</sup></code> 得到的估计几乎相同，这提示：要么删失造成的选择偏倚确实不存在，要么我们测量的协变量无法消除它。</p>
+
+<p>现在我们描述一种 IP 加权之外的替代方案，用于调整混杂与选择偏倚：标准化。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 12.7。估计出的 IP 权重 <code>SW<sup>A,C</sup></code> 取值从 0.35 到 4.09，均值为 1.00。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 12.2　再谈稳定化权重</span>
+<p>稳定化权重 <code>SW<sup>A</sup> = g[A]/f[A|L]</code>，其中 <code>g[A]</code> 是任何不作为 <code>L</code> 的函数的 <code>A</code> 的函数。使用非饱和结构模型时，应优先选用权重 <code>g[A]/f[A|L]</code> 而非 <code>1/f[A|L]</code>，因为存在函数 <code>g[A]</code>（常常 <code>f[A]</code> 就是这样一个函数），使得因果效应的估计更加有效。</p>
+<p>虽然带权重 <code>g[A]/f[A|L]</code> 的 IP 加权均值 <code>E{ g(A) I(A = a)Y / f(A|L) }</code> 在可交换性与可阳性性之下不再等于反事实均值 <code>E[Y<sup>a</sup>]</code>，但带权重 <code>g[A]/f[A|L]</code> 的 IP 加权均值的 Hajek 版本 <code>E{ g(A) I(A = a)Y / f(A|L) } / E{ g(A) I(A = a) / f(A|L) }</code> 确实等于 <code>E[Y<sup>a</sup>]</code>，因为 <code>E{ g(A) I(A = a) / f(A|L) } = g(a)</code>。Hajek 均值正是方程 <code>E{ g[A]/f[A|L] (Y − u) } = 0</code> 的解 <code>u</code>。同理，在最简单的边际结构模型 <code>E[Y<sup>a</sup>] = β<sub>0</sub> + β<sub>1</sub>a</code> 中，以 <code>g[A]/f[A|L]</code> 为权重的加权最小二乘估计 <code>β̂<sub>0</sub></code>、<code>β̂<sub>1</sub></code> 求解的是估计方程 <code>E{ g[A]/f[A|L] [Y − (β<sub>0</sub> + β<sub>1</sub>A)] } = 0</code>。<code>E[Y<sup>0</sup>]</code> 的估计 <code>β̂<sub>0</sub></code> 与 <code>E[Y<sup>1</sup>]</code> 的估计 <code>β̂<sub>0</sub> + β̂<sub>1</sub></code>，正是那个把期望换成样本平均之后的加权均值的 Hajek 版本。最后，按技术要点 2.2 的方式可以论证：在用权重 <code>g[A]/f[A|L]</code> 造出的伪人群中，给定 <code>A = a</code> 时 <code>Y</code> 的均值仍等于 <code>E[Y<sup>a</sup>]</code>。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 8（删失加权 vs. 完整病例分析 vs. 多重插补）</strong>：本节讲的 <code>SW<sup>C</sup> = Pr[C = 0|A]/Pr[C = 0|L, A]</code> 属于删失的逆概率加权（IPCW，Hirano–Imbens 会在下一节登场）。它与国内更常见的两类做法需要辨析清楚：<strong>完整病例分析</strong>（listwise deletion，即本节所说的"只取 <code>C = 0</code>"）在 <code>C</code> 依赖未观测因素时无法得到无偏估计，本节的 76.6 对 70.8 千克正说明了这一点；<strong>多重插补</strong>则相反，它通过建模把缺失的结局补出来，对 MAR（与已观测协变量和缺失机制相关）情形有效，但插补本身并不能纠正"只有某类人才会被删失"所带来的<em>目标人群</em>问题——插补出来的值再准，也是在错误的人群里插的（这一点常被误解为"只要用多重插补就不用担心选择偏倚"）。IPCW 与多重插补在 MAR 下目标一致、可以互相印证，但 IPCW 不需要对结局回归模型作线性或正态假定，代价是它对 <code>Pr[C = 0|L, A]</code> 的模型设定更敏感。在中国的队列研究里（例如体检人群随访、医保数据库随访、慢病管理项目随访），把删失权重与稳定化权重合起来报告（像本章 <code>SW<sup>A,C</sup></code> 从 0.35 到 4.09 那样给出范围）应当成为常规做法，因为失访者的特征往往高度集中于少数几类人，只报告 1566 人的结果而不报告这 63 人为什么掉出去，审稿时很难过关。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

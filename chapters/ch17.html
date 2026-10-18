@@ -3,32 +3,321 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 17 章 · 因果生存分析 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 17 章 · 因果生存分析 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 17 章 · 因果生存分析</h1>
-<p class="muted">第二部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第二部分 · 基于模型的因果推断 · Part II — Causal inference with models</p>
+  <h1>第 17 章 · 因果生存分析</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 17. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">前面各章关心的因果问题，都围绕处理对某个<em>时点</em>上结局的影响：比如我们估计过戒烟对 1982 年体重增加的影响。但很多因果问题问的是另一回事——处理对"某件事发生所需时间"的影响。比如，我们可能想估计戒烟对死亡时间的影响，无论死亡何时发生。这就是一项生存分析。"生存"这个词并不意味着感兴趣的事件一定是死亡。"生存分析"或等价的"失效时间分析"适用于任何关于"到事件发生的时间"的分析，事件可以是死亡、结婚、入狱、患癌、流感感染，等等。生存分析需要一些专门的考量与技术，因为很多个体的失效时间发生在研究结束之后，因而是未知的。本章在处理为时不变的简化设定下，勾勒出生存分析的基本技术。</p>
+
+<h2 id="s-17-1">17.1 风险与发生率</h2>
+
+<p>假设我们要估计戒烟 <code>A</code>（1：是，0：否）对死亡时间 <code>T</code> 的平均因果效应，时间从随访起点算起。这就是一项生存分析：结局是到某个感兴趣事件的时间，而该事件可能在随访开始后的任意时刻发生。在大多数随访研究中，感兴趣的事件并不会在研究的所有人身上被观察到，甚至不会在研究的大多数人身上被观察到。原因是这样的：大多数随访研究都有一个日期，过了这个日期，关于任何个体都不再有信息，也就是随访的行政结束（administrative end of follow-up）。行政结束之后，没有更多数据可用。凡是在行政结束之前没有发生感兴趣事件的人，其生存时间被<strong>行政删失</strong>（administratively censored）：我们知道他在行政结束之后还活着，但不知道还能活多久。举例来说，假设我们在 NHEFS 中 1629 名基线年龄在 25 至 74 岁、并且活到 1982 年的香烟吸烟者中做上述生存分析。对所有人来说，随访起点是 1983 年 1 月 1 日，随访的行政结束是 1992 年 12 月 31 日。我们把行政删失时间定义为行政结束日期与随访开始日期之差。在我们的例子里，这个时间对所有人都是同一个值——120 个月——因为随访起点和行政结束对每个人都一样。在 1629 人中，只有 318 人在 1992 年结束前死亡，因此其余 1311 人的生存时间被行政删失了。</p>
+
+<p><span class="box-label">边注</span>　在有错位入组（staggered entry，即随访起始日期各不相同）的研究里，即使行政结束日期对所有人相同，不同个体的行政删失时间也会不同。</p>
+
+<p>行政删失是生存分析内在的问题——一项关于戒烟与死亡的研究几乎不可能、也几乎从不把一群人一直随访到全部死绝。但行政删失并不是生存分析中可能出现的唯一一种删失。和任何其他因果分析一样，生存分析还必须处理非行政类型的删失，比如失访（例如退出研究）与竞争事件（见精细辨析 17.1）。在前面几章里，我们讨论过如何用标准化或 IP 加权来调整非行政删失引入的选择偏倚。同样的一套办法也能用进生存分析。因此本章把注意力放在行政删失上。对非行政删失更详细的讨论我们推迟到第三部分，因为非行政删失一般是一个时变过程，而行政删失的时间在基线就固定了。</p>
+
+<p><span class="box-label">边注</span>　为简化起见，我们假定任何没有确认死亡的人都在随访期内存活了下来。现实中有些人可能已经死亡，但取得确认（例如通过死亡证明或向家属询问）并不可行。同样出于简化目的，我们在此忽略精细辨析 12.1 描述的那个问题。</p>
+
+<p>在我们的例子里，死亡发生的月份 <code>T</code> 可以取 1（1983 年 1 月）到 120（1992 年 12 月）之间的值。对随访期间死亡的 102 名已处理者（<code>A = 1</code>）和 216 名未处理者（<code>A = 0</code>），<code>T</code> 是已知的；对其余 1311 人，<code>T</code> 被行政删失（也就是说，我们只知道它大于 120 个月）。因此我们没法像前面几章处理感兴趣结局那样，去计算平均生存时间 <code>E[T]</code>。在生存分析中，我们需要用另外一些能够容纳行政删失的度量。下面定义这些量，它们都是生存时间 <code>T</code> 的函数。</p>
+
+<p>生存概率 <code>Pr[T &gt; k]</code>，也就是第 <code>k</code> 个月的生存率，是指存活过了时间 <code>k</code> 的个体所占的比例。如果我们逐月计算生存率直到随访的行政结束 <code>k</code><sub>end</sub> = 120，并把它沿一条水平时间轴画出来，就得到了<strong>生存曲线</strong>。生存曲线从 <code>k = 0</code> 处的 <code>Pr[T &gt; 0] = 1</code> 出发，随后随着 <code>k</code> 取 1、2、…、<code>k</code><sub>end</sub> 而单调下降——也就是说，它不会上升。另一种办法是把时点 <code>k</code> 处的<strong>风险</strong>（risk，也叫累积发病率，cumulative incidence）定义为 1 减去生存率，即 <code>1 − Pr[T &gt; k] = Pr[T ≤ k]</code>。累积发病率曲线从 <code>Pr[T ≤ 0] = 0</code> 出发，在随访期间单调上升。</p>
+
+<p><span class="box-label">边注</span>　还能从生存曲线导出其他效应度量，例如损失生命年（years of life lost）与限制平均生存时间（restricted mean survival time）。</p>
+
+<p>在生存分析中，量化处理效应的一个自然做法，是在某个或所有时点 <code>k</code> 上比较各个处理水平下的生存率或风险。当然，在我们的戒烟例子里，这些曲线的对比未必有因果解释，因为已处理者与未处理者很可能不可交换。不过我们先姑且假定（实际上这个假定一直撑到 17.4 节）戒烟者（<code>A = 1</code>）与未戒烟者（<code>A = 0</code>）是边际可交换的。这样我们就可以构造出图 17.1 中的生存曲线，并在所有时点 <code>k</code> 上比较 <code>Pr[T &gt; k|A = 1]</code> 与 <code>Pr[T &gt; k|A = 0]</code>。举例来说，戒烟者在 120 个月时的生存率为 76.2%，未戒烟者为 82.0%。我们也可以对比风险而不是生存率：戒烟者在 120 个月时的风险为 23.8%，未戒烟者为 18.0%。</p>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_1.png" alt="图 17.1：戒烟者与未戒烟者的 Kaplan-Meier 生存曲线">
+<figcaption><strong>图 17.1</strong>　戒烟者（<code>A = 1</code>，虚线）与未戒烟者（<code>A = 0</code>，实线）的生存曲线，纵轴为生存概率、横轴为随访月数，曲线由 Kaplan-Meier 估计量构造。120 个月处两条曲线分别为 76.2% 与 82.0%。两条曲线全程不交叉，但这一差异尚不能作因果解读。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　代码：Program 17.1。一项比较生存曲线的常规统计检验（log-rank 检验）给出的 P 值 = 0.005。</p>
+
+<p>在任意时点 <code>k</code> 上，我们还可以计算：在那些此前尚未发生该事件的人当中，在区间 <code>k</code> 内发生该事件的比例。这就是<strong>风率</strong>（hazard）<code>Pr[T = k|T &gt; k − 1]</code>。严格地说，这是离散时间风率，即在时间以离散区间（而非连续方式）计量的研究中的风率。由于现实世界的研究中，时间确实是按离散区间（年、月、周、天……）而非真正连续的方式计量的，本书就把离散时间风率简称为风率。</p>
+
+<p>风险与风率是两个不同的度量。风险的分母——基线时的个体数——在各个时点 <code>k</code> 上保持不变，而它的分子——基线到 <code>k</code> 之间的全部事件——是累积的。也就是说，风险会随 <code>k</code> 增大而保持不变或上升。另一方面，风率的分母——时点 <code>k</code> 时仍存活的个体数——随时间变化，而它的分子只包含近期的事件，也就是区间 <code>k</code> 内发生的事件。也就是说，风率可能随时间上升或下降。在我们的例子里，戒烟者在 120 个月处的风率为 0%（因为这一组最后一次死亡发生在第 113 个月），未戒烟者为 1/986 = 0.10%；而 0 到 120 个月之间的风率曲线大致呈字母 M 的形状。</p>
+
+<p>生存分析中量化处理效应的一个常用做法，是估计已处理者与未处理者的风率之比，即所谓的<strong>风率比</strong>（hazard ratio）。然而，出于精细辨析 17.2 所述的理由，风率比是有问题的。因此，本书的生存分析更看重生存率与风险，而不是风率。但这并不意味着我们应当完全无视风率：估计风率常常是估计生存率与风险的一个有用的中间步骤。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 17.1　竞争事件</span>
+<p>如 8.5 节所述，竞争事件（competing event）是指阻止感兴趣事件（比如脑卒中）发生的事件（通常是死亡）：因其他原因（比如癌症）死亡的人永远不会得脑卒中。在生存分析中，关键的抉择是：要不要把竞争事件当作一种非行政删失来看待。</p>
 <ul>
-<li>阅读<a href="chch16.html">上一章</a>与<a href="chch18.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li><strong>如果把竞争事件视为删失事件</strong>，那么这项分析实际上是在试图模拟这样一个人群——在那里，因其他原因死亡要么被消除，要么被弄成与脑卒中的危险因素无关。这样得到的效应估计很难解释，也可能不对应任何一个有意义的估计目标（见第 8 章）。此外，这种删失可能在零假设下引入选择偏倚，而要消除它就必须用感兴趣事件的已测危险因素数据作调整（例如用 IP 加权）。</li>
+<li><strong>如果不把竞争事件视为删失事件</strong>，那么这项分析实际上是把"到事件的时间"设为无穷大。也就是说，死亡的人被视为在死亡时刻到随访行政结束之间患脑卒中的概率为零。处理对脑卒中效应的估计很难解释，因为一个非零的估计可能来自处理对死亡的直接效应——死亡会阻止脑卒中的发生。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>17.1 Hazards and risks</li>
-    <li>17.2 From hazards to risks</li>
-    <li>17.3 Why censoring matters</li>
-    <li>17.4 IP weighting of marginal structural models</li>
-    <li>17.5 The parametric g-formula</li>
-    <li>17.6 G-estimation of structural nested models</li></ul>
-</div>
+<p>处理竞争事件的另一种办法，是构造一个同时包含竞争事件与感兴趣事件的复合事件（比如"死亡或脑卒中"），然后对复合事件做生存分析。这个做法实际上是消除了竞争事件，但它从根本上改变了因果问题。同样地，所得的效应估计很难解释，因为一个非零估计既可能来自处理对脑卒中的效应，也可能来自处理对死亡的效应。还有一种办法，是把推断限制在这样一类人身上：无论他们收到哪个水平的处理，都不会死亡。这正是第 16 章定义的某种局部平均效应所针对的对象，而这会让解释与有效估计都变得格外困难。</p>
+<p>上面这些策略没有一种能为竞争事件问题提供令人满意的解法。事实上，竞争事件的存在引出了关于因果估计目标含义的逻辑问题，而这些问题无法靠统计技术绕过去。关于处理竞争事件的各种做法及其挑战，Young 等（2019）有较详细的论述。较近的 Stensrud 等（2020，2021）提出了一条基于可分离效应（separable effects）的路径，该概念见技术要点 23.3。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（术语：hazard 在中文文献里的译名之争）</strong>：中文生存分析文献里 hazard 的译法相当混乱：孙振元《生存分析》、Gerhard 与 Dhzl《生存分析——删失数据的统计方法》把它译作"风险率"或"危险率"，临床研究文献多译"风险比"或"HR"，也有直接保留英文的。本书按字面译为"风率"，是取 hazard 本义（"不幸事件发生的瞬时速率"），以免与 risk（风险）混淆。国内写作时若沿用"风险率"，务必在首次出现处注明它指 hazard 而非 risk。同理，本书把 risk 译作"风险"、把 cumulative incidence 译作"累积发病率"，而不像部分国内教材那样把两者混用——本章 17.2 节的全部技术恰恰建立在"风险 ≠ 风率"这个区分上。</p>
+</aside>
+
+<h2 id="s-17-2">17.2 从发生率到风险</h2>
+
+<p>在生存分析中，整理分析数据集主要有两种办法。第一种安排下，数据库的每一行对应一个人。当存在时变处理与时变混杂因素时，这种数据格式常被称为"宽"（wide）格式，这也是本书到目前为止一直使用的格式。在上一小节的分析中，数据集有 1629 行，每人一行。</p>
+
+<p>第二种安排下，数据库的每一行对应一个"人-时"。也就是说，第一行是 1 号在 <code>k = 0</code> 时的信息，第二行是 1 号在 <code>k = 1</code> 时的信息，第三行是 1 号在 <code>k = 2</code> 时的信息，如此下去直到 1 号的随访结束；下一行则是 2 号在 <code>k = 0</code> 时的信息，以此类推。这种人-时（person-time，也叫"长"long）数据格式，是本章大多数生存分析以及第三部分所有时变处理分析将要使用的格式。在我们的戒烟例子里，人-时数据集有 176764 行，每行一个人-月。</p>
+
+<p>为了在人-时数据格式中编码到 <code>k</code> 为止的生存信息，定义一个时变的事件指示变量 <code>D<sub>k</sub></code> 会很方便。对每个人、在每个月 <code>k</code> 上，指示变量 <code>D<sub>k</sub></code> 在 <code>T ≤ k</code> 时取 1，在 <code>T &gt; k</code> 时取 0。图 17.2 的因果图画出了处理 <code>A</code> 与时点 1、2 的事件指示变量 <code>D<sub>1</sub></code> 与 <code>D<sub>2</sub></code>。变量 <code>U</code> 表示那些（一般未测量的）提高对感兴趣事件易感的因素。注意这些易感因素有时也是时变的；那时它们可以在因果图中画成 <code>U<sub>0</sub></code>、<code>U<sub>1</sub></code> 等等。第三部分讨论处理本身为时变的情形。</p>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_2.png" alt="图 17.2：处理 A、未测易感因素 U 与两个时点的事件指示变量 D1、D2 的因果图">
+<figcaption><strong>图 17.2</strong>　因果图：处理 <code>A</code> 指向事件指示变量 <code>D<sub>1</sub></code> 与 <code>D<sub>2</sub></code>；未测的易感因素 <code>U</code> 同时指向 <code>A</code>、<code>D<sub>1</sub></code> 与 <code>D<sub>2</sub></code>。易感因素 <code>U</code> 一般不可测量，这是本章必须借助模型的原因之一。</figcaption></figure>
+
+<p>在人-时数据格式中，某个个体在时点 <code>k</code> 的那一行包含指示变量 <code>D<sub>k+1</sub></code>。在我们的例子里，人-时数据集的第一行（1 号在 <code>k = 0</code>）包含指示变量 <code>D<sub>1</sub></code>，它在 1 号死于第 1 个月时为 1，否则为 0；第二行（1 号在 <code>k = 1</code>）包含 <code>D<sub>2</sub></code>，在 1 号死于第 2 个月时为 1，否则为 0；如此类推。数据集中每个个体的最后一行，要么是她第一个满足 <code>D<sub>k+1</sub></code> = 1 的行，要么是对应第 119 个月的那一行。</p>
+
+<p><span class="box-label">边注</span>　按定义，每个人都必须活过第 0 个月才可能被纳入数据集，即对所有人都有 <code>D<sub>0</sub></code> = 0。</p>
+
+<p>借助时变结局变量 <code>D<sub>k</sub></code>，我们可以把 <code>k</code> 处的生存率定义为 <code>Pr[D<sub>k</sub> = 0]</code>，它等于 <code>Pr[T &gt; k]</code>；把 <code>k</code> 处的风险定义为 <code>Pr[D<sub>k</sub> = 1]</code>，它等于 <code>Pr[T ≤ k]</code>。<code>k</code> 处的风率定义为 <code>Pr[D<sub>k</sub> = 1|D<sub>k−1</sub> = 0]</code>。对 <code>k = 1</code>，风率等于风险，因为按定义所有人在 <code>k = 0</code> 时都还活着。</p>
+
+<p><code>k</code> 处的生存概率，等于从 0 到 <code>k</code> 之间每一个区间的条件生存概率之积。举例来说，<code>k = 2</code> 处的生存率 <code>Pr[D<sub>2</sub> = 0]</code>，等于 <code>k = 1</code> 处的生存率 <code>Pr[D<sub>1</sub> = 0]</code> 乘以"在 <code>k = 1</code> 处已存活的条件下 <code>k = 2</code> 处的生存率" <code>Pr[D<sub>2</sub> = 0|D<sub>1</sub> = 0]</code>。更一般地，<code>k</code> 处的生存率是</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k</sub> = 0] = ∏<sub>m=1</sub><sup>k</sup> Pr[D<sub>m</sub> = 0|D<sub>m−1</sub> = 0]</code></div>
+
+<p>也就是说，<code>k</code> 处的生存率等于此前所有时点上"1 减去风率"之积。如果我们知道了到 <code>k</code> 为止的风率，就能轻松算出 <code>k</code> 处的生存率（或者风险，它只是 1 减去生存率）。</p>
+
+<p><code>k</code> 处的风率 <code>Pr[D<sub>k</sub> = 1|D<sub>k−1</sub> = 0]</code>，可以用区间 <code>k</code> 内发生的病例数除以区间 <code>k − 1</code> 结束时仍存活的个体数，非参数地估计出来。把这个估计代进上面的公式，得到的 <code>k</code> 处生存率 <code>Pr[D<sub>k</sub> = 0]</code> 的非参数估计，就称为 <strong>Kaplan-Meier 估计量</strong>，也叫乘积极限（product-limit）估计量。</p>
+
+<p><span class="box-label">边注</span>　在人-时数据结构中，虽然每个人在数据里占据多行，但只要风率模型设定正确，常规模性回归程序输出的参数估计的标准误就是正确的。</p>
+
+<p>图 17.1 就是用 Kaplan-Meier 估计量构造的。只要整个随访期内的失效总数足够大，它是生存曲线的一个很好的估计量。通常每个区间内的病例数很少（甚至为零），因此 <code>k</code> 处风率 <code>Pr[D<sub>k</sub> = 1|D<sub>k−1</sub> = 0]</code> 的非参数估计会非常不稳定。如果我们感兴趣的是某个特定 <code>k</code> 处的风率估计，就需要借助参数模型做平滑（见第 11 章与精细辨析 17.3）。</p>
+
+<p>参数化估计风率的一个简单办法，是为 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0]</code> 拟合一个 logistic 回归模型，该模型在每个 <code>k</code> 上只限于存活过 <code>k</code> 的个体。使用人-时数据格式时，这个模型的拟合很直接。在我们的例子里，我们可以为 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A]</code> 拟合如下 logistic 模型来估计已处理与未处理者的风率：</p>
+
+<div class="eqn" style="text-align:center"><code>logit Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] = θ<sub>0,k</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A × k + θ<sub>3</sub>A × k<sup>2</sup></code></div>
+
+<p>其中 <code>θ<sub>0,k</sub></code> 是一个时变截距，可以用时间的某个灵活函数估计，比如 <code>θ<sub>0,k</sub> = θ<sub>0</sub> + θ<sub>4</sub>k + θ<sub>5</sub>k<sup>2</sup></code>。这个灵活的时变截距允许风率随时间变化，而处理 <code>A</code> 与时间的乘积项（<code>θ<sub>2</sub>A × k + θ<sub>3</sub>A × k<sup>2</sup></code>）则允许风率比随时间变化。至于 logistic 模型如何逼近风率模型，技术要点 17.1 有细节说明。除了 logit 之外的其他函数（比如 probit）同样可以用来建模二值结局，从而估计风率。</p>
+
+<p>接下来，我们把"1 减去 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A = a]</code> 的估计值"逐期相乘，分别对已处理者与未处理者求出生存 <code>Pr[D<sub>k+1</sub> = 0|A = a]</code> 的估计值。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 17.2。</p>
+
+<p>图 17.4 展示的就是参数化估计风率之后得到的生存曲线。这些曲线是图 17.1 中那些曲线的一个平滑版本。</p>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_4.png" alt="图 17.4：参数化估计风率后得到的生存曲线">
+<figcaption><strong>图 17.4</strong>　参数化估计风率后得到的生存曲线：戒烟者（<code>A = 1</code>，虚线）与未戒烟者（<code>A = 0</code>，实线）。与图 17.1 相比，两条曲线都更平滑，并且在随访的多数时段里差距更大。</figcaption></figure>
+
+<p>这套程序的有效性要求风率模型没有错设。在我们的例子里，这个假定似乎站得住，因为用完全非参数的方式估计生存率时，我们得到的估计值与这里基本相同。生存估计的 95% 置信区间可以通过对人群中的个体做自助抽样（bootstrapping）轻松构造出来。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 17.2　风率比的风险</span>
+<p>把风率比当作因果效应的度量来使用时，有两条风率比的重要性质需要纳入考虑。</p>
+<p><strong>第一</strong>，因为风率随时间变化，风率比一般也随之变化。也就是说，时点 <code>k</code> 的比值可以不同于时点 <code>k + 1</code> 的比值。然而大量已发表的生存分析只报告一个风率比，这通常是拟合了 Cox 比例风率模型的结果——该模型通过忽略与时间的交互作用而假定风率比恒定。所报告的风率比是各个 <code>k</code> 对应的风率比的加权平均，因此很难解释。如果风险是罕见的、且删失只发生在一个共同的行政删失时点 <code>k</code><sub>end</sub>，那么时点 <code>k</code> 的风率比所占的权重，正比于未处理个体中发生在 <code>k</code> 的事件总数（严格地说，这些权重等于在 <code>A = 0</code> 且 <code>T &lt; k<sub>end</sub></code> 条件下 <code>T</code> 在 <code>k</code> 处的条件密度）。正因为它是加权平均，即使两条生存曲线并不相同，所报告的风率比也可能等于 1。与"那个"风率比不同，生存概率与风险的比值与差值是相对于一段固定的时间区间来定义的，比如 5 年生存率差、120 个月风险比。</p>
+<p><strong>第二</strong>，即便我们给出时点特异的风率比，它们的因果解释也依然不直白。假设处理在时点 <code>k</code> 之前杀死了所有高风险个体，而对其他人毫无影响。那么时点 <code>k + 1</code> 的风率比，比较的正是存活过 <code>k</code> 的已处理个体与未处理个体。在已处理组里，存活下来的全是低风险个体（因为高风险的那批已经被处理杀掉了）；在未处理组里，存活下来的是高风险与低风险个体的混合（因为处理没有把前者筛掉）。结果是，时点 <code>k + 1</code> 的风率比会小于 1，尽管处理对任何个体都没有好处。</p>
+<p>这个表面的悖论，是条件于一个受处理影响的处理后变量（即"在 <code>k</code> 时还活着"）所导致的选择偏倚的一个例子。举例来说，时点 2 的风率比就是在存活过时点 1 的人当中时点 2 发生事件的概率 <code>Pr[D<sub>2</sub> = 1|D<sub>1</sub> = 0, A]</code>。如图 17.3 的因果图所示，条件于碰撞因子 <code>D<sub>1</sub></code> 一般会打开路径 <code>A → D<sub>1</sub></code> ← <code>U</code> → <code>D<sub>2</sub></code>，从而在 <code>D<sub>1</sub></code> = 0 的人群中诱导出处理 <code>A</code> 与事件 <code>D<sub>2</sub></code> 之间的关联。如果已处理组与未处理组的生存曲线相同——也就是从 <code>A</code> 指向事件指示变量没有任何箭头——风率比这种内生性的选择偏倚就不会发生。Hernán（2010）描述过一个这类问题的例子。</p>
+</aside>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_3.png" alt="图 17.3：以方框标出的被条件化的碰撞因子 D1">
+<figcaption><strong>图 17.3</strong>　图 17.2 中的同一张因果图，但 <code>D<sub>1</sub></code> 被画成方框，表示它是分析中被条件化的碰撞因子。条件于 <code>D<sub>1</sub></code> 打开了路径 <code>A → D<sub>1</sub></code> ← <code>U</code> → <code>D<sub>2</sub></code>，这正是风率比无法直接作因果解释的根源。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 17.3　生存分析的模型族</span>
+<p>生存分析的方法必须能够容纳失效时间因随访行政结束而被删失这一预期内的事实。</p>
+<p>生存分析的非参数方法（比如构造 Kaplan-Meier 曲线）对那些因行政删失而未观测到的失效时间的分布不作任何假设。另一方面，参数化的生存分析模型则假定失效时间或风率服从某个特定的统计分布（比如指数分布、Weibull 分布）。正文中用来估计风率的 logistic 模型就是参数模型的一个例子。</p>
+<p>另一些生存分析模型，比如 Cox 比例风率模型与加速失效时间（AFT）模型，并不对失效时间或风率假定任何特定分布。特别地，这些模型对"模型中所有协变量都取 0 值时的风率形状"（常称基线风率，baseline hazard）保持无知。但它们会先验地施加限制，规定基线风率与其他协变量取值组合下的风率之间是何关系。因此这类方法被称为半参数方法。</p>
+<p>应用性生存分析的综述可参见 Hosmer、Lemeshow 与 May（2008）的著作。更形式化的描述见 Fleming 与 Harrington（2005）以及 Kalbfleisch 与 Prentice（2002）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（"由率算风险"这一步在国内教材里的地位，以及它为什么重要）</strong>：本小节的全部技术核心就是一条链式法则：<code>Pr[D<sub>k</sub> = 0] = ∏<sub>m=1</sub><sup>k</sup> Pr[D<sub>m</sub> = 0|D<sub>m−1</sub> = 0]</code>。国内生存分析教材（孙振元、Gerhard &amp; Dhzl、李康等）一般把这条链式法则放在介绍 KM 估计量的那一节里顺带提一句，然后就直接进入乘积极限估计量的公式推导，很少强调它的因果含义。在本书里，这一步之所以重要，是因为它把"可由观测数据估计的风率"和"真正想要的因果量（生存率、风险）"分开：风率是可以在人-时数据里用 logistic 回归直接拟合的中间产物，而风险必须靠逐期连乘还原。用因果的语言说，风率比可以由 logistic 回归的系数近似得到（技术要点 17.1），但<strong>风险比不能</strong>——这是本章最重要的技术区分，也是本书在第 13 章讲完标准化之后特意在生存分析语境里再讲一遍的原因。</p>
+<p><strong>译注 3（离散时间 logistic 风率模型与 Stata 的 <code>stset</code>）</strong>：正文这个"按 <code>k</code> 逐期拟合 logistic 风率模型"的做法，就是统计学上所谓的分组生存分析（grouped / discrete-time survival analysis）。在国内医学文献里它以另一种面目出现：先把随访人时按人月（或人年）切片，每一片段内死亡记为 1、删失记为 0，再跑 logistic 回归。国内读者在 Stata 上最接近的实现是 <code>stset</code> + <code>streg</code> 的离散时间版本（<code>streg, d</code> 之后的 logistic 链接），或干脆用 <code>glm</code> 配人时偏移；R 里对应 <code>survival::survSplit</code> 加 <code>glm(family = binomial)</code>。技术要点 17.1 给出的"风率 <code>&lt; 0.1</code> 时 logistic 系数 ≈ 对数风率比"这一近似，是这条路线的合法性依据——只要把时间单位切得足够细（死亡事件稀疏时按天甚至按小时切），这个近似就几乎总是成立，代价是人-时数据集的行数暴增。本章的例子里 1629 人展开成 176764 人-月，就是这个代价的具体数字。</p>
+</aside>
+
+<h2 id="s-17-3">17.3 为什么删失很重要</h2>
+
+<p>在我们的研究中，删失的唯一来源是一个对所有人相同的共同行政删失时点 <code>k</code><sub>end</sub> = 120。在这个简单设定下，上一节那套估计生存率的程序是杀鸡用牛刀了。人们只要用"接受了处理 <code>a</code> 且活过 <code>k + 1</code> 的个体所占比例"就能估计生存概率 <code>Pr[D<sub>k+1</sub> = 0|A = a]</code>，或者对 <code>k</code> = 0, 1, …, <code>k</code><sub>end</sub> 分别拟合 <code>Pr[D<sub>k+1</sub> = 0|A]</code> 的 logistic 模型。</p>
+
+<p>现在假设个体在不同的日期开始随访——也就是错位入组——但行政结束日期对所有人仍然相同。由于行政删失时间是行政结束日期减去随访开始时间，不同个体的行政删失时间就会不同。在这种设定下，定义一个"截至时点 <code>k</code> 是否已被删失"的时变指示变量 <code>C<sub>k</sub></code> 会很方便。对每个人、在每个月 <code>k</code> 上，<code>C<sub>k</sub></code> 在行政结束晚于 <code>k</code> 时取 0，否则取 1。在人-时数据格式中，某个个体在时点 <code>k</code> 的那一行包含指示变量 <code>C<sub>k+1</sub></code>。我们没有把这个变量放进数据集，因为在 120 个月之前的所有时点 <code>k</code> 上，对所有个体都有 <code>C<sub>k+1</sub></code> = 0。在更一般的、随机的（即个体特异的）行政删失情形下，<code>C<sub>k+1</sub></code> 会在不同的时点 <code>k</code> 上、对不同的人从 0 变成 1。</p>
+
+<p>我们的目标是估计这样一条生存曲线：如果没有人在 <code>k</code><sub>end</sub>（研究中的最大行政删失时点）之前被删失，本来会观察到的生存曲线。也就是说，我们要估计的生存率 <code>Pr[D<sub>k</sub> = 0|A = a]</code>，是"假如时变指示变量 <code>D<sub>k</sub></code> 在删失之后也是已知的"情况下本来会观察到的那个值。技术上的说法是 <code>Pr<sup>c=0</sup>[D<sub>k</sub> = 0|A = a]</code>，其中 <code>c</code> 是由各个时点的删失指示变量组成的向量 <code>c = (c<sub>1</sub>, c<sub>2</sub>, …)</code>，其最后一个分量对应最大行政删失时点 <code>k<sub>end</sub></code>。如第 12 章所述，加上上标 <code>c = 0</code> 是为了把我们心里想的那个量明确写出来。在不会引起混淆的情况下，我们有时会省略上标 <code>c = 0</code>。为简化起见，假设随访的开始时间就好像是随机分配给每个个体的——如果任何变量都没有随日历时间变化的长期趋势，这一点就会成立。这样，行政删失时间、因而指示变量 <code>C</code>，就同时独立于处理与死亡时间。</p>
+
+<p>我们无法通过简单地计算"接受了处理水平 <code>a</code>、存活且未被删失直到 <code>k</code> 的个体比例"，来有效地估计时点 <code>k</code> 的生存率 <code>Pr[D<sub>k</sub> = 0|A = a]</code>。这个比例是联合概率 <code>Pr[C<sub>k+1</sub> = 0, D<sub>k+1</sub> = 0|A = a]</code> 的有效估计量，而那不是我们想要的东西。为看清这一点，考虑一个 <code>k</code><sub>end</sub> = 2 的研究，其中发生如下情形：</p>
+
+<ul>
+<li><code>Pr[C<sub>1</sub> = 0]</code> = 1，即到 <code>k = 1</code> 时没有一个人被删失；</li>
+<li><code>Pr[D<sub>1</sub> = 0|C<sub>0</sub> = 0]</code> = 0.9，即 90% 的个体存活过 <code>k = 1</code>；</li>
+<li><code>Pr[C<sub>2</sub> = 0|D<sub>1</sub> = 0, C<sub>1</sub> = 0]</code> = 0.5，即存活者中随机的一半在 <code>k = 2</code> 前被删失；</li>
+<li><code>Pr[D<sub>2</sub> = 0|C<sub>2</sub> = 0, D<sub>1</sub> = 0, C<sub>1</sub> = 0]</code> = 0.9，即剩余个体中 90% 存活过 <code>k = 2</code>。</li>
+</ul>
+
+<p>在 <code>k = 2</code> 处，未被删失的存活者所占比例为 1 × 0.9 × 0.5 × 0.9 = 0.405。然而，假如没有人被删失，即 <code>Pr[C<sub>2</sub> = 0|D<sub>1</sub> = 0, C<sub>1</sub> = 0]</code> = 1，生存率本应是 1 × 0.9 × 1 × 0.9 = 0.81。这个例子说明，要正确估计生存率 <code>Pr[D<sub>k</sub> = 0|A = a]</code>，就必须使用上一节描述的那套程序。具体来说，在（仿佛）删失随机分配的假定下，时点 <code>k</code> 处的生存率 <code>Pr[D<sub>k</sub> = 0|A = a]</code> 是</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k</sub> = 0|A = a] = ∏<sub>m=1</sub><sup>k</sup> Pr[D<sub>m</sub> = 0|D<sub>m−1</sub> = 0, C<sub>m</sub> = 0, A = a]</code>，其中 k &lt; k<sub>end</sub></div>
+
+<p>估计程序与前面描述的相同，区别只在于我们要么使用<strong>原因别风率</strong>（cause-specific hazard）<code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, C<sub>k+1</sub> = 0, A = a]</code> 的非参数估计，要么为它拟合一个 logistic 模型。</p>
+
+<p>我们往往并不愿意假定删失是仿佛随机分配的。当存在错位入组时，个体的行政删失时间取决于入组时的日历时间（越晚入组，<code>k</code><sub>end</sub> 的取值越短），而日历时间本身又可能与结局有关。因此上面的程序需要针对基线日历时间作调整。此外，还可能存在其他基线预后因素在已处理者（<code>A = 1</code>）与未处理者（<code>A = 0</code>）之间分布不均，这也需要调整。接下来两节会用 g 方法把上述程序扩展为能够纳入对基线混杂因素的调整。在第三部分，我们会把程序扩展到处理与混杂因素都是时变的情形。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 17.1　用 logistic 模型逼近风率比</span>
+<p>在风率模型 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] = Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A = 0] × exp(α<sub>1</sub>A)</code> 中，离散时间的风率比 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A = 1] / Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A = 0]</code> 在所有时点 <code>k + 1</code> 上都是 <code>exp(α<sub>1</sub>)</code>。对方程两边取对数，得到 <code>log Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] = α<sub>0,k</sub> + α<sub>1</sub>A</code>，其中 <code>α<sub>0,k</sub> = log Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A = 0]</code>。</p>
+<p>假设 <code>k + 1</code> 处的风率很小，即 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] ≈ 0</code>。那么 1 减去 <code>k + 1</code> 处的风率接近 1，风率近似等于比值（odds）：<code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] ≈ Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] / Pr[D<sub>k+1</sub> = 0|D<sub>k</sub> = 0, A]</code>。于是我们有</p>
+<div class="eqn" style="text-align:center"><code>log{ Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] / Pr[D<sub>k+1</sub> = 0|D<sub>k</sub> = 0, A] } = logit Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] ≈ α<sub>0,k</sub> + α<sub>1</sub>A</code></div>
+<p>也就是说，如果 <code>k + 1</code> 处的风率接近 0，我们就可以在对数尺度上用 logistic 模型 <code>logit Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] = θ<sub>0,k</sub> + θ<sub>1</sub>A</code>（就像正文中用的那个）中的 <code>θ<sub>1</sub></code> 来逼近对数风率比 <code>α<sub>1</sub></code>（Thompson 1977）。作为一条经验法则，当对所有 <code>k</code> 都有 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] &lt; 0.1</code> 时，这个近似通常被认为足够准确。这个罕见事件条件几乎总能达到：只需把时间单位 <code>k</code> 定义得足够短，使得 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, A] &lt; 0.1</code> 即可。举例来说，如果 <code>D<sub>k</sub></code> 代表肺癌，<code>k</code> 可以按年计量；如果 <code>D<sub>k</sub></code> 代表普通感冒病毒感染，<code>k</code> 可以按天计量。时间单位越短，用于拟合 logistic 模型的人-时数据集行数就越多。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（删失独立假设在国内文献中的普遍忽视）</strong>：本节讲的是生存分析里最容易被跳过、后果却最重的一条假设——删失机制与结局独立（国内文献多含混地称"非信息删失""删失独立"，英文文献里叫 non-informative censoring 或 censoring independent of survival）。它的确切含义是：给定已测协变量后，被删失的概率与结局（此处即死亡时间）的分布无关。本节的例子说明，违背它会把生存率估计值从 0.81 拉到 0.405——偏差幅度超过一半。国内绝大多数生存分析论文在报告 KM 曲线与 log-rank P 值时，从不检验也不讨论这一假设；Stata 常见的做法是用 KM 曲线上"删失标记的个数"大致估计删失比例后就不再追问，而从不把删失机制作为敏感性分析的一个维度（如 IPW 删失权重、Schoenfeld 残差诊断，或最起码的"按删失与否分层"的敏感性分析）。需要提醒的是：<strong>行政删失</strong>（因研究结束而删失）只要大家入组时间一致就自动满足独立性；但<strong>失访删失</strong>（退出、失访、死亡证明拿不到）在中国的多中心研究中几乎从不满足，且往往与预后直接相关——例如 ICU 研究中转出患者的结局缺失、医保数据库里换参保地导致的随访中断。另一个常被忽视的来源是<strong>行政删失时间与日历时间耦合</strong>：像本章 17.3 节末尾指出的那样，即使没有失访，只要入组是错位的、且诊疗水平随年份变化，删失就已经与结局相关了。</p>
+</aside>
+
+<h2 id="s-17-4">17.4 边际结构模型的 IP 加权</h2>
+
+<p>当已处理者与未处理者不可交换时，直接对比他们的生存曲线不能被赋予因果解释。在我们的戒烟例子里，我们估计出 120 个月的生存率在戒烟者中低于未戒烟者（76.2% 对 82.0%），但这并不必然意味着戒烟提高了死亡率。年长的人更可能戒烟，也更可能死亡。这种由年龄造成的混杂让戒烟显得糟糕，因为戒烟者中年长者的比例高于未戒烟者。</p>
+
+<p>我们把 <code>D<sub>k</sub><sup>a,c=0</sup></code> 定义为"在处理水平 <code>a</code> 且无删失的条件下，时点 <code>k</code> 死亡的时变反事实指示变量"。为了记号简便，只要像本章这样清楚目标是估计"无删失情形下的生存率"，我们就写作 <code>D<sub>k</sub><sup>a</sup></code>。为了进一步简化，本章余下部分我们在时点 <code>k</code> 的风率 <code>Pr[D<sub>k+1</sub> = 0|D<sub>k</sub> = 0, L = l, A]</code> 的条件事件中一律略去 <code>C<sub>k</sub> = 0</code>。也就是说，我们把一切都写成仿佛所有个体有一个共同的行政删失时点，就像我们的戒烟例子里那样。</p>
+
+<p>假设我们想比较反事实生存率 <code>Pr[D<sub>k+1</sub><sup>a=1</sup> = 0]</code> 与 <code>Pr[D<sub>k+1</sub><sup>a=0</sup> = 0]</code>——它们分别是在所有人都接受处理（<code>a = 1</code>）和所有人都不接受处理（<code>a = 0</code>）的情形下本来会观察到的生存率。也就是说，我们关心的因果对比是</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k+1</sub><sup>a=1</sup> = 0] vs. Pr[D<sub>k+1</sub><sup>a=0</sup> = 0]</code>，其中 k = 0, 2, …, k<sub>end</sub> − 1</div>
+
+<p>由于存在混杂，这个对比可能无法用我们在前面几节描述的 <code>Pr[D<sub>k+1</sub> = 0|A = 1]</code> 与 <code>Pr[D<sub>k+1</sub> = 0|A = 0]</code> 之差来有效估计。相反，对 <code>a = 1</code> 和 <code>a = 0</code> 的量 <code>Pr[D<sub>k+1</sub><sup>a</sup> = 0]</code> 的有效估计，通常都需要对混杂因素作调整，而调整可以通过若干方法实现。本节聚焦于 IP 加权。我们假定已处理者（<code>A = 1</code>）与未处理者（<code>A = 0</code>）在 <code>L</code> 变量的各层内可交换，如图 17.5 的因果图所表示的。与第 12 至 15 章一样，<code>L</code> 包含性别、年龄、种族、教育程度、吸烟强度与吸烟时长、日常生活中的体力活动、休闲运动以及体重这些变量。我们还假定可阳性性与一致性。IP 加权生存曲线的估计分两步。</p>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_5.png" alt="图 17.5：加入混杂因素 L 之后的因果图">
+<figcaption><strong>图 17.5</strong>　在图 17.2 的基础上加入混杂因素 <code>L</code> 与未测因素 <code>U</code>：<code>L</code> 指向处理 <code>A</code>，也同时指向 <code>D<sub>1</sub></code> 与 <code>D<sub>2</sub></code>，其中 <code>L</code> 表示第 12 章列出的 9 个已测基线协变量向量。本章 17.4 至 17.5 节所依赖的可交换性假定，就是 <code>L</code> 层的条件可交换性。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　代码：Program 17.3。</p>
+
+<p>第一步，我们为研究人群中的每个个体估计稳定化 IP 权重 <code>SW<sup>A</sup></code>。程序与第 12 章描述的完全一样。我们为给定 <code>L</code> 中各变量时接受处理（即戒烟）的条件概率 <code>Pr[A = 1|L]</code> 拟合一个 logistic 模型。估计权重 <code>SW<sup>A</sup></code> 的分母，对已处理个体是 <code>Pr<sup>c</sup>[A = 1|L]</code>，对未处理个体是 1 − <code>Pr<sup>c</sup>[A = 1|L]</code>，其中 <code>Pr<sup>c</sup>[A = 1|L]</code> 是 logistic 模型的预测值。估计权重 <code>SW<sup>A</sup></code> 的分子，对已处理者是 <code>Pr<sup>c</sup>[A = 1]</code>，对未处理者是 1 − <code>Pr<sup>c</sup>[A = 1]</code>；<code>Pr<sup>c</sup>[A = 1]</code> 可以非参数地估计，也可以作为"处理边际概率 <code>Pr[A = 1]</code> 的 logistic 模型"的预测值。关于预测值的细节见第 11 章。</p>
+
+<p>把估计出的权重 <code>SW<sup>A</sup></code> 施加上去，会造出一个伪人群，其中 <code>L</code> 中的变量与处理 <code>A</code> 独立，从而消除了这些变量造成的混杂。在我们的例子里，权重均值为 1（正如预期），取值范围从 0.33 到 4.21。</p>
+
+<p>第二步，使用人-时数据格式，我们拟合一个如前所述的风率模型，只不过个体按其估计的 <code>SW<sup>A</sup></code> 加权。技术上说，这个 IP 加权的 logistic 模型估计的是下面这个<strong>边际结构 logistic 模型</strong>的参数：</p>
+
+<div class="eqn" style="text-align:center"><code>logit Pr[D<sub>k+1</sub><sup>a</sup> = 0|D<sub>k</sub><sup>a</sup> = 0] = β<sub>0,k</sub> + β<sub>1</sub>a + β<sub>2</sub>a × k + β<sub>3</sub>a × k<sup>2</sup></code></div>
+
+<p><span class="box-label">边注</span>　原书此处公式左端印作 <code>D<sub>k+1</sub><sup>a</sup> = 0</code>，但正文明确称之为"时变风率"模型，故左端应为 <code>D<sub>k+1</sub><sup>a</sup> = 1|D<sub>k</sub><sup>a</sup> = 0</code>；这是一个排印错误，读者按风率的定义理解即可。</p>
+
+<p>也就是说，IP 加权模型估计的是这样一组时变风率：如果研究人群中的所有人都接受处理（<code>a = 1</code>）本来会观察到的风率，以及如果他们都不接受处理（<code>a = 0</code>）本来会观察到的时变风率。于是，IP 加权风率模型给出的 <code>Pr[D<sub>k+1</sub><sup>a</sup> = 0|D<sub>k</sub><sup>a</sup> = 0]</code> 的估计值可以逐期相乘（见上一节），得到在处理 <code>a = 1</code> 与无处理 <code>a = 0</code> 下本来会观察到的生存率 <code>Pr[D<sub>k+1</sub><sup>a</sup> = 0]</code> 的估计值。所得曲线见图 17.6。</p>
+
+<p>在我们的例子里，120 个月的生存率估计在戒烟下为 80.7%，在不戒烟下为 80.5%；差值 0.2%（基于 500 次自助抽样的 95% 置信区间为 −4.1% 到 3.7%）。虽然在整个随访的大部分时间里处理下的生存曲线低于无处理下的曲线，但两者的最大差异从未超过 −1.4%（95% 置信区间 −3.4% 到 0.7%）。也就是说，在用 IP 加权对协变量 <code>L</code> 作调整之后，我们几乎没有发现戒烟在随访期内任何时点对死亡率有影响的证据。这套程序的有效性要求处理模型与边际风率模型都没有错设。</p>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_6.png" alt="图 17.6：IP 加权边际结构模型估计的生存曲线">
+<figcaption><strong>图 17.6</strong>　用 IP 加权拟合边际结构模型后得到的生存曲线：戒烟（<code>A = 1</code>，虚线）与不戒烟（<code>A = 0</code>，实线）。与图 17.1、17.4 中的曲线相比，两条曲线几乎完全重合，120 个月处分别为 80.7% 与 80.5%，全程最大差异不超过 −1.4%。</figcaption></figure>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（人-时数据 + IP 加权 = 时变 IP 加权，实践中最容易出错的一步）</strong>：本章的 IP 加权是<strong>时变</strong> IP 加权，与第 12 章那个只针对基线处理 <code>A</code> 的固定权重不是一回事。在 Stata 里的实现路径是：先用 <code>stset</code> 把数据切成人-时，再构造<strong>累积</strong>权重并保证每一行的权重等于"至今为止所受各期处理概率之连乘的比值"（而非全程一个固定权重），最后 <code>streg</code> 或 <code>glm</code> 加 <code>[pw=sw]</code>。最常见的三种错误是：(1) 把固定权重直接塞进人-时数据，这等价于假定处理与时点无关；(2) 权重算在 <code>D<sub>k+1</sub></code> 所在的观测行上却没与上一行的 <code>D<sub>k</sub></code> 对齐，造成"未来信息"泄漏；(3) 加权后不做稳健（三明治）方差——这与第 12 章译注 2 讲的是同一个坑，在时变设定下因有效样本量更小而更严重。本章这一节的权重范围只有 0.33 到 4.21，属于温和范围；但真实的中国医保数据库研究里时变权重超过 100 的情况并不罕见，此时结论的稳健性必须靠敏感性分析来兜底。</p>
+</aside>
+
+<h2 id="s-17-5">17.5 参数化 g 公式</h2>
+
+<p>上一节我们用 IP 加权估计了整个人群中处理下与无处理下的生存曲线。为此我们调整了 <code>L</code>，并假定了可交换性、可阳性性与一致性。在同样的假定下，估计边际生存曲线的另一种方法，是基于参数模型的标准化，也就是参数化 g 算法（parametric g-formula）。</p>
+
+<p>处理水平 <code>a</code> 下、<code>k + 1</code> 处的生存率 <code>Pr[D<sub>k+1</sub><sup>a</sup> = 0]</code>，是"在协变量 <code>L</code> 的各层内、处理水平 <code>A = a</code> 条件下，<code>k + 1</code> 处条件生存概率"的加权平均，各层的权重是 <code>L</code> 每个取值 <code>l</code> 上个体所占的比例。也就是说，在可交换性、可阳性性与一致性之下，<code>Pr[D<sub>k+1</sub><sup>a</sup> = 0]</code> 等于标准化生存率</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k+1</sub><sup>a</sup> = 0] = ∑<sub>l</sub> Pr[D<sub>k+1</sub> = 0|L = l, A = a] Pr[L = l]</code></div>
+
+<p>形式化的证明见 2.3 节。</p>
+
+<p>因此，参数化 g 算法的估计分两步。第一，我们需要用行政删失的数据估计条件生存率 <code>Pr[D<sub>k+1</sub> = 0|L = l, A = a]</code>。第二，我们需要计算它们在协变量 <code>L</code> 所有取值 <code>l</code> 上的加权平均。下面就在我们的戒烟例子里分别说明这两步。</p>
+
+<p>第一步，我们拟合一个如 17.2 节所述的参数风率模型，只不过把 <code>L</code> 中的变量作为协变量放进去。如果模型设定正确，它就能有效地估计 <code>A</code> 与 <code>L</code> 各层内的时变风率 <code>Pr[D<sub>k+1</sub> = 1|D<sub>k</sub> = 0, L, A]</code>。各条件风率"1 减去"之积</p>
+
+<div class="eqn" style="text-align:center"><code>∏<sub>m=0</sub><sup>k</sup> Pr[D<sub>m+1</sub> = 0|D<sub>m</sub> = 0, L = l, A = a]</code></div>
+
+<p>等于条件生存率 <code>Pr[D<sub>k+1</sub> = 0|L = l, A = a]</code>。由于给定 <code>L</code> 的条件可交换性，对于某一组特定的协变量取值 <code>L = l</code> 与 <code>A = a</code>，条件生存率可以作因果解释，含义是"如果具有这组协变量取值的每个人都接受处理值 <code>a</code>，本来会观察到的生存率"。也就是说，</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k+1</sub> = 0|L = l, A = a] = Pr[D<sub>k+1</sub><sup>a</sup> = 0|L = l]</code></div>
+
+<p>因此，条件风率可以用来估计 <code>L</code> 的每一种取值组合 <code>l</code> 下、处理（<code>a = 1</code>）与无处理（<code>a = 0</code>）的生存曲线。举例来说，我们可以用这个模型估计一位 61 岁、大学学历、运动量很低的男性白人在处理与无处理下的生存曲线。然而，我们的目标是估计处理与无处理下的<strong>边际</strong>生存曲线，而不是<strong>条件</strong>生存曲线。</p>
+
+<p><span class="box-label">边注</span>　在第 12 章里，我们把条件于所有协变量 <code>L</code> 的模型称作"伪边际结构模型"（faux marginal structural models）。</p>
+
+<p>第二步，我们计算条件生存率在协变量 <code>L</code> 所有取值 <code>l</code> 上的加权平均，也就是把生存率标准化到混杂因素的分布上。为此我们采用 13.3 节所描述的标准化均值的做法：展开数据集、结局建模、预测，再做平均。这个方法即使在 <code>L</code> 中某些变量是连续变量、使得对取值 <code>l</code> 的求和形式上是一个积分时，也能使用。所得曲线见图 17.7。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 17.4。这个程序与第 13 章描述的做法类似。</p>
+
+<figure class="fig"><img src="../figures/ch17--figure-17_7.png" alt="图 17.7：参数化 g 算法估计的标准化生存曲线">
+<figcaption><strong>图 17.7</strong>　用参数化 g 算法（标准化）估计的生存曲线：戒烟（<code>A = 1</code>，虚线）与不戒烟（<code>A = 0</code>，实线）。两条曲线在整个随访期内几乎完全重合，120 个月处分别为 80.4% 与 80.6%。与图 17.6 的 IP 加权结果相比，形状略有差异，但结论一致。</figcaption></figure>
+
+<p>在我们的例子里，整个随访期内处理下的生存曲线都低于无处理下的曲线，但最大差异从未超过 −2.0%（95% 置信区间 −5.6% 到 1.8%）。120 个月的生存率估计在戒烟下为 80.4%，在不戒烟下为 80.6%；差值 0.2%（95% 置信区间 −4.6% 到 4.1%）。也就是说，在用标准化对协变量 <code>L</code> 作调整之后，我们几乎没有发现戒烟在随访期内任何时点对死亡率有影响的证据。请注意，用 IP 加权（上一节）与用参数化 g 算法（本节）估计出的生存曲线相似但并不相同，因为它们依赖的参数化假定不同：IP 加权估计要求处理模型与无条件风率模型都不错设，而参数化 g 算法估计只要求条件风率模型不错设。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（Cox 模型与本书 G 方法路线的关系——两条路线的分水岭在哪里）</strong>：Cox 比例风率模型是国内外生存分析事实上的默认工具，而本章几乎"不提"它，这容易让习惯 Cox 的读者觉得本书绕开了主流。分水岭在于三点。<strong>其一，目标量不同。</strong>Cox 模型估计的是<strong>条件</strong>风率比，而本章的路线是先把条件风率标准化/加权成<strong>边际</strong>生存率与风险；只有边际量才能直接回答"如果所有人群都戒烟/都不戒烟，会怎样"这个因果问题。<strong>其二，删失机制不同。</strong>Cox 的部分似然把删失个体直接扔出风险集，它隐含的删失独立性假设在失访研究中常被违反，且无法通过纳入协变量来修复；IP 加权与 g 公式的删失处理（<code>Pr[D<sub>m</sub> = 0|D<sub>m−1</sub> = 0, C<sub>m</sub> = 0, A = a]</code> 里的 <code>C<sub>m</sub></code> 项）则把删失当成一个要显式建模的时变过程。<strong>第三，研究设计不同。</strong>本书路线要求把目标人群变换为伪人群（第 12 章），这个视角在做目标试验模拟（第 22 章）与医保数据库研究时比 Cox 灵活得多。<strong>实操建议</strong>：如果你的研究目标是相对风险（risk ratio）而非风率比，且事件罕见、随访期固定，Cox 报告的 HR 可以作为近似（技术要点 17.1 给了 <code>&lt; 0.1</code> 的判据）；但如果事件常见（如院内感染、再入院），HR 与累积发病比之间的差距会大到足以改变结论，这时本章的 g 方法路线才是对的工具。</p>
+</aside>
+
+<h2 id="s-17-6">17.6 结构嵌套模型的 G-estimation</h2>
+
+<p>前面几节描述的因果对比，都是比较不同处理水平 <code>A</code> 下的生存率或风险。生存率由 logistic 回归模型估计的风率算得。当分析方法是边际结构模型的 IP 加权或参数化 g 算法时，这条路走得通；但当方法是结构嵌套模型的 g 估计时，它就走不通了。如第 14 章所解释的，结构嵌套模型建模的是<strong>条件因果对比</strong>（例如不同处理水平下协变量特异均值之差或之比），而不是这些对比的组成部分（例如各个处理水平下的均值本身）。因此我们不能用结构嵌套模型来估计生存率或风率。</p>
+
+<p><span class="box-label">边注</span>　事实上，我们甚至可能连风率比都无法近似，因为结构嵌套 logistic 模型不容易推广到时变处理（技术要点 14.1）。</p>
+
+<p><span class="box-label">边注</span>　Tchetgen Tchetgen 等（2015）与 Robins（1997b）描述了带工具变量的生存分析，其中存在与这里为结构嵌套模型所描述的类似问题。</p>
+
+<p>不过，我们可以考虑用一个结构嵌套对数线性模型，来建模不同处理水平下累积发病率（即风险）之比。结构嵌套累积失效时间模型正是这么做的（见技术要点 17.2），但它们最好用在失效为罕见事件的情形，因为对数线性模型并不会天然地给风险加上 1 这个上限。对于非罕见失效，我们可以改为考虑用结构嵌套对数线性模型建模不同处理水平下累积生存概率（即 1 − 风险）之比。结构嵌套累积生存时间模型正是这么做的（见技术要点 17.2），但它们最好用在生存为罕见的情形，因为对数线性模型并不会天然地给生存率加上 1 这个上限。一个更一般的选择，是用一个结构嵌套模型来建模不同处理选项下生存时间之比，也就是加速失效时间（AFT）模型。</p>
+
+<p><span class="box-label">边注</span>　"嵌套"这一部分只有在处理是时变的时候才看得出来。见第 21 章。</p>
+
+<p>令 <code>T<sub>i</sub><sup>a</sup></code> 为个体 i 在处理水平 <code>a</code> 下的反事实生存时间。处理 <code>A</code> 对个体 i 生存时间的效应，可以用她的"处理下与无处理下的反事实生存时间之比" <code>T<sub>i</sub><sup>a=1</sup>/T<sub>i</sub><sup>a=0</sup></code> 来度量。如果生存时间比大于 1，那么处理是有益的，因为它延长了生存时间；如果比值小于 1，处理是有害的；如果比值等于 1，处理没有效应。先暂时假设处理效应对人群中每个个体都相同。</p>
+
+<p>那么我们可以考虑结构嵌套加速失效时间（AFT）模型 <code>T<sub>i</sub><sup>a</sup>/T<sub>i</sub><sup>a=0</sup> = exp(−ψ<sub>1</sub>a)</code>，其中 <code>ψ<sub>1</sub></code> 度量由处理带来的每个个体生存时间的扩张（或收缩）。若 <code>ψ<sub>1</sub> &lt; 0</code>，处理延长生存时间；若 <code>ψ<sub>1</sub> &gt; 0</code>，处理缩短生存时间；若 <code>ψ<sub>1</sub> = 0</code>，处理不影响生存时间。</p>
+
+<p><span class="box-label">边注</span>　<code>ψ</code> 前面的负号，是为了保留通常的解释约定：参数为正表示有害，为负表示有益。</p>
+
+<p>更一般地，处理效应可以依赖于协变量 <code>L</code>，于是一个更一般的结构 AFT 模型是 <code>T<sub>i</sub><sup>a</sup>/T<sub>i</sub><sup>a=0</sup> = exp(−ψ<sub>1</sub>a − ψ<sub>2</sub>aL<sub>i</sub>)</code>，其中 <code>ψ<sub>1</sub></code> 与 <code>ψ<sub>2</sub></code>（一个向量）在个体间恒定。把各项重新排列，模型可以写成</p>
+
+<div class="eqn" style="text-align:center"><code>T<sub>i</sub><sup>a=0</sup> = T<sub>i</sub><sup>a</sup> exp(ψ<sub>1</sub>a + ψ<sub>2</sub>aL<sub>i</sub>)</code>，对所有个体 i</div>
+
+<p>按照第 14 章同样的推理，反事实的一致性意味着模型 <code>T<sub>i</sub><sup>a=0</sup> = T<sub>i</sub> exp(ψ<sub>1</sub>A<sub>i</sub> + ψ<sub>2</sub>A<sub>i</sub>L<sub>i</sub>)</code>，其中反事实时间 <code>T<sub>i</sub><sup>a</sup></code> 被实际生存时间 <code>T<sub>i</sub><sup>A</sup></code> = <code>T<sub>i</sub></code> 取代。参数 <code>ψ<sub>1</sub></code> 与 <code>ψ<sub>2</sub></code> 可以用一套修正过的 g 估计程序来估计（用以处理行政删失），我们在本节后面会讲。</p>
+
+<p>上面的结构 AFT 是不现实的，因为它既是确定性的，又是秩保持的。它是确定性的，因为它假定对每个个体，无处理下的反事实生存时间 <code>T<sup>a=0</sup></code> 可以由观测到的生存时间 <code>T</code>、处理 <code>A</code> 与协变量 <code>L</code> 无误差地算出。它是秩保持的，因为在这个模型下，如果个体 i 与 j 都未接受处理时 i 会先于 j 死亡，即 <code>T<sub>i</sub><sup>a=0</sup> &lt; T<sub>j</sub><sup>a=0</sup></code>，那么当两人都接受处理时，个体 i 也会先于 j 死亡，即 <code>T<sub>i</sub><sup>a=1</sup> &lt; T<sub>j</sub><sup>a=1</sup></code>。</p>
+
+<p><span class="box-label">边注</span>　Robins（1997b）描述了非确定性的、非秩保持的结构嵌套 AFT 模型。</p>
+
+<p>由于秩保持这一假定不太可信，一般而言不该使用依赖它的因果推断方法，正如我们在第 14 章讨论过的那样。然而这里我们仍然用一个秩保持模型来描述结构 AFT 模型的 g 估计，一是因为对秩保持模型来说 g 估计更容易理解，二是因为对秩保持模型与对非秩保持模型而言，g 估计程序实际上是同一个。</p>
+
+<p>考虑较简单的秩保持模型 <code>T<sub>i</sub><sup>a=0</sup> = T<sub>i</sub> exp(ψA<sub>i</sub>)</code>，其中不含处理与协变量之间的乘积项。如果不存在行政删失——也就是如果我们能观测到所有人的死亡时间 <code>T</code>——那么对这个结构 AFT 模型的参数 <code>ψ</code> 做 g 估计会很直接。事实上，在那种情形下，g 估计程序与我们在 14.5 节描述的完全相同。第一步是在因果参数 <code>ψ</code> 的许多可能取值 <code>ψ†</code> 下，计算候选反事实 <code>H<sub>i</sub>(ψ†) = T<sub>i</sub> exp(ψ†A<sub>i</sub>)</code>。第二步是找出那个使 <code>H<sub>i</sub>(ψ†)</code> 在以 <code>H<sub>i</sub>(ψ†)</code> 与混杂因素 <code>L</code> 为协变量的 <code>A = 1</code> 概率 logistic 模型中独立于处理 <code>A</code> 的取值 <code>ψ†</code>。这样的取值 <code>ψ†</code> 就是 <code>ψ</code> 的 g 估计。</p>
+
+<p><span class="box-label">边注</span>　计算量较小的办法——所谓有向搜索方法（directed search methods）——可用于近似搜索，统计软件中已有实现。Nelder-Mead 单纯形法（Simplex method）就是有向搜索的一个例子。</p>
+
+<p>然而，在时点 <code>K</code> 存在行政删失的情况下，这套程序无法实施，因为对 <code>T<sub>i</sub></code> 未知的个体无法计算 <code>H<sub>i</sub>(ψ†)</code>。人们也许会想当然地把 g 估计程序限制在那些生存时间被观测到的个体上，即 <code>T<sub>i</sub> ≤ K</code> 的个体。遗憾的是，这个做法会导致选择偏倚。为看清原因，考虑下面这个被极度简化的场景。</p>
+
+<p>我们做一项 60 个月的随机化试验，估计二值处理 <code>A</code> 对生存时间 <code>T</code> 的效应。研究中只有 3 种类型的个体。1 型个体是指若无处理将于 36 个月死亡的人（<code>T<sup>a=0</sup> = 36</code>）。2 型个体是指若无处理将于 72 个月死亡的人（<code>T<sup>a=0</sup> = 72</code>）。3 型个体是指若无处理将于 108 个月死亡的人（<code>T<sup>a=0</sup> = 108</code>）。也就是说，3 型个体的预后最好，1 型个体的预后最差。由于是随机化，我们预期 1 型、2 型、3 型个体在 <code>A = 1</code> 与 <code>A = 0</code> 两个处理组中所占比例相同。也就是说，预期已处理者与未处理者是可交换的。</p>
+
+<p>假设处理 <code>A = 1</code> 使生存时间比 <code>A = 0</code> 时更短。表 17.1 给出了每一类个体在处理下与无处理下的生存时间。由于随访的行政结束是 <code>K</code> = 60 个月，1 型个体的死亡无论被随机分到 <code>A = 1</code> 还是 <code>A = 0</code> 都会被观测到（两种生存时间都小于 60），而 3 型个体的死亡无论被随机分到哪一组都会被行政删失（两种生存时间都大于 60）。然而，2 型个体的死亡只有在被分到 <code>A = 1</code> 时才会被观测到。于是一项把所有死亡时间未被行政删失的个体都纳入的分析，会造成已处理组与未处理组之间个体类型的不平衡。可交换性被破坏了：<code>A = 1</code> 组里会有 1 型与 2 型个体，而 <code>A = 0</code> 组里只有 1 型个体。<code>A = 0</code> 组中的个体平均而言预后比 <code>A = 1</code> 组更差，这会让处理看上去比实际更有效。这种选择偏倚（第 8 章）在处理对生存时间有非零效应时就会出现。</p>
+
+<figure class="fig"><img src="../figures/ch17--table-17_1.png" alt="表 17.1：三类个体在处理与无处理下的反事实生存时间">
+<figcaption><strong>表 17.1</strong>　一个 60 个月随访（行政结束 <code>K</code> = 60 个月）的研究中三类个体的反事实生存时间（月）：1 型 <code>T<sup>a=0</sup></code> = 36、<code>T<sup>a=1</sup></code> = 24；2 型 72 与 48；3 型 108 与 72。处理使每类个体的生存时间缩短为原来的 2/3，因此处理确实有害；但由于 <code>K</code> = 60，2 型个体的死亡只在 <code>A = 1</code> 组被观测到，纳入所有未删失者会破坏随机化带来的可交换性。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　这种"把未删失个体也排除出分析"的做法，通常称为人工删失（artificial censoring）。见技术要点 17.3。</p>
+
+<p>为避免这种选择偏倚，我们需要选出这样一些个体：无论他们接受处理还是未接受处理，其生存时间在随访结束时都本会被观测到，也就是那些满足 <code>T<sub>i</sub><sup>a=0</sup> ≤ K</code> 且 <code>T<sub>i</sub><sup>a=1</sup> ≤ K</code> 的人。在我们的例子里，为了保持可交换性，我们不得不把所有 2 型个体都排除出分析。也就是说，我们不仅要排除 <code>T<sub>i</sub> &gt; K</code> 的行政删失个体，还要排除一部分 <code>T<sub>i</sub> ≤ K</code> 的未删失个体——因为如果他们实际收到的处理水平换成另一个，他们的生存时间就会大于 <code>K</code>。</p>
+
+<p>于是我们定义一个指示变量 <code>Δ(ψ)</code>，当个体被排除时取 0，未被排除时取 1。g 估计程序随之修改：把变量 <code>H(ψ†)</code> 替换成指示变量 <code>Δ(ψ†)</code>。细节见技术要点 17.3。在我们的例子里，秩保持结构 AFT 模型 <code>T<sub>i</sub><sup>a=0</sup> = T<sub>i</sub> exp(ψA<sub>i</sub>)</code> 的 g 估计 <code>ψ̂</code> 为 −0.047（95% 置信区间：−0.223 到 0.333）。数值 <code>exp(−ψ̂) = 1.05</code> 可以解释为：如果研究中所有个体都接受 <code>a = 1</code>，本来会观察到的中位生存时间，除以如果所有个体都接受 <code>a = 0</code>，本来会观察到的中位生存时间。这个生存时间比提示戒烟 <code>A</code> 对死亡时间几乎没有影响。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 17.5。<code>ψ</code> 的点估计是使技术要点 17.3 所述估计函数取到最小值的那个取值；95% 置信区间的两端，则是使估计函数取值 3.84（自由度为 1 的 <code>χ<sup>2</sup></code>）的那两个取值。</p>
+
+<p>正如我们在第 14 章说过的，结构嵌套模型（包括 AFT 模型）在实践中很少被使用。实现该方法的一个现实障碍是缺少用户友好的软件。而在生存分析的设定下，一个更严重的障碍是：结构 AFT 模型的参数必须通过搜索算法来估计，而这些算法并不保证能找到唯一解。对于带两个或更多参数 <code>ψ</code> 的模型，这个问题会变得更糟。因此，这个方法已发表的少数应用往往使用简化的 AFT 模型，不允许处理效应随协变量取值而变。</p>
+
+<p>这种状况令人遗憾，因为领域知识（例如生物学机制）更容易被翻译成结构 AFT 模型的参数，而不是结构风率模型的参数。在使用非确定性的、非秩保持的结构 AFT 模型时，这一点尤其成立。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 17.2　结构嵌套累积失效时间（CFT）模型与累积生存时间（CST）模型</span>
+<p>对于时不变处理，一个（非嵌套的）结构 CFT 模型是这样的模型：条件于处理 <code>A</code> 与协变量 <code>L</code> 时，处理值 <code>a</code> 下的反事实风险除以处理值 0 下的反事实风险。模型的一般形式是</p>
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k</sub><sup>a</sup> = 1|L, A] / Pr[D<sub>k</sub><sup>a=0</sup> = 1|L, A] = exp[γ<sub>k</sub>(L, A; ψ)]</code></div>
+<p>其中 <code>γ<sub>k</sub>(L, A; ψ)</code> 是处理与协变量史的一个函数，由（可能是向量的）参数 <code>ψ</code> 索引。为满足一致性，当 <code>A</code> = 0 时 <code>exp[γ<sub>k</sub>(L, A; ψ)]</code> 必须为 1（此时被比较的两个处理值相同）；当处理在时点 <code>m</code> 对时点 <code>k</code> 的结局没有效应时，它也必须为 1。这类函数的一个例子是 <code>γ<sub>k</sub>(L, A; ψ) = ψA</code>，于是 <code>ψ</code> = 0 对应无效应，<code>ψ</code> &lt; 0 对应有益效应，<code>ψ</code> &gt; 0 对应有害效应。</p>
+<p>类似地，对于时不变处理，一个（非嵌套的）结构 CST 模型是这样的模型：条件于处理 <code>A</code> 与协变量 <code>L</code> 时，处理值 <code>a</code> 下的反事实生存率除以处理水平 0 下的反事实生存率。模型的一般形式是</p>
+<div class="eqn" style="text-align:center"><code>Pr[D<sub>k</sub><sup>a</sup> = 0|L, A] / Pr[D<sub>k</sub><sup>a=0</sup> = 0|L, A] = exp[γ<sub>k</sub>(L, A; ψ)]</code></div>
+<p>虽然 CFT 模型与 CST 模型的区别仅在于我们是为 <code>Pr[D<sub>k</sub><sup>a</sup> = 1|L, A]</code> 还是为 <code>Pr[D<sub>k</sub><sup>a</sup> = 0|L, A]</code> 指定乘性模型，但 <code>γ<sub>k</sub>(L, A; ψ)</code> 的含义并不相同：只要处理效应非零，风险的乘性模型就不是生存率的乘性模型。当我们让时间指标 <code>k</code> 取连续值而非离散值时，结构 CST 模型等价于结构<strong>相加风率</strong>模型（Tchetgen Tchetgen 等，2015），因为 <code>Pr[D<sub>k</sub><sup>a</sup> = 0|L, A] / Pr[D<sub>k</sub><sup>a=0</sup> = 0|L, A]</code> 的任何模型都会诱导出关于 <code>T<sup>a</sup></code> 与 <code>T<sup>a=0</sup></code> 的时点特异风率之差的模型，反之亦然。</p>
+<p>使用结构 CFT 模型要求：对协变量 <code>L</code> 的所有取值，所有处理值下的条件累积失效概率都满足某种类型的罕见失效假定。在这种"罕见失效"的语境下，结构 CFT 模型相对 AFT 模型有一个优势：它容许那些在模型参数上可微的无偏估计方程，因而易于求解。Page（2005）与 Picciotto 等（2012）给出了结构 CFT 与 CST 模型的更多细节。对于时变处理，这一类模型可以看作多元结构嵌套均值模型（Robins 1994）的一个特例。见技术要点 14.1。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 17.3　人工删失</span>
+<p>令 <code>K(ψ)</code> 为在无处理下、可能对应于一个实际在时点 <code>K</code>（随访行政结束）死亡的人的最短生存时间。对于二值处理 <code>A</code>，<code>K(ψ) = inf{K exp(ψA)}</code>，这意味着：当处理收缩生存时间（即 <code>ψ &gt; 0</code>）时 <code>K(ψ) = K exp(ψ × 0) = K</code>；当处理扩张生存时间（即 <code>ψ &lt; 0</code>）时 <code>K(ψ) = K exp(ψ × 1) = K exp(ψ)</code>；当处理不影响生存时间（即 <code>ψ = 0</code>）时 <code>K(ψ) = K exp(0) = K</code>。</p>
+<p>所有被行政删失的个体（即 <code>T &gt; K</code>）都有 <code>Δ(ψ)</code> = 0，因为在至少有一个处理水平（他们实际收到的那个）下，他们的生存时间大于 <code>K</code>，即 <code>H(ψ) ≥ K(ψ)</code>。那些未被行政删失（即 <code>T ≤ K</code>）的个体中，也有一部分同样有 <code>Δ(ψ)</code> = 0 而被排除出分析——他们被<strong>人工删失</strong>了——以避免选择偏倚。</p>
+<p>人工删失指示变量 <code>Δ(ψ)</code> 是 <code>H(ψ)</code> 与 <code>K</code> 的函数。在给定 <code>L</code> 的条件可交换性下，所有这类函数在取 <code>ψ</code> 的真值时计算得到的量，条件于协变量 <code>L</code> 都独立于处理 <code>A</code>。也就是说，AFT 模型参数的 g 估计可以基于 <code>Δ(ψ)</code> 而非 <code>H(ψ)</code> 来完成。技术上说，就是用 <code>Δ(ψ)</code> 代替技术要点 14.2 的估计方程中的 <code>H(ψ)</code>。实际估计的细节见 Hernán 等（2005）的附录。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（竞争风险：国内几乎处理错了的一件事）</strong>　精细辨析 17.1 讲的竞争事件问题，在国内文献里的处理方式值得单列一条。国内绝大多数生存分析论文把"1 − Kaplan-Meier 估计的生存率"直接当作累积发病率报告。这个做法在无竞争风险时是对的；一旦存在竞争事件（比如研究死亡终点时患者先死于癌症、心血管事件后死于卒中、器械终点后因其他原因死亡），它会<strong>系统性低估</strong>累积发病率，因为 KM 把竞争事件当删失处理后，被删失者的后续风险被"抹掉"了。正确做法有两条：一是 Aalen-Johansen 估计量给出累积发病函数（CIF）；二是 Fine 与 Gray（1999）提出的部分信息模型（Fine-Gray 亚分布风险比）。技术要点 17.2 提到的"原因别风率"对应第一条路线，而直接对 CIF 做 g 方法标准化则是本章 17.4 至 17.5 节的做法——顺带说，本书的标准化路线本身就天然兼容竞争风险：把结局换成"目标事件发生"这一复合结局即可，或把竞争事件当删失并接受它带来的解释代价。</p>
+<p><strong>译注 8（人工删失：一个几乎没人讲过的偏倚来源）</strong>　技术要点 17.3 的"人工删失"是一个极其反直觉的操作：<em>把一部分已经观测到结局的个体也从分析中排除</em>。理由在表 17.1 的例子里说得很清楚——若不排除 2 型个体，已处理组会混进高危的 1 型个体而未处理组不会，从而看起来"处理更好"。实践中这对应一个操作性判据：只有当 <code>T<sup>a=0</sup></code> 与 <code>T<sup>a=1</sup></code> 都不超过 <code>K</code> 的个体才被纳入。国内做 g-computation 或 g 估计的实证研究里，几乎没有人报告过"被人工删失的个体占多大比例"这一诊断量；这个比例如果超过 5%，估计值的可信度就已经很成问题，应当在论文里报告并做敏感性分析。同时也要提醒，AFT 类结构嵌套模型本身依赖秩保持假设（第 14 章已指出其不可信），所以 <code>exp(−ψ̂) = 1.05</code> 这类结果即便算得出来，也应当作探索性发现而非确证性估计。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

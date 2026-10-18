@@ -3,31 +3,193 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 1 章 · 因果效应的定义 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 1 章 · 因果效应的定义 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 1 章 · 因果效应的定义</h1>
-<p class="muted">第一部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第一部分 · 无模型的因果推断 · Part I — Causal inference without models</p>
+  <h1>第 1 章 · 因果效应的定义</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 1. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">作为一个人，你其实早就熟悉因果推断的基本概念了。光凭活着这件事，你就知道什么是因果效应，明白关联与因果的差别，而且你一辈子都在自觉地运用这些知识。假如不然，你早就死了。没有基本的因果概念，你压根活不到能读这一章，更别说学会读书。蹒跚学步的时候，看见有人跳进游泳池后来拿到了果酱罐，你也会跟着往下跳；十几岁的时候，看见有人从最险的雪坡上冲下去、赢下了下一场滑雪比赛，你也会跟着滑下去；当了父母以后，观察到吃了药的孩子第二天没出现在公园里，你就不肯给自家生病的孩子吃抗生素。既然你已经懂得因果效应的定义，也懂得关联与因果的差别，就别指望这一章能给你什么深刻的概念性洞见。这一章的目的是引入一套数学记号，把你本就拥有的因果直觉形式化。请务必确认一件事：你能让自己那份因果直觉，与这里引入的数学记号一一对上。这套记号是精确定义因果概念所必需的，全书都会一直用它。</p>
+
+<h2 id="s-1-1">1.1 个体因果效应</h2>
+
+<p>Zeus 是一名等待心脏移植的患者。1 月 1 日，他接受了一颗新心脏。五天后，他死了。设想我们不知通过什么途径——也许靠神谕——得知：假如 Zeus 在 1 月 1 日没有接受心脏移植，五天后他还活着。掌握了这条信息，多数人都会同意：那次移植导致了 Zeus 的死亡。心脏移植这项干预对 Zeus 的五日存活有因果效应。</p>
+
+<p>另一位患者 Hera 也在 1 月 1 日接受了心脏移植。五天后她还活着。同样设想我们得知：假如 Hera 在 1 月 1 日没有接受那颗心脏，五天后她也还活着。于是，这次移植对 Hera 的五日存活没有因果效应。</p>
+
+<p>这两个小故事说明了人类是怎么推理因果效应的：我们（通常只在脑子里）把采取行动 A 时的结局，与不采取行动 A 时的结局摆在一起比较。如果两个结局不同，我们就说行动 A 对该结局有因果效应——既可能是致病性的，也可能是保护性的。若两者相同，我们说行动 A 对该结局没有因果效应。</p>
+
+<p>Karma 是另一个常被用来指称"会带来结局的行动"的词。流行病学家、统计学家、经济学家和其他社会科学研究者，会把行动 A 称作<strong>干预</strong>（intervention）、<strong>暴露</strong>（exposure）、<strong>政策</strong>（policy）或<strong>治疗</strong>（treatment）。要让我们的因果直觉经得起数学与统计的分析，就得引入一些记号。设处理变量 A 是二值的（1：接受处理，0：不接受处理），结局变量 Y 也是二值的（1：死亡，0：存活）。在本书中，像 A 和 Y 这样在不同个体身上可能取不同值的变量，我们当作<strong>随机变量</strong>来处理；用小写字母表示随机变量的某个具体取值。</p>
+
+<p>令 <code>Y<sup>a=1</sup></code>（读作"处理 <code>a = 1</code> 下的 Y"）指在处理取值 <code>a = 1</code> 下本会被观测到的结局变量，<code>Y<sup>a=0</sup></code> 指在处理取值 <code>a = 0</code> 下本会被观测到的结局变量。<code>Y<sup>a=1</sup></code> 和 <code>Y<sup>a=0</sup></code> 同样是随机变量。Zeus 的 <code>Y<sup>a=1</sup> = 1</code> 且 <code>Y<sup>a=0</sup> = 0</code>，因为他接受了处理后死去，而若不接受处理本可活下来；Hera 的 <code>Y<sup>a=1</sup> = 0</code> 且 <code>Y<sup>a=0</sup> = 0</code>，因为她接受了处理后活着，若不接受处理也会活着。</p>
+
+<p>现在可以给出一个形式化的定义：<strong>个体 i 的因果效应</strong>为 <code>Y<sub>i</sub><sup>a=1</sup> ≠ Y<sub>i</sub><sup>a=0</sup></code>。也就是说，若对某个个体而言 <code>Y<sup>a=1</sup> ≠ Y<sup>a=0</sup></code>，则处理 A 对该个体的结局 Y 有因果效应。因此，处理对 Zeus 的结局有因果效应，因为 <code>Y<sup>a=1</sup> = 1 ≠ 0 = Y<sup>a=0</sup></code>；对 Hera 的结局则没有，因为 <code>Y<sup>a=1</sup> = 0 = Y<sup>a=0</sup></code>。<code>Y<sup>a=1</sup></code> 和 <code>Y<sup>a=0</sup></code> 这两个变量被称为<strong>潜在结局</strong>（potential outcomes）或<strong>反事实结局</strong>（counterfactual outcomes）。有些作者偏好"潜在结局"这个词，为的是强调：视所接受的处理而定，这两个结局中的任何一个都可能被观测到。另一些作者偏好"反事实结局"，为的是强调这两个结局代表的是可能根本不发生的情形（也就是"与事实相反"的情形）。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（潜在结局与反事实结局：一桩术语公案）</strong>：这两个名字背后其实是两套不同的思想传统。Rubin（1980）开创的"潜在结局"传统，出自流行病学与统计学，讲究的是<em>设计</em>：处理由谁施加、结局何时测量，都在研究者掌控之中，因此每个个体的 <code>Y<sup>a</sup></code> 原则上都能通过做两次试验拿到，只是伦理上不能真做。Pearl 的因果图传统讲的"反事实"，更接近哲学逻辑里的"且若……则……"（subjunctive conditional），强调的是<em>推断</em>：世界只能实现一条历史，其余分支永远观测不到。国内文献两种叫法都有，中文流行病学教材多写"潜在结果"或"潜在结局"，"反事实"一词则被大量用于另一件事——"反事实思维"（counterfactual thinking，指"假如当初……会怎样"的心理活动），偶尔还会被误当成"对照"（control）的意思。读中文文献时看到"反事实"，先确认它指的是结局还是思维。</p>
+</aside>
+
+<p>对每个个体来说，两个反事实结局里有一个是<strong>事实性</strong>的——就是与该个体实际接受的处理取值相对应的那一个。举例来说，Zeus 实际接受了处理（<code>A = 1</code>），所以他在处理下的反事实结局 <code>Y<sup>a=1</sup> = 1</code> 就等于他被观测到的（实际的）结局 <code>Y = 1</code>。也就是说，一个观测到的处理 <code>A</code> 等于 <code>a</code> 的个体，其观测结局 <code>Y</code> 等于他在 <code>a</code> 下的反事实结局 <code>Y<sup>a</sup></code>。这个等式可以简写成 <code>Y = Y<sup>A</sup></code>，其中 <code>Y<sup>A</sup></code> 表示在 <code>a</code> 取个体实际所接受的那个处理值处求值的反事实 <code>Y<sup>a</sup></code>。等式 <code>Y = Y<sup>A</sup></code> 被称为<strong>一致性</strong>（consistency）。</p>
+
+<p><strong>个体 i 的因果效应：</strong><code>Y<sub>i</sub><sup>a=1</sup> ≠ Y<sub>i</sub><sup>a=0</sup></code>　　<strong>一致性：</strong>若 <code>A<sub>i</sub> = a</code>，则 <code>Y<sub>i</sub><sup>a</sup> = Y<sub>i</sub><sup>A</sup> = Y<sub>i</sub></code></p>
+
+<p>这里有个记号上的小细节。有时我们把"个体 i 的结局为 <code>Y<sup>a=1</sup></code>"这件事简写成 <code>Y<sub>i</sub><sup>a=1</sup></code>。严格地说，当 i 指代某个特定的个体（比如 Zeus）时，<code>Y<sub>i</sub><sup>a</sup></code> 并不是随机变量，因为我们假定该个体的反事实结局是确定性的（见技术要点 1.2）。</p>
+
+<p>个体因果效应被定义为反事实结局取值之间的对比，但每个个体身上只有其中一个反事实结局能被观测到——就是与该个体实际经历的处理取值相对应的那一个，其余全部观测不到。由于存在这种数据缺失，个体因果效应是<strong>不可识别</strong>的（identified）：它无法表示成观测数据的函数（有一个可能的例外，见精细辨析 2.1）。</p>
+
+<h2 id="s-1-2">1.2 平均因果效应</h2>
+
+<p>定义一个个体因果效应需要三样东西：一个感兴趣的结局；要比较的两个动作 <code>a = 1</code> 和 <code>a = 0</code>；以及那个反事实结局 <code>Y<sup>a=0</sup></code> 与 <code>Y<sup>a=1</sup></code> 待比较的个体。但由于个体因果效应一般不可识别，我们把目光转向一种聚合起来的因果效应：某个人群中的平均因果效应。要定义它，仍然需要三样东西：一个感兴趣的结局；要比较的两个动作 <code>a = 1</code> 和 <code>a = 0</code>；以及一个人群——其成员的结局 <code>Y<sup>a=0</sup></code> 与 <code>Y<sup>a=1</sup></code> 待比较。</p>
+
+<p>就拿 Zeus 的大家族当作我们感兴趣的人群。表 1.1 列出这 20 位成员在处理下（<code>a = 1</code>）和不处理下（<code>a = 0</code>）的反事实结局。先看最后一列：若每个人都接受处理（心脏移植），本会被观测到的结局 <code>Y<sup>a=1</sup></code>。人群中有一半成员（20 人中的 10 人）若接受心脏移植就会死亡。也就是说，若全体成员都接受 <code>a = 1</code>，会出现结局的个体比例为 <code>Pr[Y<sup>a=1</sup> = 1] = 10/20 = 0.5</code>。</p>
+
+<figure class="fig"><img src="../figures/ch1--table-1_1.png" alt="表 1.1：20 位奥林匹斯诸神在处理与不处理下的反事实结局">
+<figcaption><strong>表 1.1</strong>　20 人人群（Zeus 的家族成员）在处理 <code>Y<sup>a=1</sup></code> 与不处理 <code>Y<sup>a=0</sup></code> 下的反事实结局。1 表示死亡，0 表示存活。两列各有 10 个 1。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 1.1　干扰</span>
+<p>我们对反事实结局的定义，隐含地假定了：个体 i 在处理值 <code>a</code> 下的反事实结局，不依赖于其他个体的处理值。举例来说，我们隐含地假定了 Zeus 只要接受心脏移植就会死，不管 Hera 是否也接受心脏移植；也就是说，Hera 的处理值没有干扰 Zeus 的结局。反过来，假如 Hera 得到一颗新心脏这件事会让 Zeus 难受到他无法挺过自己这场移植——而假如 Hera 没有移植，他本来是能挺过去的——在这种情形下，Hera 的处理就干扰了 Zeus 的结局。个体之间的干扰，在研究传染病病原体或教育项目时很常见：一个人的结局会受到他与人群中其他成员社会互动的影响。</p>
+<p>存在干扰时，个体 i 的反事实 <code>Y<sub>i</sub><sup>a</sup></code> 就不是一个定义良好的量，因为个体的结局依赖于别人的处理值。有干扰时，"心脏移植对 Zeus 结局的因果效应"这句话是没有定义的。你必须说"在 Hera 不换心的情况下，心脏移植对 Zeus 结局的因果效应"，或者"在 Hera 也换心的情况下，……"。如果别的亲属和朋友的处理也会干扰 Zeus 的结局，那还可能得说"在没有任何亲属或朋友换心的情况下……""在只有 Hera 换心的情况下……"等等——因为处理的因果效应对每一种具体的心脏分配方案都可能不同。"无干扰"这一假定被 Cox（1958）称作"单位之间无交互作用"（no interaction between units），并被 Rubin（1980）纳入他给出的 SUTVA（stable unit treatment value assumption，稳定单位处理值假设）之中。关于干扰在因果效应定义中所起作用的更细致讨论，可参看 Halloran 与 Struchiner（1995）、Sobel（2006）、Rosenbaum（2007）、Hudgens 与 Halloran（2009）。除非另有说明，本书始终假定不存在干扰。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（SUTVA 与中国的应用场景）</strong>：SUTVA 的两个条件——无干扰、无处理多版本——在中国研究中常被拆开单独讨论。<em>无干扰</em>这一条最常在疫苗与传染病防控研究里被认真对待：新冠疫苗早期的研究就必须处理"我接种了，于是邻居的风险也降了"这种间接效应（epidemic externality），因为若把这种间接效应也算进接种者的收益，就会高估疫苗的因果效应。<em>无多版本</em>这一条则直接影响临床注册的标准化：同一味药、同一剂量，不同厂家、不同给药途径（口服与雾化）、不同医院执行者，都可能构成不同版本。国内多中心 RCT 若不统一干预方案，SUTVA 事实上就被违反了。区域集群随机试验（cluster randomized trial，如整社区推进的改水改厕项目、健康教育覆盖面研究）则是另一类：处理以社区为单位分配，同一社区内的人必然相互影响，属于"有意为之的干扰"，需要专门的估计方法。</p>
+</aside>
+
+<p>再看表 1.1 的另一列，我们可以得出：人群中有一半成员（20 人中的 10 人）若不接受心脏移植就会死亡。也就是说，若全体成员都接受 <code>a = 0</code>，会出现结局的个体比例为 <code>Pr[Y<sup>a=0</sup> = 1] = 10/20 = 0.5</code>。我们算出的处理下反事实风险是 0.5，做法是数出死亡人数（10）再除以总人数（20）；这与计算全体成员反事实结局的平均值是同一件事。要看清二值结局下风险与平均值的等价性，可以用表 1.1 的数据算一算 <code>Y<sup>a=1</sup></code> 的平均值，结果同样是 0.5。</p>
+
+<p>现在可以给出形式化定义了：<strong>若在感兴趣的人群中 <code>Pr[Y<sup>a=1</sup> = 1] ≠ Pr[Y<sup>a=0</sup> = 1]</code>，则处理 A 对结局 Y 存在平均因果效应。</strong>按这一定义，在我们这群人当中，处理 A 对结局 Y 并无平均因果效应，因为处理下的死亡风险 <code>Pr[Y<sup>a=1</sup> = 1]</code> 与不处理下的死亡风险 <code>Pr[Y<sup>a=0</sup> = 1]</code> 都是 0.5。无论有没有人真的接受心脏移植，结论都一样：两种情况下都会有一半人死亡。像这里这样，人群中的平均因果效应为零，我们就说因果零假设（causal null hypothesis）成立。由于风险就等于平均值，而字母 E 通常用来表示总体的平均或期望（'E'xpectation），我们可以把"平均因果效应不为零"的定义改写为 <code>E[Y<sup>a=1</sup>] ≠ E[Y<sup>a=0</sup>]</code>，这样它就同时适用于二值和非二值结局了。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 1.2　处理的多个版本</span>
+<p>我们对处理值 <code>a</code> 下反事实结局的定义，同样隐含地假定了处理 <code>A = a</code> 只有一个版本。举例来说，我们说 Zeus 接受心脏移植就会死；这句话隐含地假定了所有心脏移植都由同一位外科医生、用同样的术式和同样的器械完成。也就是说，"心脏移植"这项处理只有一个版本。若某项处理存在多个版本（例如外科医生水平参差），那么 Zeus 的移植若由 Asclepios 主刀他就能活下来，若由 Hygieia 主刀他就会死。存在多个版本时，个体 i 的反事实 <code>Y<sub>i</sub><sup>a</sup></code> 不是一个定义良好的量，因为个体的结局依赖于处理的版本。此时"心脏移植对 Zeus 结局的因果效应"没有定义，你必须说"在 Asclepios 主刀的情况下，……"或"在 Hygieia 主刀的情况下，……"。若处理的其它组成部分（比如术式、场所）也影响结局，那么可能还得说"在 Asclepios 于科斯岛神殿用他的权杖主刀的情况下，……"，因为对每一种具体的处理版本，处理对 Zeus 结局的因果效应都可能不同。</p>
+<p>与无干扰的假定（见精细辨析 1.1）一样，无处理多版本的假定也包含在 Rubin（1980）所述的 SUTVA 之内。Robins 与 Greenland（2000）指出：若某项治疗的各个版本（如心脏移植）对结局（存活）有相同的因果效应，那么反事实 <code>Y<sup>a=1</sup></code> 就是定义良好的。VanderWeele（2009a）把这一点形式化为<strong>处理变异无关性</strong>（treatment variation irrelevance）的假定，即允许处理 <code>A = a</code> 存在多个版本，但它们导致的结局 <code>Y<sub>i</sub><sup>a</sup></code> 都一样。我们在第 3 章再回到这个话题；除非另有说明，本书始终假定处理变异无关性成立。</p>
+</aside>
+
+<p>"心脏移植 A 的平均因果效应"是否存在，是通过"接受心脏移植（<code>a = 1</code>）"与"不接受心脏移植（<code>a = 0</code>）"这两个动作之间的对比来定义的。当可能的动作不止两个（即处理不是二值的）时，就必须先指明我们感兴趣的具体对比。举例来说，光说"阿司匹林的因果效应"是没有意义的，除非我们指明所关心的对比是："在存活期间每日口服 150 mg 阿司匹林（必要时经鼻胃管）持续 5 年"对"不服阿司匹林"。这个因果效应是定义良好的，即便在其他干预下的反事实结局并未定义良好、甚至根本不存在（比如"在存活期间每日经皮肤吸收 500 mg 阿司匹林持续 5 年"）。</p>
+
+<p>平均因果效应不存在，并不意味着个体效应也不存在。表 1.1 显示，处理对人群中 12 位成员（包括 Zeus）有因果个体效应，因为这 12 人的反事实结局 <code>Y<sup>a=1</sup></code> 与 <code>Y<sup>a=0</sup></code> 取值不同。这 12 人当中，6 人被处理所伤害（包括 Zeus，<code>Y<sup>a=1</sup> − Y<sup>a=0</sup> = 1</code>），6 人被处理所帮助（<code>Y<sup>a=1</sup> − Y<sup>a=0</sup> = −1</code>）。这个等式不是巧合：平均因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 恒等于个体因果效应 <code>Y<sup>a=1</sup> − Y<sup>a=0</sup></code> 的平均值 <code>E[Y<sup>a=1</sup> − Y<sup>a=0</sup>]</code>，因为"均值之差等于差之均值"。当人群中没有任何个体有因果效应时，也就是对所有个体都有 <code>Y<sup>a=1</sup> = Y<sup>a=0</sup></code> 时，我们说<strong>强因果零假设</strong>（sharp causal null hypothesis）成立。强因果零假设蕴含因果零假设。</p>
+
+<p>正如接下来几章将要讨论的，即便个体因果效应无法识别，平均因果效应有时仍可从数据中识别出来。从这里开始，我们把"平均因果效应"简称为"因果效应"，把"平均效应为零的零假设"简称为因果零假设。接下来我们描述度量因果效应大小的不同方式。</p>
+
+<p><strong>人群中的平均因果效应：</strong><code>E[Y<sup>a=1</sup>] ≠ E[Y<sup>a=0</sup>]</code></p>
+
+<aside class="techpoint"><span class="box-label">技术要点 1.1　人群中的因果效应</span>
+<p>令 <code>E[Y<sup>a</sup>]</code> 表示若人群中所有个体都接受处理水平 <code>a</code> 时的平均反事实结局。对离散结局，均值或期望 <code>E[Y<sup>a</sup>]</code> 定义为对随机变量 <code>Y<sup>a</sup></code> 一切可能取值 <code>y</code> 的加权和 <code>∑<sub>y</sub> y·p<sub>Y<sup>a</sup></sub>(y)</code>，其中 <code>p<sub>Y<sup>a</sup></sub>(·)</code> 是 <code>Y<sup>a</sup></code> 的概率质量函数，即 <code>p<sub>Y<sup>a</sup></sub>(y) = Pr[Y<sup>a</sup> = y]</code>。对二值结局，<code>E[Y<sup>a</sup>] = Pr[Y<sup>a</sup> = 1]</code>。对连续结局，期望 <code>E[Y<sup>a</sup>]</code> 定义为对 <code>Y<sup>a</sup></code> 一切可能取值 <code>y</code> 的积分 <code>∫ y·f<sub>Y<sup>a</sup></sub>(y) dy</code>，其中 <code>f<sub>Y<sup>a</sup></sub>(·)</code> 是 <code>Y<sup>a</sup></code> 的概率密度函数。期望的一种常见写法同时适用于离散与连续结局，即 <code>E[Y<sup>a</sup>] = ∫ y dF<sub>Y<sup>a</sup></sub>(y)</code>，其中 <code>F<sub>Y<sup>a</sup></sub>(·)</code> 是随机变量 <code>Y<sup>a</sup></code> 的累积分布函数（cdf）。若对任意两个取值 <code>a</code> 与 <code>a′</code> 都有 <code>E[Y<sup>a</sup>] ≠ E[Y<sup>a′</sup>]</code>，我们就说人群中存在非零的平均因果效应。</p>
+<p>以反事实结局的均值之差来定义平均因果效应，是最常用的人群因果效应。但人群因果效应也可以定义成反事实结局的某个泛函（functional）之差——这个泛函可以是中位数、方差、风率（hazard）或累积分布函数。一般来说，人群因果效应可以定义为：不同动作或不同处理取值下，反事实结局边际分布的任意泛函之差。例如，关于方差的人群因果效应定义为 <code>Var(Y<sup>a=1</sup>) − Var(Y<sup>a=0</sup>)</code>。对表 1.1 的人群来说它等于零，因为 <code>Y<sup>a=1</sup></code> 与 <code>Y<sup>a=0</sup></code> 的分布完全相同——都是 20 人中 10 人死亡。事实上，这两个分布相等意味着：任何泛函（均值、方差、中位数、风率等等）上的人群因果效应都是零。然而与均值不同，人群方差之差 <code>Var(Y<sup>a=1</sup>) − Var(Y<sup>a=0</sup>)</code> 一般并不等于个体因果效应的方差 <code>Var(Y<sup>a=1</sup> − Y<sup>a=0</sup>)</code>。举例来说，在表 1.1 中，<code>Y<sup>a=1</sup> − Y<sup>a=0</sup></code> 并不是常数（6 人为 −1，6 人为 1，8 人为 0），所以 <code>Var(Y<sup>a=1</sup> − Y<sup>a=0</sup>) &gt; 0 = Var(Y<sup>a=1</sup>) − Var(Y<sup>a=0</sup>)</code>。我们可以从随机化试验收集到的数据中识别（也就是算出）<code>Var(Y<sup>a=1</sup>) − Var(Y<sup>a=0</sup>)</code>，却算不出 <code>Var(Y<sup>a=1</sup> − Y<sup>a=0</sup>)</code>，因为我们永远不可能同时观测到同一个个体的 <code>Y<sup>a=1</sup></code> 与 <code>Y<sup>a=0</sup></code>，因此 <code>Y<sup>a=1</sup></code> 与 <code>Y<sup>a=0</sup></code> 的协方差是不可识别的。上述讨论不止对方差成立，对任何非线性泛函（例如中位数、风率）都成立。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（强因果零假设与敏感性分析）</strong>："强因果零假设"（又译"锐零假设"）这个名字听起来吓人，其实内容很朴素：它断言<em>每一个人</em>的反事实结局在处理与不处理下都相同。这个假定之所以有用，是因为它给出了一个可以逐点核查的极端情形——如果连"最强的不利偏倚"都推不出效应，那更弱的偏倚就更推不出。Rosenbaum–Rubin 的一类敏感性分析正是以它为参照系。国内近几年常用的 E-value（VanderWeele 与 Ding 提出，见精细辨析 1.2 中引用的 VanderWeele 2009a 一脉）则是同一思路的连续版本：它把观察到的效应量换算成"需要多强的未测混杂才能把它解释掉"。中文文献里"强零假设""锐零假设""sharp null of no effect"都出现过，读的时候认得出指的是同一个东西即可。</p>
+</aside>
+
+<h2 id="s-1-3">1.3 因果效应的度量</h2>
+
+<p>我们已经看到，在 Zeus 这 20 位家族成员构成的人群中，处理"心脏移植"A 对结局"死亡"Y 没有因果效应。因为两个反事实风险 <code>Pr[Y<sup>a=1</sup> = 1]</code> 与 <code>Pr[Y<sup>a=0</sup> = 1]</code> 都等于 0.5，因果零假设成立。这个零假设有若干等价的表示方式。例如，我们可以说风险 <code>Pr[Y<sup>a=1</sup> = 1]</code> 减去风险 <code>Pr[Y<sup>a=0</sup> = 1]</code> 等于零（0.5 − 0.5 = 0），或者说风险 <code>Pr[Y<sup>a=1</sup> = 1]</code> 除以风险 <code>Pr[Y<sup>a=0</sup> = 1]</code> 等于一（0.5/0.5 = 1）。也就是说，我们可以这样表示因果零假设：</p>
+
+<p style="text-align:center">(i) <code>Pr[Y<sup>a=1</sup> = 1] − Pr[Y<sup>a=0</sup> = 1] = 0</code><br>
+(ii) <code>Pr[Y<sup>a=1</sup> = 1] / Pr[Y<sup>a=0</sup> = 1] = 1</code><br>
+(iii) <code>Pr[Y<sup>a=1</sup> = 1]/Pr[Y<sup>a=1</sup> = 0]　/　Pr[Y<sup>a=0</sup> = 1]/Pr[Y<sup>a=0</sup> = 0] = 1</code></p>
+
+<p>其中 (i)、(ii)、(iii) 等号左边分别是因果风险差、因果风险比和因果比值比。</p>
+
+<p>人群中的<strong>因果风险差</strong>是差值尺度上个体因果效应 <code>Y<sup>a=1</sup> − Y<sup>a=0</sup></code> 的平均值，也就是说，它是平均个体因果效应的一个度量。与此相反，人群中的<strong>因果风险比</strong>并不是比值尺度上个体因果效应 <code>Y<sup>a=1</sup>/Y<sup>a=0</sup></code> 的平均值：它度量的是人群中的因果效应，但不是任何个体因果效应的平均值。</p>
+
+<p>现在设想另一个处理 A——吸烟——在我们人群中，对我们另一个结局 Y——肺癌——有因果效应。因果零假设不成立：<code>Pr[Y<sup>a=1</sup> = 1]</code> 与 <code>Pr[Y<sup>a=0</sup> = 1]</code> 不相等。在这种情形下，因果风险差、风险比和比值比都不分别是 0 和 1，而是在不同尺度上量化同一个因果效应的强度。正因为因果风险差、风险比、比值比（以及其他汇总量）都度量因果效应，我们把它们统称为<strong>效应度量</strong>（effect measures）。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 1.3　需治疗人数</span>
+<p>设想有 1 亿患者的人群，其中若接受治疗（<code>a = 1</code>）会有 2000 万人在五年内死亡，若不接受治疗（<code>a = 0</code>）则会有 3000 万人在五年内死亡。同样的信息可以用几种等价的方式概括：</p>
 <ul>
-<li>阅读<a href="chintro.html">上一章</a>与<a href="chch2.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li>因果风险差为 <code>Pr[Y<sup>a=1</sup> = 1] − Pr[Y<sup>a=0</sup> = 1] = 0.2 − 0.3 = −0.1</code>；</li>
+<li>若给这 1 亿患者用药，比不给他们用药少死 1000 万人；</li>
+<li>需要治疗 1 亿名患者，才能挽救 1000 万条生命；</li>
+<li>平均而言，需要治疗 10 名患者，才能挽救 1 条生命。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>1.1 Individual causal effects</li>
-    <li>1.2 Average causal effects</li>
-    <li>1.3 Measures of causal effect</li>
-    <li>1.4 Random variability</li>
-    <li>1.5 Causation versus association</li></ul>
-</div>
+<p>我们把"为减少一例 <code>Y = 1</code> 的病例而需要接受 <code>a = 1</code> 处理的平均人数"称为<strong>需治疗人数</strong>（number needed to treat，NNT）。本例中 NNT 等于 10。对于那些能减少平均病例数的处理（即因果风险差为负），NNT 等于因果风险差绝对值的倒数：</p>
+<p style="text-align:center"><code>NNT = −1 / [ Pr[Y<sup>a=1</sup> = 1] − Pr[Y<sup>a=0</sup> = 1] ]</code></p>
+<p>对于那些会增加平均病例数的处理（即因果风险差为正），可以对称地定义<strong>需致害人数</strong>（number needed to harm）。NNT 由 Laupacis、Sackett 与 Roberts（1988）提出。与因果风险差一样，NNT 只适用于它所依据的那个人群和时间区间。把 NNT 作为效应度量时，其相对优缺点的讨论见 Grieve（2003）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（比值比的中文译名与 NNT 的陷阱）</strong>：odds ratio 在中文文献里有"比值比""优势比""几率比""比值"几种译法。人卫版《流行病学》用<strong>比值比</strong>，多数临床期刊也用比值比；"优势比"多见于统计学与精算文献；"几率比"来自台湾译法。留意："优势比"在中文里有时被误当成"优势度"（odds 在日常语言中的"胜算"义），而 OR 在病例对照研究中恰恰<em>不能</em>直接解释为发病优势（见第 15 章与第 16 章关于倾向性评分与工具变量的讨论）。</p>
+<p>NNT 在中文临床语境里常被写成"治疗获益所需治疗人数"或直接沿用 NNT。上一段已点明、这里再强调一次：NNT 依赖基线风险与随访时长。同一种药在基线死亡风险 30% 的人群里 NNT 是 10，在基线风险 0.3% 的人群里 NNT 可能是几万；随访 5 年和随访 1 个月算出的 NNT 也不能互相比较。因此国内外指南都要求 NNT 必须与相对危险度（或相对风险降低 RRR）、绝对风险降低（ARR）以及它们的区间估计一起报告，孤零零一个数字没有信息量。另外注意 NNT 与 ARR 满足 <code>NNT = 1/ARR</code>，而与相对风险降低 <code>RRR = 1 − RR</code> 之间<strong>没有</strong>简单的倒数关系——这是临床试验报道中一个反复出现的换算错误。</p>
+</aside>
+
+<p>每种效应度量都可以用于不同的目的。举例来说，设想有一个人群，其中若接受治疗每百万人中会有 3 人出现结局，若不接受治疗则每百万人中会有 1 人出现结局。因果风险比是 3，因果风险差是 0.000002。因果风险比（乘性尺度）用来计算：相对于不治疗，治疗把患病风险提高或降低了几倍。因果风险差（加性尺度）用来计算：归因于该处理的疾病病例绝对数究竟有多少。用乘性尺度还是加性尺度，取决于推断的目的。</p>
+
+<h2 id="s-1-4">1.4 随机变异</h2>
+
+<p>走到这一步，你完全可以抱怨：我们计算效应度量的这套流程有点不太可信。我们不但无视了"不朽的 Zeus 不会死"这个谁都清楚的事实，而且更要紧的是，表 1.1 里的人群只有 20 个人。感兴趣的人群通常要大得多。</p>
+
+<p>在我们这个极小的人群里，我们从每一个个体身上都收集了信息。实践中，研究者只能从感兴趣的人群里抽取一个样本收集信息。即便所有研究对象的反事实结局都已知道，用样本也使得我们无法得到人群中在处理值 <code>a</code> 下出现结局的那一部分个体的确切比例。例如，不处理下的死亡概率 <code>Pr[Y<sup>a=0</sup> = 1]</code> 无法直接计算，只能估计。</p>
+
+<p><strong>随机误差的第一个来源：抽样变异。</strong>来看表 1.1 中的这些人。我们此前把他们看作一个二十人的人群。现在不妨把他们看作从一个大得多、近乎无限的超级总体（super-population，比如所有不朽者）中抽出的随机样本。我们把样本中若不接受处理就会死亡者的比例记作 <span style="text-decoration:overline">Pr</span>[Y<sup>ca=0</sup> = 1] = 10/20 = 0.50，其中 <code>Y<sup>ca=0</sup></code> 读作"未处理下的反事实结局"，<code>c</code> 只是用来提示它是反事实的记号。样本比例 <span style="text-decoration:overline">Pr</span>[Y<sup>ca=0</sup> = 1] 不必恰好等于"若整个超级总体都不接受处理则会死亡者的比例" <code>Pr[Y<sup>a=0</sup> = 1]</code>。举例来说，假设人群中 <code>Pr[Y<sup>a=0</sup> = 1] = 0.57</code>，但由于抽样变异带来的随机误差，我们这个具体样本里 <span style="text-decoration:overline">Pr</span>[Y<sup>ca=0</sup> = 1] = 0.5。我们用样本比例 <span style="text-decoration:overline">Pr</span>[Y<sup>ca</sup> = 1] 来估计处理值 <code>a</code> 下的超级总体概率 <code>Pr[Y<sup>a</sup> = 1]</code>。<code>Pr</code> 头上这道横线表明 <span style="text-decoration:overline">Pr</span>[Y<sup>ca</sup> = 1] 是相应总体量 <code>Pr[Y<sup>a</sup> = 1]</code> 的估计量。我们说 <span style="text-decoration:overline">Pr</span>[Y<sup>ca</sup> = 1] 是 <code>Pr[Y<sup>a</sup> = 1]</code> 的一致估计量，因为样本中个体数越多，<span style="text-decoration:overline">Pr</span>[Y<sup>ca</sup> = 1] 与 <code>Pr[Y<sup>a</sup> = 1]</code> 之间的差预期就越小。之所以如此，是因为抽样变异带来的误差是随机的，因而服从大数定律。</p>
+
+<p><strong>一个估计量的定义：</strong>设 <code>θ</code> 是某个总体量，<span style="text-decoration:overline">θ</span> 是它的估计量。若随着样本量趋于无穷，差 <span style="text-decoration:overline">θ</span> − <code>θ</code> 趋近于零的概率接近 1，则称 <span style="text-decoration:overline">θ</span> 是 <code>θ</code> 的<strong>一致估计量</strong>。<br><strong>注意：</strong>"一致性"一词用在估计量上时，其含义与用在反事实结局上时并不相同。</p>
+
+<p>由于超级总体的概率 <code>Pr[Y<sup>a</sup> = 1]</code> 算不出来，只能由样本比例 <span style="text-decoration:overline">Pr</span>[Y<sup>ca</sup> = 1] 一致地估计，因此我们无法确定地断言因果效应存在或不存在。必须依靠一个统计程序来评估关于因果零假设 <code>Pr[Y<sup>a=1</sup> = 1] = Pr[Y<sup>a=0</sup> = 1]</code> 的经验证据（详见第 10 章）。</p>
+
+<p>到目前为止，我们只把抽样变异当作随机误差的一个来源。但随机变异可能还有第二个来源：个体的反事实结局取值也许并非事先就固定。我们把反事实结局 <code>Y<sup>a</sup></code> 定义为"个体若接受处理值 <code>a</code> 时的结局"。举例来说，在第一个小故事里，Zeus 若接受处理会死，若不接受处理会活。按这个定义，反事实结局的取值对每个个体都是固定的、确定的：Zeus 的 <code>Y<sup>a=1</sup> = 1</code>、<code>Y<sup>a=0</sup> = 0</code>。换句话说，Zeus 接受处理时死亡的概率是 100%，不接受处理时死亡的概率是 0%。但我们完全可以设想另一种情形：Zeus 接受处理时死亡的概率是 90%，不接受处理时死亡的概率是 10%。在那种情形下，反事实结局就是随机的、非确定性的，因为 Zeus 在处理下（0.9）与不处理下（0.1）的死亡概率既不是 0 也不是 1。表 1.1 中 <code>Y<sup>a=1</sup></code> 与 <code>Y<sup>a=0</sup></code> 的取值，可以被看作按这些概率抛"死亡硬币"所得到的一次次实现。而且我们应当预期这些概率因人而异，因为并非所有人对结局的易感性都一样。量子力学与经典力学不同，它认为结局本质上是非确定性的。也就是说，如果 Zeus 死亡的量子力学概率是 90%，那么按该理论，无论我们收集关于 Zeus 多少数据，"他若接受处理是否真会出现结局"这一点上的不确定性都是不可再压缩的。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 1.2　非确定性的反事实</span>
+<p>对非确定性的反事实结局，处理值 <code>a</code> 下的平均结局 <code>E[Y<sup>a</sup>]</code> 等于对随机变量 <code>Y<sup>a</sup></code> 一切可能取值 <code>y</code> 的加权和 <code>∑<sub>y</sub> y·p<sub>Y<sup>a</sup></sub>(y)</code>，其中概率质量函数 <code>p<sub>Y<sup>a</sup></sub>(·) = E[Q<sub>Y<sup>a</sup></sub>(·)]</code>，而 <code>Q<sub>Y<sup>a</sup></sub>(y)</code> 是个体在处理水平 <code>a</code> 下结局为 <code>Y = y</code> 的随机概率。在正文所述的例子中，Zeus 的 <code>Q<sub>Y<sup>a=1</sup></sub>(1) = 0.9</code>。（对连续结局，加权和换成积分。）</p>
+<p>更一般地，反事实结局的非确定性定义，并不是给每个个体指定 <code>Y<sup>a</sup></code> 的某个确定取值，而是给出一个个体特异的统计分布 <code>Θ<sub>Y<sup>a</sup></sub>(·)</code>。因果效应的非确定性定义是确定性定义的推广，其中 <code>Θ<sub>Y<sub>i</sub><sup>a</sup></sub>(·)</code> 现在是一个取值介于 0 与 1 之间的随机累积分布函数。于是人群中处理 <code>a</code> 下的平均结局 <code>E[Y<sup>a</sup>]</code> 等于 <code>E{ E[Y<sup>a</sup> | Θ<sub>Y<sup>a</sup></sub>(·)] }</code>，因而 <code>E[Y<sup>a</sup>] = E ∫ y dΘ<sub>Y<sup>a</sup></sub>(y) = ∫ y d E[Θ<sub>Y<sup>a</sup></sub>(y)] = ∫ y dF<sub>Y<sup>a</sup></sub>(y)</code>，其中 <code>F<sub>Y<sup>a</sup></sub>(·) = E Θ<sub>Y<sub>i</sub><sup>a</sup></sub>(·)</code>。</p>
+<p>若反事实结局是二值且非确定性的，则人群中的因果风险比 <code>E[Q<sub>Y<sup>a=1</sup></sub>(1)] / E[Q<sub>Y<sup>a=0</sup></sub>(1)]</code> 等于比值尺度上个体因果效应 <code>Q<sub>Y<sup>a=1</sup></sub>(1) / Q<sub>Y<sup>a=0</sup></sub>(1)</code> 的加权平均 <code>E[W · { Q<sub>Y<sup>a=1</sup></sub>(1) / Q<sub>Y<sup>a=0</sup></sub>(1) }]</code>，权重为 <code>W = E[Q<sub>Y<sup>a=0</sup></sub>(1)] / E[Q<sub>Y<sup>a=0</sup></sub>(1)]</code>，前提是人群中没有任何人的 <code>Q<sub>Y<sup>a=0</sup></sub>(1)</code> 等于 0（即没有任何人的未处理下结局是确定性的）。</p>
+</aside>
+
+<p>因此，在因果推断中，随机误差可能来自抽样变异、来自非确定性的反事实，或两者兼有。不过出于教学上的考虑，直到第 10 章之前，我们都将基本无视随机误差。具体来说，我们将假定反事实结局是确定性的，并且我们在一个非常庞大的（或许可以称之为假设的）超级总体中记录了每一个个体的数据。这等价于把我们的 20 人人群看作一个 200 亿人的人群，其中 10 亿人与 Zeus 完全相同、10 亿人与 Hera 完全相同，如此等等。所以，直到第 10 章，我们的计算都带着奥林匹斯诸神般的笃定。</p>
+
+<p>到了第 10 章，我们会说明：对于超级总体中因果效应的统计估计与置信区间，无论世界在个体层面是随机的（量子的）还是确定性的（经典的），结果都一样。相比之下，实际研究样本中平均因果效应的置信区间，则会随反事实是确定性的还是随机性的而不同。所幸，超级总体中的效应在大多数情形下才是我们实质上关心的那个因果效应。</p>
+
+<h2 id="s-1-5">1.5 因果与关联</h2>
+
+<p>显然，真实研究中拿到的数据与表 1.1 展示的那些不一样。举例来说，我们通常不会既得知 Zeus 在处理下的结局 <code>Y<sup>a=1</sup></code>，又得知他在不处理下的结局 <code>Y<sup>a=0</sup></code>。在现实世界里，因为 Zeus 要么接受处理、要么不接受，我们只能观测到其中一个结局。我们把被观测到的结局记作 <code>Y</code>。于是，对每个个体而言，我们知道他在表 1.2 中那样的观测处理水平 <code>A</code> 与结局 <code>Y</code>。</p>
+
+<figure class="fig"><img src="../figures/ch1--table-1_2.png" alt="表 1.2：20 人人群的实际处理与观测结局">
+<figcaption><strong>表 1.2</strong>　20 人人群的实际处理 <code>A</code> 与观测结局 <code>Y</code>。13 人接受处理，其中 7 人死亡；7 人未接受处理，其中 3 人死亡。</figcaption></figure>
+
+<p>表 1.2 的数据可以用来计算：在人群中恰好接受了处理值 <code>a</code> 的那部分个体里，出现结局 <code>Y</code> 的个体比例。举例来说，在表 1.2 中，接受治疗的 13 人里有 7 人死亡（<code>Y = 1</code>）。因此，接受治疗者中的死亡风险 <code>Pr[Y = 1|A = 1]</code> 是 7/13。更一般地，条件概率 <code>Pr[Y = 1|A = a]</code> 定义为：感兴趣人群中恰好接受了处理值 <code>a</code> 的那部分个体里，出现结局 <code>Y</code> 的个体比例。</p>
+
+<p>当接受治疗者中出现结局的比例 <code>Pr[Y = 1|A = 1]</code> 等于未接受治疗者中出现结局的比例 <code>Pr[Y = 1|A = 0]</code> 时，我们说处理 A 与结局 Y 相互<strong>独立</strong>，说 <code>A</code> 与 <code>Y</code> 无关联，或者说 <code>A</code> 不预测 <code>Y</code>。独立记作 <code>Y ⊥⊥ A</code>——或者等价地 <code>A ⊥⊥ Y</code>——读作"Y 与 A 独立"。独立性有若干等价的定义：</p>
+
+<p style="text-align:center">(i) <code>Pr[Y = 1|A = 1] − Pr[Y = 1|A = 0] = 0</code><br>
+(ii) <code>Pr[Y = 1|A = 1] / Pr[Y = 1|A = 0] = 1</code><br>
+(iii) <code>Pr[Y = 1|A = 1]/Pr[Y = 0|A = 1]　/　Pr[Y = 1|A = 0]/Pr[Y = 0|A = 0] = 1</code></p>
+
+<p>其中 (i)、(ii)、(iii) 等号左边分别是关联风险差、关联风险比和关联比值比。（符号 ⊥ 由 Dawid（1979）引入来表示独立。）当 <code>Pr[Y = 1|A = 1] ≠ Pr[Y = 1|A = 0]</code> 时，我们说处理 A 与结局 Y <strong>相依</strong>或<strong>有关联</strong>。在我们的人群中，处理与结局确实是关联的，因为 <code>Pr[Y = 1|A = 1] = 7/13</code> 而 <code>Pr[Y = 1|A = 0] = 3/7</code>。关联风险差、风险比、比值比（以及其他度量）在关联存在时量化关联的强度。它们在不同尺度上度量同一个关联，我们把它们统称为<strong>关联度量</strong>。这些度量同样会受到随机变异的影响。不过在第 10 章之前，我们将无视统计问题，假定表 1.2 中的人群极其庞大。</p>
+
+<p>对二值结局，风险等于人群中的平均值，因此我们可以把关联的定义改写为 <code>E[Y|A = 1] ≠ E[Y|A = 0]</code>。对连续结局 <code>Y</code>，我们同样把关联定义为 <code>E[Y|A = 1] ≠ E[Y|A = 0]</code>——这就是<strong>均值独立</strong>（mean independence）。对二值的 <code>A</code> 而言，<code>Y</code> 与 <code>A</code> 不关联，当且仅当二者不相关。对二值结局来说，独立与均值独立是同一个概念。</p>
+
+<p>在我们这 20 人的总体中，我们发现了：(i) 把"20 人全部接受治疗时的死亡风险"与"20 人全部不接受治疗时的死亡风险"作比较，没有因果效应；(ii) 把"恰好接受治疗的那 13 人的死亡风险"与"恰好未接受治疗的那 7 人的死亡风险"作比较，存在关联。图 1.1 描绘了因果与关联之间的这个差别。</p>
+
+<figure class="fig"><img src="../figures/ch1--figure-1_1.png" alt="图 1.1：人群被切分为处理组与未处理组，左侧为因果、右侧为关联的比较">
+<figcaption><strong>图 1.1</strong>　因果与关联之别。人群（以菱形表示）被分成处理组（白色部分）与较小的一块未处理组（灰色部分）。因果比较的是"整颗白钻" <code>E[Y<sup>a=1</sup>]</code> 与"整颗灰钻" <code>E[Y<sup>a=0</sup>]</code>，即同一总体的两种处理；关联比较的是原钻石的白区 <code>E[Y|A = 1]</code> 与灰区 <code>E[Y|A = 0]</code>，即两个互不相交的子集。</figcaption></figure>
+
+<p>因果的定义意味着要在整颗白钻（全部接受处理）与整颗灰钻（全部不接受处理）之间作对比；关联的定义则意味着要在原钻石的白区（接受处理者）与灰区（未接受处理者）之间作对比。也就是说，关于因果的推断关心的是反事实世界中的"假如"问题，比如"如果所有人都接受治疗，风险会是多少？""如果所有人都不接受治疗，风险会是多少？"；而关于关联的推断关心的是现实世界中的问题，比如"接受治疗者中的风险是多少？""未接受治疗者中的风险是多少？"</p>
+
+<p>我们可以用迄今建立的这套记号，把因果与关联的区分形式化。风险 <code>Pr[Y = 1|A = a]</code> 是一个<strong>条件概率</strong>：人群中满足"实际接受了处理值 <code>a</code>"（即 <code>A = a</code>）这一条件的那个子集里，<code>Y</code> 的风险。与之相对，风险 <code>Pr[Y<sup>a</sup> = 1]</code> 是<strong>无条件概率</strong>——也叫<strong>边际概率</strong>——是整个总体中 <code>Y<sup>a</sup></code> 的风险。因此，关联是由个体实际处理值（<code>A = 1</code> 或 <code>A = 0</code>）所划分的两个互不相交的子集里各自不同的风险来定义的；而因果则是由同一总体在两种不同处理值（<code>a = 1</code> 或 <code>a = 0</code>）下不同的风险来定义的。全书里我们经常使用"因果效应"这个冗余的说法，以避免与"效应"一词常被用来单纯指代关联的情形混淆。</p>
+
+<p>正是这两种截然不同的定义，解释了"关联不等于因果"这句老话。在我们的人群中，存在关联，因为接受治疗者中的死亡风险（7/13）高于未接受治疗者中的死亡风险（3/7）。但不存在因果，因为若所有人都接受治疗的风险（10/20）与所有人都未接受治疗的风险相同。如果那些接受了心脏移植的人平均而言病情比没接受的人更重，那么这种因果与关联之间的背离就毫不奇怪。第 7 章会把这一背离称为<strong>混杂</strong>（confounding）。</p>
+
+<p>关联与因果的这个差别是致命的。设想阿司匹林对 5 年死亡率的因果风险比是 0.5，而相应的关联风险比是 1.5——因为心血管死亡风险高的人更常被医生开具阿司匹林。一位医生了解到这些结果后，决定不给自己的病人开阿司匹林，理由是"服用阿司匹林的那群人死亡风险比未服药者更高"。这位医生将因医疗过失被起诉。</p>
+
+<p>因果推断需要表 1.1 那样假设性的数据，而我们能指望拿到的永远只有表 1.2 那样的真实世界数据。问题于是变成：在什么条件下，真实世界的数据可以用来做因果推断？下一章给出一个答案：做一项随机化试验。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（超级总体 vs 目标总体）</strong>：原文反复区分"超级总体（super-population）"与人群本身。国内教材常把两者都笼统叫"总体"，于是"样本比例"与"总体率"之间的这一层不确定性就被抹平了。实际做研究时必须分清三个对象：目标总体（你真正想外推到的那些人，比如"全国 2 型糖尿病患者"）、抽样总体（你实际抽样的框）、超级总体（把目标总体想象成一个几乎无限的、重复抽样的母体）。目标总体与抽样总体不一致会产生<strong>选择偏倚</strong>（第 8 章）；而从抽样总体外推到目标总体时，抽样变异就必须通过区间估计来表达（第 10 章）。把三者混为一谈，是国内很多"横断面调查→全国患病率"推算被质疑的根本原因。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（从这一章往后，什么在等着）</strong>：这一章把因果效应定义成了一个关于反事实的算式，然后用一整个 20 人的虚构家族把每个符号都落到实处的做法也全部演示了一遍。但正如 1.1 节末尾承认的，个体效应不可识别；1.4 节又承认，连平均效应也只能被估计、不能被计算。因此从第 2 章开始，问题会一步步转向：既然"假如所有人都……"永远观测不到，我们究竟凭什么能动？随机化（第 2 章）通过让分配机制与结局无关来替我们造出这个反事实；观察性研究（第 3 章）则必须靠额外假定——可交换性、一致性、可阳性性——把反事实从数据里"借"出来。请带着本章的这 20 位奥林匹斯诸神往下读：他们会在第 2 章的随机化试验里重新登场，并在第 7 章解释为什么即使随机化做了，仍有残余的混杂需要处理。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

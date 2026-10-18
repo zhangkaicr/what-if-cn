@@ -3,32 +3,334 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 7 章 · 混杂 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 7 章 · 混杂 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 7 章 · 混杂</h1>
-<p class="muted">第一部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第一部分 · 无模型的因果推断 · Part I — Causal inference without models</p>
+  <h1>第 7 章 · 混杂</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 7. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">假设一位研究者做了一项观察性研究，想回答的因果问题是："一个人抬头看天，会让路人也跟着抬头吗？"她发现第一个路人抬头与第二个路人抬头之间存在关联。但她还发现，头顶传来一声巨响时，人们往往会抬头。那么究竟是谁让第二个人抬头的——是前面那个人抬了头，还是那声巨响？她的结论是：一个人抬头的效应，被那声巨响的存在混杂了。</p>
+
+<p>在随机化试验里，处理由抛硬币决定；但在观察性研究中，处理（比如一个人抬头看没抬头）可能由许多因素决定（比如那声巨响）。如果这些因素影响结局发生的风险（比如另一个人抬头看没抬头），那么它们的效应就和处理的效应纠缠在了一起。这时我们说存在<strong>混杂</strong>（confounding），它不过是已处理者与未处理者之间缺乏可交换性的一种形式。混杂常被视为观察性研究的主要缺点。在混杂存在的情况下，"关联不等于因果"这句老话即便研究人群无限大也照样成立。本章给出混杂的定义，并梳理调整混杂的方法。</p>
+
+<h2 id="s-7-1">7.1 混杂的结构</h2>
+
+<p>混杂的结构——也就是由处理与结局的共同原因造成的偏倚——可以用因果图来表示。举个例子，图 7.1（与图 6.1 相同）画的是处理 <code>A</code>、结局 <code>Y</code>，以及二者共享的（共同的）原因 <code>L</code>。这张图画出了处理与结局之间关联的两个来源：一是路径 <code>A → Y</code>，代表 <code>A</code> 对 <code>Y</code> 的因果效应；二是路径 <code>A ← L → Y</code>，它包含共同原因 <code>L</code>。那条通过共同原因 <code>L</code> 把 <code>A</code> 与 <code>Y</code> 连起来的路径 <code>A ← L → Y</code>，就是一条后门路径的例子。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_1.png" alt="图 7.1：处理 A、结局 Y 与共同原因 L 构成的因果图">
+<figcaption><strong>图 7.1</strong>　处理 <code>A</code>、结局 <code>Y</code> 与它们的共同原因 <code>L</code>。图中 <code>L → A → Y</code> 是一条链，<code>L</code> 另有一条弧线箭头指向 <code>Y</code>（即 <code>L → Y</code>）。</figcaption></figure>
+
+<p>如果图 7.1 中的共同原因 <code>L</code> 不存在，那么处理与结局之间唯一的路径就是 <code>A → Y</code>，于是 <code>A</code> 与 <code>Y</code> 之间的全部关联都将来自 <code>A</code> 对 <code>Y</code> 的因果效应。也就是说，关联风险比 <code>Pr[Y = 1|A = 1] / Pr[Y = 1|A = 0]</code> 会等于因果风险比 <code>Pr[Y<sup>a=1</sup> = 1] / Pr[Y<sup>a=0</sup> = 1]</code>；关联就是因果。可共同原因 <code>L</code> 的存在，为处理 <code>A</code> 与结局 <code>Y</code> 之间的关联提供了另一个来源，我们把它称为 <code>A</code> 对 <code>Y</code> 效应的混杂。因为混杂，关联风险比不等于因果风险比；关联不是因果。</p>
+
+<p><span class="box-label">边注</span>　在因果 DAG 中，后门路径是处理与结局之间的一条非因果路径，并且这条路径在把处理指向其他变量的所有箭头（处理的后代）都删掉之后依然存在。换句话说，这条路径上有一根箭头指向处理。</p>
+
+<p>观察性研究中，混杂的例子多得很。下面是若干种处理对健康结局效应被混杂的例子：</p>
+
 <ul>
-<li>阅读<a href="chch6.html">上一章</a>与<a href="chch8.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li><strong>职业因素</strong>：消防员这份工作 <code>A</code> 对死亡风险 <code>Y</code> 的效应，如果"身体健壮" <code>L</code> 既是成为在职消防员的原因、又是死亡风险更低的原因，就会被混杂。图 7.1 因果图所描绘的这类偏倚，通常被称为<strong>健康工人偏倚</strong>（healthy worker bias）。</li>
+<li><strong>临床决策</strong>：药物 <code>A</code>（比如阿司匹林）对疾病 <code>Y</code>（比如卒中）风险的影响，如果这种药更可能被开给有某种状况 <code>L</code>（比如心脏病）的个体，而这种状况既是治疗的指征、又是该病的危险因素，就会被混杂。心脏病 <code>L</code> 是卒中 <code>Y</code> 的危险因素，可以是因为 <code>L</code> 对 <code>Y</code> 有直接的因果效应（图 7.1），也可以是因为 <code>L</code> 与 <code>Y</code> 都被动脉粥样硬化 <code>U</code> 这个未测变量所导致（图 7.2）。这种偏倚叫作<strong>指征混杂</strong>（confounding by indication）或"选径"（channeling）；后一个词常常专门用来描述由患者特有的危险因素 <code>L</code> 促成医生在某一类药物中选用某一种药 <code>A</code> 所造成的偏倚。</li>
+<li><strong>生活方式</strong>：行为 <code>A</code>（比如运动）对 <code>Y</code>（比如死亡）风险的影响，如果这一行为与另一种行为 <code>L</code>（比如吸烟）相关，而后者既对 <code>Y</code> 有因果效应、又倾向于与 <code>A</code> 同时出现，就会被混杂。<code>L</code>、<code>A</code>、<code>Y</code> 这几个变量的结构见图 7.3，其中未测变量 <code>U</code> 代表那类既导致缺乏运动、又导致吸烟的性格与社会因素。另一个常见问题是亚临床疾病 <code>U</code> 同时造成缺乏运动 <code>A</code> 和临床疾病 <code>Y</code> 风险上升；当 <code>L</code> 未知时，这种形式的混杂常被称为<strong>反向因果</strong>（reverse causation）。</li>
+<li><strong>遗传因素</strong>：一段 DNA 序列 <code>A</code> 对某性状 <code>Y</code> 患病风险的影响，如果还存在另一段 DNA 序列 <code>L</code>，它对 <code>Y</code> 有因果效应、并且在携带 <code>A</code> 的人群中更常见，就会被混杂。这种偏倚同样可由图 7.3 的因果图表示，它叫<strong>连锁不平衡</strong>（linkage disequilibrium）或<strong>人群分层</strong>（population stratification）；后一个词常专门用来描述在不同族裔人群的混合样本中开展研究所产生的偏倚。于是变量 <code>U</code> 可以代表族裔，也可以代表其他导致 DNA 序列连锁的因素。</li>
+<li><strong>社会因素</strong>：65 岁时的收入 <code>A</code> 对 75 岁时残障程度 <code>Y</code> 的影响，如果 55 岁时的残障程度 <code>L</code> 同时影响日后的收入与残障程度，就会被混杂。这种偏倚可用图 7.1 的因果图表示。</li>
+<li><strong>环境暴露</strong>：空气中的颗粒物 <code>A</code> 对冠心病 <code>Y</code> 风险的影响，如果还有别的污染物 <code>L</code> 本身导致冠心病、且其水平与 <code>A</code> 的水平同步波动，就会被混杂。这种偏倚也可用图 7.3 的因果图表示，其中未测变量 <code>U</code> 代表影响各种空气污染物浓度的天气状况。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>7.1 The structure of confounding</li>
-    <li>7.2 Confounding and exchangeability</li>
-    <li>7.3 Confounding and the backdoor criterion</li>
-    <li>7.4 Confounding and confounders</li>
-    <li>7.5 Single-world intervention graphs</li>
-    <li>7.6 Confounding adjustment</li></ul>
-</div>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_2.png" alt="图 7.2：A 与 Y 共享未测共同原因 U 的因果图，L 是 U 的后代">
+<figcaption><strong>图 7.2</strong>　未测共同原因 <code>U</code> 同时指向 <code>L</code> 与 <code>Y</code>，<code>L</code> 又指向处理 <code>A</code>；<code>A</code> 直接指向结局 <code>Y</code>。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　有些作者更愿意把未测共同原因 <code>U</code>（以及从它出发的两根箭头）替换成一条由 <code>U</code> 所导致的那些测量变量之间的双向边。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_3.png" alt="图 7.3：A 与 Y 共享未测共同原因 U，L 既是 U 的后代又是 A 的原因">
+<figcaption><strong>图 7.3</strong>　未测共同原因 <code>U</code> 同时指向 <code>L</code> 与 <code>Y</code>；<code>L</code> 指向处理 <code>A</code>，另有弧线箭头表示 <code>L</code> 也指向 <code>Y</code>；<code>A</code> 直接指向 <code>Y</code>。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　关于混杂的最早统计描述来自 Yule（1903）对离散变量的讨论，以及 Pearson 等（1899）对连续变量的讨论。Yule 把由混杂造成的关联称为"虚构的"（fictitious）、"虚幻的"（illusory）、"表面的"（apparent）；Pearson 等（1899）则称之为"虚假的"（spurious）相关。但这些关联一点也不虚构、一点也不虚幻、一点也不表面、一点也不虚假。由共同原因造成的关联是很实在的关联，只不过不能被解释为处理效应而已。用 Yule 的话说，它们是那种"最明显的物理意义都不该被赋予"（to which the most obvious physical meaning must not be assigned）的关联。</p>
+
+<p>在上述所有例子里，偏倚的结构都是一样的：它源于存在一个被处理 <code>A</code> 与结局 <code>Y</code> 共享的原因（<code>L</code> 或 <code>U</code>），从而在 <code>A</code> 与 <code>Y</code> 之间留下一条打开的后门路径。我们把由处理与结局的共享原因造成的偏倚称为混杂；对于由处理与结局共享原因之外的结构性原因造成的偏倚，我们则用别的名字。为便于表述，本章自始至终假定可阳性性与一致性成立、因果图中所有节点都被完美测量、没有带方框的选择节点 <code>S</code>（也就是说数据是目标人群的随机样本）、并且不存在随机变异。含选择节点的因果图在第 8 章讨论，含错测节点的因果图在第 9 章讨论，随机变异在第 10 章讨论。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（健康工人偏倚与它的镜像）</strong>：本章第一类例子来自职业流行病学，教科书上一般叫"健康工人偏倚"。中文语境里更常遇到的是它的镜像——<strong>健康工人效应</strong>：在一线岗位上工作的人因为体检更频繁、筛查更多，反而更容易被记录下"患病"。Whitehall II 队列中历次体检发现的血压、糖尿病等指标异常率随职级下降而升高，是这个效应的经典表现。做职业暴露与健康结局的分析时，这两种偏倚要同时提防：前者使效应被低估（能上岗的人本来就健康），后者使效应被高估（不上班的人才有病可查）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（指征混杂在中国医保数据里的样子）</strong>：图 7.2 的 confounding by indication 在中国的观察性研究里几乎必然出现。以他汀为例：急性心肌梗死后被处方他汀的比例，远高于同期存在慢性肾病、高龄、多重共病的人群，而这些人群本身的死亡风险就高。图 7.2 的要害在于动脉粥样硬化负荷 <code>U</code> 没被测到，而测到的 <code>L</code>（"合并心脏病"这个诊断）只是 <code>U</code> 的一个下游后果——用一个后果去代替原因，通常仍留下残余混杂。国内复刻这类研究时，比较可行的做法有两条：一是尽量把 <code>U</code> 的其他后果也一并测量并调整（用多个后代的联合信息去近似 <code>U</code>），二是改用目标试验模拟，把"处理"定义为一个明确的策略（例如"AMI 住院期间启动他汀"），从而让纳入条件与处理分配在随访起点上对齐，而不是拿事后开药的记录去倒推。</p>
+</aside>
+
+<h2 id="s-7-2">7.2 混杂与可交换性</h2>
+
+<p>现在我们把混杂——它是上一节用因果图定义的概念——与可交换性——前面几章用反事实定义的概念——联系起来。关于混杂与可交换性之间的关系，Greenland 与 Robins（1986，2009）有详细的讨论。</p>
+
+<p>当可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 成立时——比如在边际随机化试验中，所有个体接受处理的概率都相同——平均因果效应无需对任何变量作调整即可被识别。对二值处理 <code>A</code>，平均因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 就用条件均值之差 <code>E[Y|A = 1] − E[Y|A = 0]</code> 来计算。</p>
+
+<p>当可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 不成立、但条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 成立时——比如在条件随机化试验中，接受处理的概率随 <code>L</code> 的取值而变——平均因果效应同样可以被识别。不过正如第 2 章所述，要在人群中识别因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>，需要通过标准化或 IP 加权对变量 <code>L</code> 作调整。另外，正如第 4 章所述，条件可交换性还允许通过分层来识别任意 <code>l</code> 值下的条件因果效应 <code>E[Y<sup>a=1</sup>|L = l] − E[Y<sup>a=0</sup>|L = l]</code>。</p>
+
+<p>在实践中，如果我们认为混杂很可能存在，一个关键问题就冒出来了：我们能不能判断，是否存在一组测量协变量 <code>L</code> 使得条件可交换性成立？这个问题很难回答，因为在复杂的因果系统中，用条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 来思考往往并不直观。</p>
+
+<p>本章会说明：只要知道生成数据的因果 DAG，这个问题是可以回答的。假设我们知道真实的因果 DAG（暂不考虑我们是怎么知道的：也许我们掌握足够的专业知识，也许是某位全知的神把它给了我们）。因果 DAG 究竟如何帮我们判断是否存在一组使条件可交换性成立的变量 <code>L</code>？主要有两条路子：（i）把后门准则用到因果 DAG 上；（ii）把因果 DAG 变换成一个 SWIG（单世界干预图）。SWIG 的做法更直接，但需要多一点的工具，所以我们先讲后门准则，SWIG 留到 7.5 节。</p>
+
+<p>一组协变量 <code>L</code> 满足后门准则，当且仅当处理 <code>A</code> 与结局 <code>Y</code> 之间的所有后门路径都被对 <code>L</code> 的条件化所阻断，且 <code>L</code> 中不含处理 <code>A</code> 的任何后代。在忠实性假设以及技术要点 7.1 所讨论的另一个条件之下，条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 成立当且仅当 <code>L</code> 满足后门准则。（下面会基于 SWIG 给出这一事实的一个简单证明。）至此，关于"给定一组协变量 <code>L</code>，给定 <code>L</code> 的条件可交换性是否成立"这类问题，我们都能给出答案。而通过逐一尝试处理的所有测量到的非后代的每一个子集，我们也就回答了"是否有某个子集使条件可交换性成立"这个问题。（事实上已有算法可以大幅减少为回答该问题所需尝试的子集数量。）</p>
+
+<p><span class="box-label">边注</span>　在条件可交换性下，<code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>] = ∑<sub>l</sub> E[Y|L = l, A = 1] Pr[L = l] − ∑<sub>l</sub> E[Y|L = l, A = 0] Pr[L = l]</code>。</p>
+
+<p><span class="box-label">边注</span>　Pearl（1995，2009）提出了用于非参数识别因果效应的后门准则。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 7.1　条件可交换性是否蕴含后门准则</span>
+<p>条件可交换性能否推出后门准则？<code>L</code> 满足后门准则，总是蕴含给定 <code>L</code> 的条件可交换性——即便没有忠实性也成立。正文中我们还说到：在给定忠实性的前提下，给定 <code>L</code> 的条件可交换性蕴含 <code>L</code> 满足后门准则。最后这句话在 FFRCISTG 模型下为真（见技术要点 6.2）。相比之下，在 NPSEM-IE 模型下，即使 <code>L</code> 不满足后门准则，条件可交换性也可能成立——例如在只有 <code>A</code>、<code>L</code>、<code>Y</code> 三个节点、箭头为 <code>A → L</code> 与 <code>A → Y</code> 的因果 DAG 中就是如此。本书始终假定 FFRCISTG 模型与忠实性，除非另有说明。</p>
+<p>两类因果模型之间的这个差别，源于 NPSEM-IE 与 FFRCISTG 的一个不同：前者假定反事实之间存在跨世界独立性。然而跨世界独立性永远无法被验证——即便原则上也不可能被任何随机化试验验证；而这恰恰正是 Robins（1986，1987）在他的 FFRCISTG 模型中不假定跨世界独立性的原因。第 23 章还会回到这个问题。</p>
+</aside>
+
+<p>现在我们把后门准则（即可交换性）与混杂联系起来。后门准则成立的情形有两种。</p>
+
+<p><strong>（1）处理与结局没有共同原因。</strong>在图 6.2 中，处理与结局之间没有共同原因，因此没有需要阻断的后门路径。此时满足后门准则的变量集是空集，我们说<strong>不存在混杂</strong>。</p>
+
+<p><strong>（2）处理与结局有共同原因，但测到的非后代集合 <code>L</code> 的某个子集足以阻断所有后门路径。</strong>在图 7.1 中，满足后门准则的变量集是 <code>L</code>。于是我们说存在混杂，但不存在那种需要调整未测变量才能消除的<strong>残余混杂</strong>（那当然是不可能做到的）。为简洁起见，我们说<strong>不存在未测混杂</strong>。</p>
+
+<p>第一种情形描述的是边际随机化试验，其中按预期不会有混杂，因为处理分配完全由抛硬币决定——或者它的计算机化升级版：随机数发生器——而硬币是抛不出结局的。也就是说，当处理是无条件随机分配时，已处理者与未处理者按预期是可交换的，因为不存在共同原因，或者等价地说，因为不存在打开的后门路径。边际可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 等价于处理与结局没有共同原因。</p>
+
+<p>第二种情形描述的是条件随机化试验，其中接受处理的概率对 <code>L</code> 取值相同的所有个体是一样的，但按设计，这个概率随 <code>L</code> 的取值而变，也就是说存在一根箭头 <code>L → A</code>。如果 <code>L</code> 同时也是结局的原因（图 7.1），或者是结局的某个未测原因的后代（图 7.2），这种设计就保证了混杂的存在。因此存在打开的后门路径。然而对协变量 <code>L</code> 作条件化会阻断所有后门路径，于是条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 成立。当对 <code>L</code> 的条件化阻断了所有后门路径——也就是说，在 <code>L</code> 的各层之内已处理者与未处理者可交换——我们就说 <code>A</code> 的一组测量到的非后代 <code>L</code> 是混杂调整的<strong>充分集</strong>。</p>
+
+<p>拿我们的心脏移植研究（一个条件随机化试验）举例。接受了移植的人（<code>A = 1</code>）与其他人（<code>A = 0</code>）是不同的：如果那些已处理者当初没有接受治疗，他们的死亡风险 <code>Y</code> 本来会高于那些实际未接受治疗的人——已处理者中重度心脏病的比例更高，而 <code>L</code> 是 <code>A</code> 与 <code>Y</code> 的共同原因。处理与结局存在共同原因，意味着已处理者与未处理者不是边际可交换的，但在给定 <code>L</code> 时是条件可交换的。第二种情形也正是我们在观察性研究中所指望的——研究者测了很多变量 <code>L</code>。</p>
+
+<p>后门准则并不回答混杂的<strong>大小或方向</strong>。逻辑上完全可能：某些没被阻断的后门路径很弱（比如 <code>L</code> 对 <code>A</code> 或对 <code>Y</code> 的效应都不大），因而只造成很小的偏倚；也可能几条强的后门路径造成的偏倚方向相反，净偏倚因而很小。由于未测混杂并不是一个"有或没有"的问题，实践中就必须考虑偏倚的预期方向与量级（见精细辨析 7.1）。</p>
+
+<h2 id="s-7-3">7.3 混杂与后门准则</h2>
+
+<p>下面我们举若干例子，说明如何应用后门准则来判断 <code>A</code> 对 <code>Y</code> 的因果效应是否可识别，以及若可识别，需要哪些变量来保证条件可交换性。请记住：本章所有因果 DAG 中的节点都是完美测量的，且都没有被条件化。</p>
+
+<p>在图 7.1 中存在混杂，因为处理 <code>A</code> 与结局 <code>Y</code> 共享原因 <code>L</code>，也就是 <code>A</code> 与 <code>Y</code> 之间存在一条经过 <code>L</code> 的打开的后门路径。不过这条后门路径可以通过对 <code>L</code> 作条件化来阻断。因此，只要研究者为所有个体采集了 <code>L</code> 的数据，给定 <code>L</code> 就不存在未测混杂。</p>
+
+<p>在图 7.2 中也存在混杂，因为处理 <code>A</code> 与结局 <code>Y</code> 共享未测原因 <code>U</code>，也就是 <code>A</code> 与 <code>Y</code> 之间存在一条经过 <code>U</code> 的后门路径。（与 <code>L</code>、<code>A</code>、<code>Y</code> 不同，变量 <code>U</code> 没有被研究者测量。）理论上这条后门路径可以通过对 <code>U</code> 作条件化来阻断，从而消除混杂——如果当初采集了这个变量的数据的话。但这条后门路径也可以通过对 <code>L</code> 作条件化来阻断。所以给定 <code>L</code> 仍然不存在未测混杂。</p>
+
+<p>在图 7.3 中同样存在混杂，因为处理 <code>A</code> 与结局 <code>Y</code> 共享原因 <code>U</code>，而后门路径也可以通过对 <code>L</code> 作条件化来阻断。所以给定 <code>L</code> 也不存在未测混杂。</p>
+
+<p>现在看图 7.4。在这张因果图中，处理 <code>A</code> 与结局 <code>Y</code> 之间没有共同原因，因此不存在混杂。<code>A</code> 与 <code>Y</code> 之间经过 <code>L</code> 的后门路径（<code>A ← U<sub>2</sub> → L ← U<sub>1</sub> → Y</code>）之所以被阻断，是因为 <code>L</code> 在这条路径上是一个碰撞因子。于是 <code>A</code> 与 <code>Y</code> 之间的全部关联都来自 <code>A</code> 对 <code>Y</code> 的效应：关联就是因果。举个例子，假设 <code>A</code> 代表体力活动，<code>Y</code> 代表宫颈癌，<code>U<sub>1</sub></code> 是癌前病变，<code>L</code> 是癌前病变的诊断检查（巴氏涂片），<code>U<sub>2</sub></code> 是注重健康的性格（活动更多、更常去看医生）。那么在图 7.4 的因果图下，体力活动 <code>A</code> 对癌症 <code>Y</code> 的效应没有混杂，为计算人群中的 <code>Pr[Y<sup>a=1</sup>]</code> 或 <code>Pr[Y<sup>a=0</sup>]</code>（从而计算因果效应）不需要对 <code>L</code> 作任何调整。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_4.png" alt="图 7.4：L 是 U1 与 U2 的共同效应，A 与 Y 之间无共同原因">
+<figcaption><strong>图 7.4</strong>　<code>L</code> 是 <code>U<sub>1</sub></code>（癌前病变）与 <code>U<sub>2</sub></code>（注重健康的性格）的共同效应；处理 <code>A</code> 与结局 <code>Y</code> 之间没有共同原因，<code>A → Y</code> 是唯一的直接通路。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 7.1　混杂偏倚的强度与方向</span>
+<p>假设你做了一项观察性研究，要识别心脏移植 <code>A</code> 对死亡 <code>Y</code> 的效应，并且你假定不存在未测混杂。一位细致的批评者说："这项观察性研究的推断可能不正确，因为存在由吸烟 <code>L</code> 引起的潜在混杂。"一个关键的问题是：这个偏倚会让心脏移植效应的估计被<strong>削弱</strong>还是被<strong>夸大</strong>呢？假设你研究得到的风险比是 0.6（即估计心脏移植使随访期死亡风险降低了 40%），而如这位评论者所怀疑的，吸烟 <code>L</code> 是 <code>A</code>（吸烟者不太可能接受心脏移植）与 <code>Y</code>（吸烟者更容易死亡）的共同原因。由于心脏移植组（<code>A = 1</code>）中吸烟者（<code>L = 1</code>）比另一组（<code>A = 0</code>）少，即便在处理 <code>A</code> 对 <code>Y</code> 无效应的零假设下，我们本来也预期会在 <code>A = 1</code> 组看到更低的死亡风险。因此，对吸烟作调整会把效应估计往上推（比如从 0.6 推到 0.7）。换句话说，未对吸烟作调整导致了对心脏移植这一有益平均因果效应的夸大。</p>
+<p>预测混杂偏倚方向的一个办法，是使用带符号的因果图。考虑图 7.1 的因果图，其中 <code>L</code>、<code>A</code>、<code>Y</code> 都是二值变量。如果 <code>L</code> 对 <code>A</code> 的平均因果效应为正（即 <code>L = 1</code> 者中 <code>A = 1</code> 的概率大于 <code>L = 0</code> 者），就在 <code>L</code> 指向 <code>A</code> 的箭头上加一个正号；否则加负号（即 <code>L = 0</code> 者中 <code>A = 1</code> 的概率更大）。同样地，在 <code>L</code> 指向 <code>Y</code> 的箭头上加正号或负号。如果两个箭头同为正或同为负，就称混杂偏倚为正，这意味着在不调整 <code>L</code> 的情况下效应估计会被向上偏；如果一个正一个负，就称混杂为负，这意味着效应估计会被向下偏。遗憾的是，这条简单规则在更复杂的因果图中、或在变量非二值时可能失效。关于平均因果效应背景下带符号图的更详细讨论，见 VanderWeele、Hernán 与 Robins（2008）。</p>
+<p>不论混杂的正负，另一个关键问题是偏倚的量级。量级不足以影响研究结论的偏倚，无论向上还是向下，在实践中都可以安全地忽略。大的混杂偏倚需要混杂因素与处理之间的关联很强，以及混杂因素与结局之间的关联（在给定处理时）也很强。对于离散混杂因素，偏倚的量级还取决于该混杂因素的流行率（Cornfield 等 1959，Walker 1991）。如果混杂因素未知，人们只能猜测偏倚的量级。有根据的猜测可以通过做敏感性分析来组织（即在若干关于偏倚量级的假定下重复分析），从而有助于量化"合理预期内的最大偏倚"。关于未测混杂敏感性分析的详细描述，见 Rosenbaum（2005）、Greenland（1996a）、Robins、Rotnitzky 与 Scharfstein（1999）、Greenland 与 Lash（2008）、VanderWeele 与 Arah（2011）。</p>
+</aside>
+
+<p>还是以前面四个例子为前提，假定 <code>L</code>、<code>A</code>、<code>Y</code> 的数据就足以识别因果效应。在这种情形下我们把 <code>L</code> 定义为混杂因素：如果仅靠 <code>A</code> 与 <code>Y</code> 的数据不足以识别（即存在结构性混杂），<code>L</code> 就是混杂因素。如果仅靠 <code>A</code>、<code>Y</code> 的数据就足以识别，我们就把 <code>L</code> 定义为非混杂因素。这两个定义等价于：若给定 <code>L</code> 有条件可交换性而无无条件可交换性（即存在结构性混杂），<code>L</code> 是混杂因素；若无条件可交换性成立，<code>L</code> 是非混杂因素。</p>
+
+<p>因此，在<strong>图 7.1–7.3</strong> 中，<code>L</code> 是混杂因素，因为 <code>Pr[Y = 1]</code> 可以由标准化风险 <code>∑<sub>l</sub> Pr[Y = 1|A = a, L = l] Pr[L = l]</code> 识别。在图 7.2 和图 7.3 中，<code>L</code> 并不是 <code>A</code> 与 <code>Y</code> 的共同原因，但我们仍然说 <code>L</code> 是混杂因素，因为需要它来阻断由 <code>A</code> 与 <code>Y</code> 的未测共同原因 <code>U</code> 所致的那条打开的后门路径。在图 7.4 中，<code>L</code> 是非混杂因素，而识别 <code>Pr[Y<sup>a</sup> = 1]</code> 的公式就只是条件均值 <code>Pr[Y = 1|A = a]</code>。</p>
+
+<p><span class="box-label">边注</span>　图 7.1 至 7.4 的一个非正式定义："混杂因素是任何可以用来调整混杂的变量。"请注意这个定义并不循环，因为我们此前已经给出了混杂的定义。另一个非循环定义的例子是："音乐家是演奏音乐的人"——这是在我们已定义"音乐是什么"之后才说的。</p>
+
+<p>有意思的是，在图 7.4 中，给定 <code>L</code> 的条件可交换性<strong>不</strong>成立，因此反事实风险 <code>Pr[Y<sup>a</sup> = 1|L = l]</code> 不等于分层风险 <code>Pr[Y = 1|A = a, L = l]</code>，<code>L</code> 各层内的条件处理效应不可识别。此外，通过标准化 <code>∑<sub>l</sub> Pr[Y = 1|A = a, L = l] Pr[L = l]</code> 对 <code>L</code> 作调整，会给出 <code>Pr[Y<sup>a</sup>]</code> 的一个<strong>有偏</strong>估计。这背后的原因是：对 <code>L</code> 作调整会引入偏倚，因为对碰撞因子 <code>L</code> 的条件化打开了 <code>A</code> 与 <code>Y</code> 之间的后门路径（<code>A ← U<sub>2</sub> → L ← U<sub>1</sub> → Y</code>），而这条路径此前正是被碰撞因子本身阻断的。于是 <code>A</code> 与 <code>Y</code> 之间的关联就是"<code>A</code> 对 <code>Y</code> 的效应所致"与"打开的后门路径所致"两种关联的混合。关联不再是因果了。这是我们见到的第一个"无条件可交换性成立但条件可交换性不成立"的例子：平均因果效应可识别，但 <code>L</code> 各层内的条件因果效应一般不可识别。我们把条件效应中由此产生的偏倚称为<strong>选择偏倚</strong>，因为它源于对两个边际上相互独立的变量 <code>U<sub>1</sub></code> 与 <code>U<sub>2</sub></code> 的共同效应 <code>L</code> 的选择（条件化），其中一个与 <code>A</code> 相关，另一个与 <code>Y</code> 相关（见第 8 章）。</p>
+
+<p><span class="box-label">边注</span>　无条件效应可识别但条件效应不可识别的可能性，由 Greenland 与 Robins（1986）用非图的方式论证过。图 7.4 中的条件偏倚由 Greenland、Pearl 与 Robins（1999）描述，并被 Greenland（2003）称为 <strong>M 偏倚</strong>（M-bias），因为其中涉及的变量结构——<code>U<sub>2</sub></code>、<code>L</code>、<code>U<sub>1</sub></code>——看起来像一个横躺着的字母 M。</p>
+
+<p><span class="box-label">边注</span>　如果 <code>U<sub>1</sub></code> 导致 <code>U<sub>2</sub></code>，或 <code>U<sub>2</sub></code> 导致 <code>U<sub>1</sub></code>，或某个未测的 <code>U<sub>3</sub></code> 同时导致两者，那么 <code>A</code> 与 <code>Y</code> 就会存在共同原因，我们便既没有无条件可交换性、也没有给定 <code>L</code> 的条件可交换性。</p>
+
+<p><span class="box-label">边注</span>　碰撞因子的定义是相对于路径而言的：<code>L</code> 在路径 <code>A ← U<sub>2</sub> → L ← U<sub>1</sub> → Y</code> 上是碰撞因子，但在路径 <code>A ← L ← U<sub>1</sub> → Y</code> 上不是。</p>
+
+<p>图 7.5 的因果图是图 7.4 的一个变体，区别在于图 7.5 中多了一根箭头 <code>L → A</code>。这根箭头的出现造成了一条打开的后门路径 <code>A ← L ← U<sub>1</sub> → Y</code>，因为 <code>U<sub>1</sub></code> 是 <code>A</code> 与 <code>Y</code> 的共同原因，于是混杂存在。对 <code>L</code> 作条件化会阻断那条后门路径，但同时会打开另一条以 <code>L</code> 为碰撞因子的后门路径（<code>A ← U<sub>2</sub> → L ← U<sub>1</sub> → Y</code>）。因此在图 7.5 中偏倚是无解的：试图阻断混杂路径的动作会打开一条选择偏倚路径。既没有无条件可交换性，也没有给定 <code>L</code> 的条件可交换性。破解图 7.5 中偏倚的办法，是去测量：（i）位于 <code>U<sub>1</sub></code> 与 <code>A</code> 或 <code>Y</code> 之间的某个变量 <code>L<sub>1</sub></code>；或（ii）位于 <code>U<sub>2</sub></code> 与 <code>A</code> 或 <code>L</code> 之间的某个变量 <code>L<sub>2</sub></code>。第一种情况下，给定 <code>L<sub>1</sub></code> 有条件可交换性；第二种情况下，给定 <code>L<sub>2</sub></code> 与 <code>L</code> 有条件可交换性。例如，图 7.6 同时包含了位于 <code>U<sub>1</sub></code> 与 <code>Y</code> 之间的变量 <code>L<sub>1</sub></code>，以及位于 <code>U<sub>2</sub></code> 与 <code>A</code> 之间的变量 <code>L<sub>2</sub></code>。关于图 7.6 中因果效应可识别性如何随测量了哪些变量而变化，见精细辨析 7.2。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_5.png" alt="图 7.5：在图 7.4 基础上加了箭头 L → A">
+<figcaption><strong>图 7.5</strong>　与图 7.4 相比多了箭头 <code>L → A</code>。<code>L</code> 既是 <code>U<sub>1</sub></code> 与 <code>U<sub>2</sub></code> 的共同效应，又是指向处理 <code>A</code> 的原因；对 <code>L</code> 作条件化会同时阻断一条后门路径、打开另一条。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_6.png" alt="图 7.6：加入 L1 与 L2 两个中介变量后的因果图">
+<figcaption><strong>图 7.6</strong>　在图 7.5 的基础上补测了 <code>L<sub>1</sub></code>（位于 <code>U<sub>1</sub></code> 与 <code>Y</code> 之间）与 <code>L<sub>2</sub></code>（位于 <code>U<sub>2</sub></code> 与 <code>A</code> 之间）。补测之后，给定 <code>L<sub>2</sub></code> 与 <code>L</code> 就有条件可交换性。</figcaption></figure>
+
+<p>本节这些因果图画出了由处理与结局之间打开的后门路径所致的两类结构性可交换性缺失。第一个来源是处理与结局的共同原因的存在——它造成一条打开的后门路径。第二个来源是对共同效应的条件化——它可能打开一条原本被阻断的后门路径。出于教学目的，我们把"混杂"一词留给第一类，把"选择偏倚"留给第二类。另一种在结构上定义混杂的方式是"由 <code>A</code> 与 <code>Y</code> 之间打开的后门路径造成的偏倚"。这一定义与我们的定义完全一致，只是它把图 7.4 中因对 <code>L</code> 作条件化造成的偏倚也叫做混杂，而不是选择偏倚。同一个定义还可以等价地表述为：混杂是"任何会因 <code>A</code> 的随机分配而消失的系统性偏倚"。这不难看出：图 7.4 中因对 <code>L</code> 作条件化而诱发的偏倚，不可能发生在一个处理 <code>A</code> 被随机分配的试验里，因为随机分配确保不存在一个同时导致 <code>A</code> 与 <code>L</code> 的未测 <code>U<sub>2</sub></code>，于是对 <code>L</code> 作条件化也就不会再打开后门路径。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 7.2　条件效应与无条件效应的可识别性</span>
+<p>在任意因果图下，哪些因果效应能被识别，取决于除了处理和结局之外还测量了哪些变量。以图 7.6 为例。如果只测量 <code>L<sub>2</sub></code>（不测 <code>L</code> 与 <code>L<sub>1</sub></code>），我们既没有无条件可交换性，也没有给定 <code>L<sub>2</sub></code> 的条件可交换性，任何因果效应都不可识别。如果测量 <code>L<sub>2</sub></code> 与 <code>L</code>，我们就有给定 <code>L<sub>2</sub></code> 与 <code>L</code> 的条件可交换性，但既没有给定 <code>L<sub>2</sub></code> 单独的条件可交换性，也没有给定 <code>L</code> 单独的。不过我们可以识别：</p>
+<ul>
+<li><strong><code>L<sub>2</sub></code> 与 <code>L</code> 联合层内的条件因果效应。</strong>每个反事实均值的识别公式为 <code>E[Y|A = a, L = l, L<sub>2</sub> = l<sub>2</sub>]</code>。</li>
+<li><strong>无条件因果效应。</strong>每个反事实均值的识别公式为 <code>∑<sub>l, l2</sub> E[Y|A = a, L = l, L<sub>2</sub> = l<sub>2</sub>] Pr[L = l, L<sub>2</sub> = l<sub>2</sub>]</code>。</li>
+<li><strong><code>L</code> 各层内的条件因果效应。</strong>每个反事实均值的识别公式为 <code>∑<sub>l2</sub> E[Y|A = a, L = l, L<sub>2</sub> = l<sub>2</sub>] Pr[L<sub>2</sub> = l<sub>2</sub>|L = l]</code>。</li>
+<li><strong><code>L<sub>2</sub></code> 各层内的条件因果效应。</strong>每个反事实均值的识别公式为 <code>∑<sub>l</sub> E[Y|A = a, L = l, L<sub>2</sub> = l<sub>2</sub>] Pr[L = l|L<sub>2</sub> = l<sub>2</sub>]</code>。</li>
+</ul>
+<p>如果只测量 <code>L<sub>1</sub></code>，那么给定 <code>L<sub>1</sub></code> 有条件可交换性，于是可以识别 <code>L<sub>1</sub></code> 各层内的条件因果效应与无条件因果效应。如果测量 <code>L<sub>1</sub></code> 与 <code>L</code>，还可以识别 <code>L<sub>1</sub></code> 与 <code>L</code> 联合层内、以及 <code>L</code> 单独各层内的条件因果效应。如果测量 <code>L</code>、<code>L<sub>1</sub></code> 与 <code>L<sub>2</sub></code>，则还可以识别三个变量联合层内的条件效应。</p>
+</aside>
+
+<p>处理与结局存在共同原因（混杂的结构性定义），这是关于研究人群与外部世界的一个实质性事实，与选择何种分析方法无关。而把混杂定义为"任何会因随机化而消失的偏倚"，则意味着混杂是否存在依赖于分析方法。在图 7.4 中，我们不对 <code>L</code> 作调整就没有混杂，一调整反倒引入了混杂。</p>
+
+<p>不过，在两个定义之间做选择纯粹是口味问题，没有实际影响——因为我们关于可识别性的一切结论都只依赖于条件可交换性或无条件可交换性是否成立，而不依赖于我们如何定义混杂。下一章会详细讨论混杂与选择偏倚的区别。</p>
+
+<h2 id="s-7-4">7.4 混杂与混杂因子</h2>
+
+<p>上一节我们描述了如何用因果图判断混杂是否存在，以及若存在，如何判断给定的一组测量变量 <code>L</code> 是否为混杂调整的充分集。这一流程要求预先知道那张因果 DAG——它必须包含处理 <code>A</code> 与结局 <code>Y</code> 共享的<em>所有</em>原因，包括测到的和没测到的。一旦因果图已知，我们只需应用后门准则，判断哪些变量需要调整。</p>
+
+<p>相比之下，处理混杂的传统做法主要基于观测到的<strong>关联</strong>，而不是先验的因果知识。传统做法先把满足某些（主要是）关联条件的变量标为混杂因素，然后<strong>要求</strong>在分析中对这些所谓混杂因素作调整。若调整后的估计与未调整的估计不同，就宣称存在混杂。</p>
+
+<p>在传统做法下，一个混杂因素被定义为满足以下三个条件的变量：（1）它与处理相关；（2）它在给定处理的条件下与结局相关（"在给定处理的条件下"常常被替换成"在未处理者中"）；（3）它不位于处理与结局之间的因果路径上。然而，传统做法可能导致不恰当的调整。回到图 7.1–7.4 来看个究竟。</p>
+
+<p>在图 7.1 中，变量 <code>L</code> 与处理相关（因为它对 <code>A</code> 有因果效应），在给定处理的条件下与结局相关（因为它对 <code>Y</code> 有直接因果效应），且不位于处理与结局之间的因果路径上。在图 7.2 中，变量 <code>L</code> 与处理相关（因为它对 <code>A</code> 有因果效应），在给定处理的条件下与结局相关（因为它与 <code>Y</code> 共享原因 <code>U</code>），且不位于因果路径上。在图 7.3 中，<code>L</code> 与处理相关（它与 <code>A</code> 共享原因 <code>U</code>），在给定处理的条件下与结局相关（它对 <code>Y</code> 有因果效应），且不位于因果路径上。</p>
+
+<p>因此按照传统做法，在图 7.1–7.3 所代表的情形中 <code>L</code> 是混杂因素，需要对它作调整。这也是我们上一节使用后门准则所得出的结论。对图 7.1–7.3 而言，传统的关联式做法与在因果图上应用后门准则之间并无分歧。</p>
+
+<p>现在再看图 7.4。这张图中不存在混杂，且按 7.3 节给出的定义，<code>L</code> 是非混杂因素。然而 <code>L</code> 满足传统混杂因素的各项条件：它与处理相关（它与 <code>A</code> 共享原因 <code>U<sub>2</sub></code>），在给定处理的条件下与结局相关（它与 <code>Y</code> 共享原因 <code>U<sub>1</sub></code>），且不位于因果路径上。于是按照传统做法，<code>L</code> 是一个应当调整的混杂因素——即便根本不存在混杂！但正如上文所见，由于选择偏倚，对 <code>L</code> 作调整会给出人群中因果效应的一个<strong>有偏</strong>估计量。图 7.7 是传统做法导致对 <code>L</code> 不恰当调整的另一个例子。</p>
+
+<p>这些例子表明：关联的或统计的标准不足以刻画混杂。一个几乎完全依赖统计考量来定义混杂因素的做法，会像图 7.4 与图 7.7 所示的那样给出错误的建议——即使结构上并不存在混杂，也去调整某个"混杂因素"。为了解决图 7.4 中的这个问题，传统做法的追随者可能会把关联条件"(2) 它在给定处理的条件下与结局相关"替换成结构条件"(2) 它是结局的原因"。这个修改过的混杂因素定义确实避免了在图 7.4 中对 <code>L</code> 的不恰当调整，却制造了一个新问题：它不再把 <code>L</code> 视为图 7.2 中那个需要调整的混杂因素。见技术要点 7.2。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_7.png" alt="图 7.7：L 是 A 与 Y 的共同效应，且是 U 的后代">
+<figcaption><strong>图 7.7</strong>　<code>L</code> 同时是 <code>A</code> 与 <code>Y</code> 的原因——因为它是共同原因 <code>U</code> 的后代；<code>A</code> 与 <code>Y</code> 之间没有其他路径。对 <code>L</code> 作条件化会打开碰撞路径。</figcaption></figure>
+
+<p>传统做法的问题在于，它在没有足够因果知识的情况下先定义混杂因素，然后<strong>要求</strong>对这些所谓混杂因素作调整；而这会误导研究者在调整有害的时候去作调整。问题出在：若改变后的估计与未改变的估计不同，传统做法就宣布存在混杂。然而估计值的变化还可能由混杂以外的原因引起，包括调整非混杂因素所造成的选择偏倚（见第 8 章），以及使用不可压缩（noncollapsible）的效应度量（见精细辨析 4.3）。因为有这些问题，试图用"估计值是否改变"来定义混杂的做法早就被放弃了。</p>
+
+<p>相比之下，结构做法从显式地识别混杂的<strong>来源</strong>入手——即处理与结局的那些共同原因，如果它们全都被测量，就足以调整掉混杂——然后再识别一组充分的调整变量。</p>
+
+<p>结构做法清楚地表明：某个变量是否应当进入充分集，取决于集合里已经包含了哪些变量。例如在图 7.2 与图 7.3 中，需要用变量集 <code>L</code> 来阻断后门路径，因为变量集 <code>U</code> 没被测量。于是我们可以说 <code>L</code> 中的变量是混杂因素。然而如果变量 <code>U</code> 被测量了并被用来阻断后门路径，那么给定 <code>U</code>，<code>L</code> 中的变量就不再是混杂因素了（另见精细辨析 7.3）。给定一张因果 DAG，<strong>混杂是一个绝对概念，而混杂因子是一个相对概念</strong>。VanderWeele 与 Shpitser（2013）也提出过混杂因素的形式化定义。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_8.png" alt="图 7.8：L 是未测共同原因 U 的代理">
+<figcaption><strong>图 7.8</strong>　未测共同原因 <code>U</code> 同时指向处理 <code>A</code> 与结局 <code>Y</code>；测量到的变量 <code>L</code> 是 <code>U</code> 的代理（<code>U</code> 也指向 <code>L</code>），<code>L</code> 同时指向 <code>A</code>。</figcaption></figure>
+
+<p>混杂的结构化处理方式强调：从观察性数据作因果推断需要先验的因果知识。这种因果知识被概括在一张因果 DAG 里，它编码了研究者关于这个因果网络的信念或假设。当然，无法保证研究者的因果 DAG 是正确的，因此完全可能与研究者的信念相反——他们所选的调整变量集未能消除混杂，或引入了选择偏倚。不过，混杂的结构化处理有两个重要优点。第一，它避免了信念与行动之间的自相矛盾。举例来说，如果你相信图 7.4 就是真实的因果图——因而 <code>A</code> 对 <code>Y</code> 的效应不存在混杂——那么无论各种非结构性的混杂因素定义怎么说，你都不会去调整变量 <code>L</code>。第二，研究者关于混杂的假设变得显式，因而可以被其他研究者显式地批评。</p>
+
+<p><span class="box-label">边注</span>　从技术上讲，研究者并不需要结构性知识。他们只需要知道一组能保证条件可交换性的变量。然而获取结构性知识——因而画出因果图——恐怕是思考条件可交换性最自然的做法。</p>
+
+<p><span class="box-label">边注</span>　Hernán 等（2002）描述过一个运用因果结构知识来评估混杂的实用例子。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 7.2　修补传统的混杂因素定义</span>
+<p>图 7.4 与图 7.7 画出了两个图示例子，其中传统的、非图式的混杂因素与混杂定义误导研究者去调整某个变量，而对这个变量的调整不仅多余，而且有害。传统定义之所以失败，是因为它依赖两个错误的统计标准——条件（1）与（2）——以及一个错误的因果标准——条件（3）。要"修补"这个传统定义，需要做两件事：</p>
+<ol>
+<li>把条件（3）替换为："存在变量 <code>L</code> 与 <code>U</code>，使得在它们的联合层内存在条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L, U</code>。"这个新条件比原来的更强，因为它实际上蕴含了两件事：<code>L</code> 不位于 <code>A</code> 与 <code>Y</code> 之间的因果路径上；以及 <code>E[Y<sup>a</sup>|L = l, U = u]</code> 可由 <code>E[Y|L = l, U = u, A = a]</code> 识别。</li>
+<li>把条件（1）与（2）替换为："<code>U</code> 可以被分解为两个不相交的子集 <code>U<sub>1</sub></code> 与 <code>U<sub>2</sub></code>（即 <code>U = U<sub>1</sub> ∪ U<sub>2</sub></code> 且 <code>U<sub>1</sub> ∩ U<sub>2</sub></code> 为空），使得（i）在 <code>L</code> 的各层内 <code>U<sub>1</sub></code> 与 <code>A</code> 不相关，且（ii）在 <code>A</code>、<code>L</code>、<code>U<sub>1</sub></code> 的联合层内 <code>U<sub>2</sub></code> 与 <code>Y</code> 不相关。<code>U<sub>1</sub></code> 中的变量可以与 <code>U<sub>2</sub></code> 中的变量相关。<code>U<sub>1</sub></code> 总可以被取为 <code>U</code> 中与处理不相关的最大子集。</li>
+</ol>
+<p>如果这两个新条件都满足，我们就说：给定 <code>L</code> 的数据，<code>U</code> 是非混杂因素。这些条件由 Robins（1997a，定理 4.3）提出，Greenland、Pearl 与 Robins（1999，第 45–46 页；注意那里漏写了 <code>U = U<sub>1</sub> ∪ U<sub>2</sub></code> 这一条件）作了进一步讨论。由于它们允许我们把变量排除为非混杂因素（Robins 1997a），这些条件克服了图 7.4 与图 7.7 中遇到的困难。例如 Greenland、Pearl 与 Robins 把这些条件用到图 7.4 上，证明了那里不存在混杂。</p>
+</aside>
+
+<aside class="finepoint"><span class="box-label">精细辨析 7.3　替代混杂因素</span>
+<p>在图 7.8 的因果 DAG 下，由于存在未测的共同原因 <code>U</code>，<code>A</code> 对 <code>Y</code> 的效应存在混杂。测量到的变量 <code>L</code> 是 <code>U</code> 的一个代理（proxy）或替身。举例来说，未测变量社会经济地位 <code>U</code> 可能混杂了体力活动 <code>A</code> 对心血管疾病 <code>Y</code> 风险的影响。收入 <code>L</code> 就是那个往往定义不清的变量"社会经济地位"的替身。我们该不该调整 <code>L</code>？一方面可以说 <code>L</code> 不是混杂因素，因为它不位于 <code>A</code> 与 <code>Y</code> 之间的任何后门路径上。另一方面，对测量到的 <code>L</code> 作调整——既然 <code>L</code> 与未测的 <code>U</code> 相关——可能间接地调整掉了 <code>U</code> 所造成的部分混杂。在极端情形下，如果 <code>L</code> 与 <code>U</code> 完全相关，那么条件化于 <code>L</code> 与条件化于 <code>U</code> 就没有区别。事实上，如果 <code>L</code> 是二值的、且是 <code>U</code> 的非差异性错分版本（见第 9 章），那么在某些较弱条件下，对 <code>L</code> 的条件化会使后门路径 <code>A ← U → Y</code> 得到部分阻断（Greenland 1980，Ogburn 与 VanderWeele 2012）。因此我们通常宁可在 <code>L</code> 上作调整，而不在 <code>L</code> 上不作调整。</p>
+<p>我们把这类变量——它们虽不在后门路径上（因而永远无法彻底消除混杂），但可以用来减少混杂偏倚——称为<strong>替代混杂因素</strong>（surrogate confounders）。对抗混杂的一种可能策略，就是尽可能多地测量替代混杂因素并把它们全部调整掉。相关讨论见第 18 章。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（"控制混杂因素"与后门准则到底差在哪）</strong>：中文流行病学与临床研究方法学教材讲混杂控制，通常给三条定性条件——暴露与结局有关联、暴露不是结局的原因、是结局的原因——然后以"多因素回归/分层"作为实施手段。表面看，这与本书 7.4 节的"传统定义"几乎一致。后门准则严格在哪里？严格在三点：(1) 它判定的是<strong>路径</strong>而不是<strong>关联</strong>。关联标准条件 (1)(2) 在图 7.4、7.7 里同样被 <code>L</code> 满足，但那里的 <code>L</code> 恰好落在碰撞路径上，调整它会打开偏倚；(2) 它是<strong>可机械判定</strong>的——给定一张 DAG 与一组变量，d-分离的判定是有限步的图运算，不存在"我觉得它大概是混杂因素"这种中间状态；(3) 它显式排除了两类变量：处理的<strong>后代</strong>与<strong>碰撞因子</strong>，而关联标准对这两类都是放行的。实践含义很直接：论文里写"充分调整了 20 个协变量"本身不构成任何保证；评审时该问的问题是"这 20 个变量在声称的 DAG 上是否构成一个后门充分集"。国内近年常用的做法是先画 DAG（用 <code>dagitty</code> 或 <code>R</code> 的 <code>ggdag</code> 包），把该调的调出来，剩下的写进敏感性分析，而不是在 <code>stepwise</code> 里按 p 值挑变量。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（"混杂是现象、混杂因子是变量"）</strong>：这一对区分在中文写作里几乎从未被点破，于是"控制混杂因素"一句就把两件事混过去了。按本书的定义：<strong>混杂是图的性质</strong>，取决于人群与世界是否存在处理与结局的共同原因，与分析方法无关；<strong>混杂因子是变量的角色</strong>，而且是相对于"你已经测了哪些变量"而言的。图 7.2、图 7.3 里的 <code>L</code> 与 <code>A</code>、<code>Y</code> 之间没有任何共同原因，严格说它不是 <code>A</code> 与 <code>Y</code> 的混杂因子；但我们仍然要调整它——因为真正的共同原因 <code>U</code> 没被测到，<code>L</code> 是用来顶替 <code>U</code> 阻断那条后门路径的。反过来，如果当初测到了 <code>U</code> 并用它阻断，<code>L</code> 就不再是混杂因子了。这解释了一个常见的困惑：同一个变量（比如"合并糖尿病"），在一篇论文里被当作混杂调整、另一篇里被当作效应修饰、还有一篇干脆不调整，而三个人都没错——区别只在于各自手里有什么数据。这也是为什么"混杂因素清单"这种东西不能跨研究照抄，必须针对自己的数据集重新判断。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（碰撞因子最经典的例子，以及它的临床版本）</strong>：碰撞因子在流行病学里最著名的例子是<strong>巴拿马运河</strong>。1930 年代美国在巴拿马地峡开凿运河，挖出的积水不流动，成了疟疾蚊的孳生地，当地疟疾大流行；与此同时，施工地区的吸烟率也升高，而吸烟导致肺癌。于是"开挖运河 ↔ 肺癌"这条极强的关联，完全由"开挖运河 → 疟疾 ← 吸烟 → 肺癌"造出来，把疟疾调整掉之后关联消失。图 7.4 里的巴氏涂片是这个故事的医学版：如果你只研究"做过宫颈筛查的妇女人群中，体力活动与宫颈癌的关联"，你就只挑出了那些本身会去体检的人——而正是这种注重健康的行为同时与体力活动和（经由筛查降低的）宫颈癌相关。图 7.7 是它的另一个版本，<code>L</code> 是 <code>A</code> 与 <code>Y</code> 的共同效应。在中国的临床数据里，形状相同的碰撞因子大量存在："只纳入完成全程随访的病人"是对"是否失访"这一 <code>A</code> 与 <code>Y</code> 共同效应的条件化；"只纳入有两次以上体检记录者"是对"就诊频率"的条件化；医保数据库里"有完整结算记录的人群"是对"参保连续性"的条件化。这些筛选看起来只是数据清洗，实际都是在开一条新的偏倚通路。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（SWIG：中文文献里几乎无人使用，值不值得引入）</strong>：单世界干预图（single-world intervention graph, SWIG）由 Richardson 与 Robins（2013）系统提出，在中文因果推断文献里几乎查不到，主流中文教程至今普遍停留在"用路径图讲混杂 + 用反事实讲可交换性"这两套互不联通的符号系统里。本书的论证很直接：既然 d-分离可以机械地读出条件独立，为什么不把反事实直接画到图上？本书的答案是值得引入，理由有二。<strong>第一，它是唯一能让"可交换性"变成可视化命题的工具。</strong>无条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 与后门准则之间的等价性在原书里被作者形容为"seems rather magical"；把 <code>A</code> 拆成 <code>A</code> 与 <code>A|a</code>、把 <code>Y</code> 换成 <code>Y<sup>a</sup></code> 之后，<code>Y<sup>a</sup></code> 与 <code>A</code> 之间的路径一眼就能看出开没开。<strong>第二，它是讲清楚图 7.4 那个反直觉例子的最短路径。</strong>边际可交换成立、条件不可交换、调整 <code>L</code> 反而引入偏倚——这三件事用普通 DAG 加碰撞因子来讲要绕好几句话，还容易讲成"碰撞因子总是坏的"；而在图 7.10 的 SWIG 上，它只是"给定 <code>L</code> 时 <code>Y<sup>a</sup> ← U<sub>1</sub> → L ← U<sub>2</sub> → A</code> 这条路径被碰撞因子打开了"。<strong>具体的入门建议</strong>：不必先学 <code>dowhy</code> 之类的软件包。读第 19–21 章时，拿铅笔把时变处理的 <code>A<sub>t</sub></code> 拆成 <code>A<sub>t</sub></code> 与 <code>A<sub>t</sub>|a<sub>t</sub></code> 手工画一遍，就能明白 g 方法里的"删掉箭头"到底在删什么，也就能明白为什么时变混杂用传统分层会出错。</p>
+</aside>
+
+<h2 id="s-7-5">7.5 单世界干预图</h2>
+
+<p>可交换性被翻译成图语言，就是：<code>A</code> 与 <code>Y</code> 两个节点之间不存在打开的路径——除了那些从 <code>A</code> 出发的路径。第 7 至 9 章描述了可交换性缺失在因果图中的不同表现形式。比如本章讨论的混杂，就是由于处理与结局之间存在打开的后门路径而违反可交换性。</p>
+
+<p>无条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 与后门准则之间的等价性看起来颇有点魔法：反事实独立性与后门路径的缺失之间似乎没有任何明显联系，因为反事实根本没有作为变量出现在因果图上。既然图对通过 d-分离来判断独立性如此有用，很自然会想构造把反事实也作为节点放进去的图，从而让无条件可交换性与条件可交换性可以直接从图上读出来。</p>
+
+<p>一种新型的图——单世界干预图（single-world intervention graph, SWIG）——通过显式地把反事实变量纳入图中，把反事实方法与图方法统一了起来。一张 SWIG 描绘的是这样一个假想世界中所观测到的变量与因果关系：在这个世界里，所有个体都接受了处理水平 <code>a</code>。也就是说，SWIG 是一张表示"由单次干预所创造的反事实世界"的图。相比之下，标准因果图上的变量表示的是实际世界。这样一来，SWIG 就可以被看作一个函数：它把给定的因果图在给定干预下变换成另一个图。下面几个例子描述的就是这种变换。</p>
+
+<p>假设图 7.2 的因果图表示的是观测到的研究数据。图 7.9 的 SWIG 就是图 7.2 的一次变换，它表示一个所有个体的处理都被设定为固定值 <code>a</code> 的世界。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_9.png" alt="图 7.9：图 7.2 对应的 SWIG，把 A 拆成 A 与 A|a，Y 换成 Y^a">
+<figcaption><strong>图 7.9</strong>　图 7.2 的 SWIG：处理节点被拆成左边的 <code>A</code>（无干预时的自然取值）与右边的 <code>A|a</code>（干预后被固定为 <code>a</code>），结局节点改写为 <code>Y<sup>a</sup></code>；其余变量不加上标，因为它们在时间上都先于 <code>A</code>，不受干预影响。</figcaption></figure>
+
+<p>在 SWIG 中，处理节点被拆成左右两半，拆开之后它们应当被当作彼此独立的节点（变量）来看待。右边那一半编码的是干预下处理的值 <code>a</code>，它继承了原因果 DAG 中所有从 <code>A</code> 出发的箭头。左边那一半编码的是在无干预情况下会观测到的处理值 <code>A</code>，即处理的自然取值。它继承了因果 DAG 中所有指向 <code>A</code> 的节点，因为在干预后的（反事实）世界里，它的因果输入与实际世界相同。注意 <code>A</code> 没有一根指向 <code>a</code> 的箭头，因为在干预后的世界里 <code>a</code> 对所有个体都相同，也就是一个常数。</p>
+
+<p>我们假定处理的自然取值 <code>A</code> 良定义，尽管在干预 <code>a</code> 下我们通常无法测量它。在某些情形下 <code>A</code> 其实是可测的：近期的实验表明，脑电图（EEG）记录能够探测到个体在自己意识到决策之前至多 1/2 秒将要做出的选择。若确实如此，那么 <code>A</code> 实际上可以通过脑电图测得，同时还留出 1/2 秒的时间来进行干预、给予处理 <code>a</code>。</p>
+
+<p><span class="box-label">边注</span>　Richardson 与 Robins（2013）表明，SWIG 克服了此前所提出的孪生因果图（Balke 与 Pearl 1994）的若干缺陷。</p>
+
+<p>在 SWIG 中，结局是 <code>Y<sup>a</sup></code>，即干预后的世界里 <code>Y</code> 的值。其余变量在时间上都先于 <code>A</code>，因而不受干预影响，取值与观测世界相同。也就是说，它们不被标为反事实变量。事实上，任何非 <code>A</code> 后代的变量都不必标为反事实，因为在忠实性假设之下（这是我们的假设），处理对任何个体的非后代都没有因果效应。在我们的因果模型下，给定 <code>L</code> 的条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 成立，是因为在给定 <code>L</code> 之后 <code>Y<sup>a</sup></code> 与 <code>A</code> 之间的所有路径都被阻断了，即 <code>Y<sup>a</sup></code> 与 <code>A</code> 在给定 <code>L</code> 时 d-分离。</p>
+
+<p><span class="box-label">边注</span>　在 FFRCISTG 模型下可以证明，d-分离同时也蕴含 SWIG 上的统计独立性。</p>
+
+<p><span class="box-label">边注</span>　在单次干预的世界里，<code>a</code> 是一个常数，因此不能影响其他变量。不过在画 SWIG 时，我们仍然从 <code>a</code> 引出箭头，把这当作一种方便的记账方式，用来记下原 DAG 中被 <code>A</code> 直接影响的那些变量。</p>
+
+<p>现在来看图 7.4 的因果图与图 7.10 的 SWIG。边际可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 成立，因为在 SWIG 上 <code>Y<sup>a</sup></code> 与 <code>A</code> 之间的所有路径都被阻断了（不需要条件化 <code>L</code>）。相比之下，给定 <code>L</code> 的条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 不成立，因为在 SWIG 上，当碰撞因子 <code>L</code> 被条件化时，路径 <code>Y<sup>a</sup> ← U<sub>1</sub> → L ← U<sub>2</sub> → A</code> 是打开的。这就是为什么 <code>A</code> 与 <code>Y</code> 的边际关联是因果的，而给定 <code>L</code> 的条件关联不是，从而任何对 <code>L</code> 作调整的方法都会导致偏倚。这些例子展示了 SWIG 如何统一反事实方法与图方法。事实上很容易看出：在 SWIG 上，<code>Y<sup>a</sup></code> 在给定 <code>L</code> 时与 <code>A</code> d-分离，当且仅当 <code>L</code> 是一个非 <code>A</code> 的后代、且阻断了从 <code>A</code> 到 <code>Y</code> 的所有后门路径（另见精细辨析 7.4）。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_10.png" alt="图 7.10：图 7.4 对应的 SWIG">
+<figcaption><strong>图 7.10</strong>　图 7.4 的 SWIG：不条件化任何变量时，<code>Y<sup>a</sup></code> 与 <code>A</code> 之间所有路径都被阻断（边际可交换）；一旦条件化碰撞因子 <code>L</code>，路径 <code>Y<sup>a</sup> ← U<sub>1</sub> → L ← U<sub>2</sub> → A</code> 被打开（条件不可交换）。</figcaption></figure>
+
+<h2 id="s-7-6">7.6 混杂调整</h2>
+
+<p>在没有随机化的情况下，因果推断依赖一个无法检验的假定：我们已经测量了一组构成混杂调整充分集的变量 <code>L</code>，即一组非处理的 <code>A</code> 后代、且包含足够多的变量以阻断从 <code>A</code> 到 <code>Y</code> 的所有后门路径。在这个"给定 <code>L</code> 的条件可交换性"的假定下，可以用标准化与 IP 加权计算人群中的平均因果效应。不过如 4.6 节所讨论的，标准化与 IP 加权并不是观察性研究中仅有的混杂调整方法。调整混杂因素 <code>L</code> 的方法可以分为两大类：</p>
+
+<ul>
+<li><strong>g 方法</strong>：标准化、IP 加权与 g 估计。这些方法（那个 "g" 是 "generalized" 的缩写）利用给定 <code>L</code> 的条件可交换性来估计 <code>A</code> 对 <code>Y</code> 的因果效应，目标是整个人群或人群的任意子集。在我们的心脏移植研究中，我们在 2.4 节（标准化）与 2.5 节（IP 加权）里用 g 方法调整了疾病严重程度 <code>L</code> 带来的混杂。第二部分描述了 g 方法的基于模型的推广：参数化 g 算法（标准化）、边际结构模型的 IP 加权、以及嵌套结构模型的 g 估计。</li>
+<li><strong>传统的基于分层的调整方法</strong>：分层（包括限制）与匹配。这些方法利用给定 <code>L</code> 的条件可交换性来估计由 <code>L</code> 定义的子集内 <code>A</code> 与 <code>Y</code> 的关联。在我们的心脏移植研究中，我们在 4.4 节（分层）与 4.5 节（匹配）里用基于分层的方法调整了疾病严重程度 <code>L</code> 带来的混杂。第二部分描述了传统分层的基于模型的推广：结局回归。</li>
+</ul>
+
+<p><span class="box-label">边注</span>　分层与匹配的一个常见变体，是把每个个体的变量 <code>L</code> 替换成该个体接受处理的估计概率 <code>Pr[A = 1|L]</code>：这就是倾向性评分（Rosenbaum 与 Rubin 1983）。见第 15 章。</p>
+
+<p>标准化与 IP 加权所模拟的，是"假如涉及测量变量 <code>L</code> 的后门路径不存在"时人群中的 <code>A</code>-<code>Y</code> 关联。例如 IP 加权是通过造出一个伪人群来做到这一点的——在伪人群中处理 <code>A</code> 与测量混杂因素 <code>L</code> 独立，也就是把从 <code>L</code> 指向 <code>A</code> 的那根箭头"删掉"。相比之下，基于分层的传统方法并不删掉 <code>L</code> 到 <code>A</code> 的箭头，而是去计算观测人群某个子集内的条件效应，这可以用加一个选择方框来表示。在第三部分（聚焦于时变处理）我们解释为什么在使用标准化或 IP 加权时"删掉"箭头 <code>L → A</code> 是有利的，以及为什么 g 估计是一般而言唯一有效的基于分层的方法。传统分层方法的偏倚在第 20 章描述。在处理随时间变化的场景中，混杂因素也随之变化，此时 g 方法是对抗混杂的首选，因为传统的分层方法可能带来选择偏倚。</p>
+
+<p>以上所有方法都要求给定 <code>L</code> 的条件可交换性。然而，混杂有时可以用一些不需要条件可交换性的方法来处理。这类方法的例子有双重差分（技术要点 7.3）、工具变量估计（第 16 章）、近端推断（proximal inference，技术要点 7.3）、前门准则（技术要点 7.4），以及其他一些。遗憾的是，这些方法要求的替代性假定与条件可交换性一样，都无法验证。因此在实践中，由此得到的效应估计的有效性并无保证。而且，这些方法一般不能用于涉及时变处理的因果问题。结果就是，在许多研究问题上它们被排除在考虑之外。对于时不变处理，调整方法的选择取决于：在具体场景中，人们认为哪一套无法验证的假定——条件可交换性，还是那些替代性条件——更可能成立。</p>
+
+<p>在许多观察性研究中，实现条件可交换性可能是一个不切实际的目标。但如 3.2 节所讨论的，可以利用关于因果结构的专家知识来尽可能接近这个目标。因此在观察性研究中，研究者会测量许多变量 <code>L</code>（它们都是处理的非后代），以期确保已处理者与未处理者是条件可交换的。他们的指望是：即便存在共同原因（即混杂），所测量的变量 <code>L</code> 也足以阻断所有后门路径（不存在未测混杂）。然而这种尝试没有成功的保证，这使得从观察性数据作因果推断成为一件有风险的事。</p>
+
+<p>此外，专家知识还可以用来避免调整那些可能引入偏倚的变量。至少，研究者一般应当避免对那些受处理或受结局影响的变量作调整。当然，深思熟虑且富有知识的研究者完全可能认为，两种或更多种因果结构——它们可能导致关于混杂与混杂因子的不同结论——同样合理。那样的话，他们会做多份分析，并明确写出每一份分析为成立所需的因果结构假设。遗憾的是，你永远无法确定所考虑的这批因果结构里就包含真实的那个；用观察性数据时，这种不确定性是无法回避的。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_11.png" alt="图 7.11：L 是处理 A 的后代，U 是 A 与 L 的共同原因">
+<figcaption><strong>图 7.11</strong>　<code>L</code> 是处理 <code>A</code> 的后代，<code>U</code> 是 <code>A</code> 与 <code>L</code> 的共同原因，<code>A → L → Y</code> 是从 <code>A</code> 到 <code>Y</code> 的唯一通路。对 <code>L</code> 作条件化阻断了后门路径，但也阻断了全部因果路径。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_12.png" alt="图 7.12：图 7.11 对应的 SWIG，L 被替换成反事实变量 L^a">
+<figcaption><strong>图 7.12</strong>　图 7.11 的 SWIG：实际变量 <code>L</code> 被替换为反事实变量 <code>L<sup>a</sup></code>（若所有人都接受处理 <code>a</code> 时会观测到的 <code>L</code> 的值）；<code>L<sup>a</sup></code> 阻断了 <code>Y<sup>a</sup></code> 与 <code>A</code> 之间的所有路径。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 7.4　混杂因素不能是处理的后代，但可以处在处理之后</span>
+<p>考虑图 7.11 的因果 DAG。<code>L</code> 是处理 <code>A</code> 的后代，它阻断了从 <code>A</code> 到 <code>Y</code> 的所有后门路径。与图 7.4 和图 7.7 不同，对 <code>L</code> 作条件化不会造成选择偏倚，因为没有打开任何碰撞路径。相反，由于 <code>A</code> 对 <code>Y</code> 的因果效应完全是通过中间变量 <code>L</code> 传递的，对 <code>L</code> 作条件化会彻底阻断这条通路。这个例子说明：对一个阻断了所有后门路径的变量 <code>L</code> 作调整，在 <code>L</code> 是 <code>A</code> 的后代时并不会消除偏倚。</p>
+<p>由于给定 <code>L</code> 的条件可交换性 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 蕴含对 <code>L</code> 的调整消除了所有偏倚，那么在这个例子中条件可交换性必定不成立，平均处理效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 不可识别。分析图 7.12 的 SWIG 可以验证这一点，它描绘的是 <code>A</code> 已被设为 <code>a</code> 的反事实世界。在这个世界里，实际变量 <code>L</code> 被替换为反事实变量 <code>L<sup>a</sup></code>，也就是若所有人都接受处理值 <code>a</code> 时会观测到的 <code>L</code> 的值。由于 <code>L<sup>a</sup></code> 阻断了从 <code>Y<sup>a</sup></code> 到 <code>A</code> 的所有路径，我们得出 <code>Y<sup>a</sup> ⊥⊥ A|L<sup>a</sup></code> 成立；但我们不能得出 <code>Y<sup>a</sup> ⊥⊥ A|L</code> 成立，因为 <code>L</code> 根本不在图上。（在 FFRCISTG 下，任何无法从 SWIG 上读出的独立性都不能假定成立。）因此我们无法确保平均处理效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 能从 <code>(L, A, Y)</code> 的数据中被识别。</p>
+<p>问题的起因是 <code>L</code> 是 <code>A</code> 的后代，而不是因为 <code>L</code> 处在 <code>A</code> 的未来。如果在图 7.11 中从 <code>A</code> 指向 <code>L</code> 的箭头不存在，那么 <code>L</code> 就是一个阻断了所有后门路径的非 <code>A</code> 后代。类似地，在图 7.12 的 SWIG 上，我们可以用 <code>L</code> 替换 <code>L<sup>a</sup></code>，因为 <code>A</code> 不再是 <code>L</code> 的原因（注意此时 <code>Y<sup>a</sup></code> 与 <code>A</code> 被 <code>L</code> d-分离）。于是即使 <code>L</code> 仍然处在 <code>A</code> 的未来，对 <code>L</code> 作调整也会消除所有偏倚。真正要紧的是因果图的拓扑结构（哪些变量导致哪些变量），而不是节点的时间先后。Rosenbaum（1984）与 Robins（1986，第 11 节）对用处理之后的时变量来控制混杂给出了非图式的讨论。</p>
+</aside>
+
+<p>观察性研究中始终存在混杂威胁，这带来一个科学上的后果。假设你做了一项观察性研究，要量化心脏移植 <code>A</code> 对死亡 <code>Y</code> 的影响。你尽了最大努力（比如请教领域专家）来识别并测量混杂因素，并在调整了疾病严重程度 <code>L</code> 之后假定不存在未测混杂。一位批评者说："这项观察性研究的推断可能不正确，因为存在潜在的混杂。"这位批评者说的不是一句科学判断，而是一句逻辑判断。既然任何观察性研究的发现都可能被混杂，那么显然你的研究结果也可能被混杂。如果批评者的本意是为你这项研究的<strong>具体缺陷</strong>提供证据，那他就失败了。他的批评毫无信息量，因为他只是把一个你和他在研究开始之前就已经知道的观察性研究的固有属性又说了一遍。</p>
+
+<p>要对你的研究提出中肯的批评，批评者需要进入一场真正的科学对话。举例来说，批评者可以引用与你的发现相矛盾的实验或观察证据；或者他可以这样说："这项观察性研究的推断可能不正确，因为存在由吸烟引起的潜在混杂——吸烟是这样一个共同原因，通过它可能仍留有一条打开的后门路径。"后一种说法为你对"不存在未测混杂"这一假定提出了一个可检验的挑战。举证责任又回到你这边。你的下一步是设法调整吸烟这一因素，或者在拿不到吸烟数据的情况下，做一次敏感性分析来考察吸烟可能引入的偏倚。</p>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_13.png" alt="图 7.13：负对照结局 C 的因果图，U 是 C 与 Y 的共同原因">
+<figcaption><strong>图 7.13</strong>　负对照结局 <code>C</code> 是处理之前测得的结局；未测原因 <code>U</code> 同时导致 <code>C</code> 与 <code>Y</code>，处理 <code>A</code> 只影响 <code>Y</code>。<code>E[C|A = 1] − E[C|A = 0]</code> 衡量的是混杂的大小。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_14.png" alt="图 7.14：前门准则的因果图，中介变量 M 完全中介 A 对 Y 的效应">
+<figcaption><strong>图 7.14</strong>　前门准则的经典结构：<code>A → M → Y</code> 中 <code>M</code> 完全中介，且 <code>A</code>-<code>M</code> 与 <code>M</code>-<code>Y</code> 之间都没有未测的混杂；<code>A</code> 与 <code>Y</code> 之间则共享未测原因 <code>U</code>。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch7--figure-7_15.png" alt="图 7.15：同时使用负对照结局 C 与负对照处理 Z">
+<figcaption><strong>图 7.15</strong>　同时引入负对照结局 <code>C</code>（<code>U</code> 的后代，不受 <code>A</code> 影响）与负对照处理 <code>Z</code>（<code>U</code> 的后代，不影响 <code>Y</code>）。在 <code>U</code>、<code>C</code>、<code>Z</code> 都是离散的额外条件下，近端推断可以非参数地识别 <code>A</code> 对 <code>Y</code> 的因果效应。</figcaption></figure>
+
+<p>上面这番讨论虽然只限于混杂造成的偏倚，但要从观察性数据作有效的因果推断，还必须不存在选择偏倚与测量偏倚所致。不过与混杂不同，这两类偏倚在随机化试验与观察性研究中都可能发生。</p>
+
+<p>在本章把混杂讲清楚之后，下一章将呈现已处理者与未处理者之间可交换性缺失的另一个潜在来源：把个体选入分析。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 7.3　双重差分与负对照结局</span>
+<p>假设我们想计算阿司匹林 <code>A</code>（1：是；0：否）对血压 <code>Y</code> 的平均因果效应，但 <code>A</code> 与 <code>Y</code> 存在未测的共同原因 <code>U</code>（比如心脏病病史）。这时我们无法用标准化或 IP 加权计算该效应，因为存在未测混杂。但还有另一种方法，在某些条件下可以调整未测混杂：使用负对照结局（negative outcome controls，也称安慰剂检验）。</p>
+<p>进一步假设，对人群中每个个体，我们还测量了处理可得之前那一刻的结局值。我们把这个处理前的结局 <code>C</code> 称为负对照结局（也叫 negative control outcome）。如图 7.13 所示，<code>U</code> 同时是 <code>Y</code> 与 <code>C</code> 的原因，而处理 <code>A</code> 显然不是处理前 <code>C</code> 的原因。现在，尽管 <code>A</code> 对 <code>C</code> 的因果效应已知为零，对比量 <code>E[C|A = 1] − E[C|A = 0]</code> 却因为 <code>U</code> 造成的混杂而不为零。事实上，<code>E[C|A = 1] − E[C|A = 0]</code> 在加性尺度上度量了 <code>A</code> 对 <code>C</code> 这个效应的混杂大小。如果 <code>A</code> 对负对照结局 <code>C</code> 的加性混杂大小与 <code>A</code> 对真实结局 <code>Y</code> 的相同，那么我们就能算出 <code>A</code> 对 <code>Y</code> 在已处理者中的效应。具体来说，在加性等混杂假定 <code>E[Y<sup>0</sup>|A = 1] − E[Y<sup>0</sup>|A = 0] = E[C|A = 1] − E[C|A = 0]</code> 下，效应为</p>
+<p style="text-align:center"><code>E[Y<sup>1</sup> − Y<sup>0</sup>|A = 1] = (E[Y|A = 1] − E[Y|A = 0]) − (E[C|A = 1] − E[C|A = 0])</code></p>
+<p>也就是说，已处理者中的效应等于处理 <code>A</code> 与结局 <code>Y</code> 之间的关联（它是因果效应与混杂的混合物）减去由 <code>A</code> 与 <code>C</code> 的关联所度量的混杂。注意，图 7.13 中从 <code>C</code> 指向 <code>Y</code> 的那根直接箭头，对于 <code>C</code> 充当负对照结局来说并不是必需的。</p>
+<p>这种混杂调整方法被称为<strong>双重差分</strong>（difference-in-differences，Card 1990，Meyer 1995，Angrist 与 Krueger 1999）。实践中，它常常与对测量协变量的调整结合在一起，用参数化或半参数化的方法实现（Abadie 2005）。不过双重差分是一种相当受限的负对照结局用法（Sofer 等 2016）：它要求在处理前后都测量结局（或至少要求真实结局 <code>Y</code> 与负对照结局 <code>C</code> 在同一尺度上测量），并且要求加性等混杂成立。Sofer 等（2016）描述了更一般的方法，允许 <code>Y</code> 与 <code>C</code> 处于不同尺度、依赖更弱形式的等混杂、并纳入对测量协变量的调整。关于用负对照结局检测混杂的一般性介绍，见 Lipsitch 等（2010）与 Flanders 等（2011）。</p>
+<p>出人意料的是，当负对照结局 <code>C</code> 与负对照处理 <code>Z</code> 同时具备时，在额外假设下，即便存在未测混杂因素 <code>U</code>，因果效应也可以被非参数地识别。事实上，如果 <code>U</code>、<code>C</code>、<code>Z</code> 都是离散的，且 <code>C</code> 与 <code>Z</code> 的水平数不少于 <code>U</code> 的水平数，那么 <code>A</code> 对 <code>Y</code> 的因果效应一般总是可识别的（Miao 等 2018）。这一识别思路被称为<strong>近端因果推断</strong>（proximal causal inference，Cui 等 2020）。图 7.15 就是一个例子，其中 <code>C</code> 是负对照结局、<code>Z</code> 是负对照处理。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 7.4　前门准则</span>
+<p>图 7.14 的因果图描绘了这样一种情形：处理 <code>A</code> 与二值结局 <code>Y</code> 共享一个未测原因 <code>U</code>；同时存在一个变量 <code>M</code>，它完全中介 <code>A</code> 对 <code>Y</code> 的效应，并且与 <code>A</code>、<code>Y</code> 都不共享未测原因。在这种因果结构下，数据分析者<strong>不能</strong>直接用标准化（也不能用 IP 加权）去计算反事实风险 <code>Pr[Y<sup>a=1</sup> = 1]</code> 与 <code>Pr[Y<sup>a=0</sup> = 1]</code>，因为阻断 <code>A</code> 与 <code>Y</code> 之间后门路径所必需的变量 <code>U</code> 拿不到。因此用前面几章的方法无法识别 <code>A</code> 对 <code>Y</code> 的平均因果效应。然而 Pearl（1995）证明了 <code>Pr[Y<sup>a</sup> = 1]</code> 可以由所谓的<strong>前门公式</strong>识别：</p>
+<p style="text-align:center"><code>∑<sub>m</sub> Pr[M = m|A = a] ∑<sub>a′</sub> Pr[Y = 1|M = m, A = a′] Pr[A = a′]</code></p>
+<p>Pearl 把这个识别公式称为前门调整（front door adjustment），因为它依赖于一条从 <code>A</code> 到 <code>Y</code> 的路径，而这条路径与后门路径不同：它经过 <code>A</code> 的一个后代 <code>M</code>，而这个后代完全中介了 <code>A</code> 对 <code>Y</code> 的效应。Pearl 常常用<strong>后门公式</strong>指称我们所说的标准化（亦即点处理 g 算法，Robins 1986a）的识别公式。下面给出前门识别公式的一个证明。</p>
+<p>注意 <code>Pr[Y<sup>a</sup> = 1] = ∑<sub>m</sub> Pr[M<sup>a</sup> = m] ∑<sub>a′</sub> Pr[Y<sup>a</sup> = 1|M<sup>a</sup> = m, A = a′] Pr[A = a′]</code>，并且在图 7.14 下 <code>Pr[M<sup>a</sup> = m] = Pr[M = m|A = a]</code>，因为 <code>A</code> 对 <code>M</code> 的效应没有混杂（即 <code>A ⊥⊥ M<sup>a</sup></code>）；同时 <code>Pr[Y<sup>a</sup> = 1|M<sup>a</sup> = m] = Pr[Y = 1]</code>。为证明最后这个等式，先注意到 <code>Pr[Y<sup>a</sup> = 1|M<sup>a</sup> = m] = ∑<sub>a′</sub> Pr[Y = 1|M = m, A = a′] Pr[A = a′]</code>：这来自两点——（i）在 <code>M<sup>a</sup> = m</code> 时 <code>Y = Y<sup>a</sup></code>（在图 7.14 中 <code>A</code> 只通过 <code>M</code> 影响 <code>Y</code>），（ii）在"把 <code>M</code> 设为 <code>m</code> 且把 <code>A</code> 设为 <code>a</code>"这一联合干预的 SWIG 上，由 d-分离得 <code>Y<sup>a</sup> ⊥⊥ M<sup>a</sup></code>。最后，由只对 <code>M</code> 干预时的 SWIG 上的条件可交换性 <code>Y<sup>m</sup> ⊥⊥ M|A</code>，<code>Pr[Y<sup>m</sup> = 1] = ∑<sub>a′</sub> Pr[Y = 1|M = m, A = a′] Pr[A = a′]</code>。以上证明需要 <code>M</code> 干预下良定义的反事实结局 <code>Y<sup>m</sup></code>。技术要点 21.11 与 21.12 给出不依赖这一条件的前门公式的替代证明。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（未测混杂不是"有或没有"，别用"我们调整过了所以没事"交差）</strong>：精细辨析 7.1 的心脏移植例子极容易被误读成"吸烟混杂顶多把 0.6 推到 0.7，所以结论稳健"。准确的说法是：这里能算出方向与量级，靠的是对吸烟与 <code>A</code>、与 <code>Y</code> 的关联强度做了具体假设；这些假设一旦偏了，连方向都可能翻。所以一旦有理由怀疑存在未测混杂，正确的动作不是"我们已经检查过了，影响不大"，而是把偏倚可能达到的量级算出来。现在通行的做法之一是 E 值（VanderWeele 与 Ding 2017）：给定观察到的效应估计与置信区间，反解"多大的未测混杂（以风险比尺度衡量）才足以把这个估计推到零"。E 值大，说明结论对未测混杂相当鲁棒；E 值接近 1，就该老老实实做多组敏感性分析。中文期刊里报告 E 值的不多，但 Lancet、Annals of Internal Medicine 等已近乎把它列为观察性研究的必报项，做医保数据的人手一份不吃亏。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 8（7.6 节的"别把所有变量都塞进模型"，以及"只能调整基线变量"这条经验法则的适用范围）</strong>：7.6 节末尾那句"至少应避免对受处理或受结局影响的变量作调整"，针对的是国内文献里极常见的一种做法：把随访期间测到的一切都塞进多因素 logistic——术后肌酐、依从性、随访中改变的吸烟量、住院天数——然后称之为"充分调整"。这类变量大多处在 <code>A</code> 的下游，它们阻断的恰恰是你想估计的那条因果路径，同时还会沿着你没画出来的碰撞路径放出新的偏倚；净结果通常是让真实效应被压向零。一个更可操作的做法是把变量分成三堆分别对待：(a) <strong>必须调整的混杂因素</strong>——阻断后门路径的非后代；(b) <strong>绝不能调整的</strong>——处理的中介变量与处理的碰撞后代；(c) <strong>可以加但不代替 (a) 的预测变量</strong>——它们能降低估计量的方差，所以加进去不算错，但不能因此省掉 (a)。另一个常见的经验法则是"只调整基线测量的混杂因素"，这条法则只对了一半：精细辨析 7.4 指出要紧的是图的拓扑而不是时间先后——图 7.11 里 <code>L</code> 是 <code>A</code> 的后代且没有别的父节点，调整它并不会打开任何碰撞路径（代价是你把中介路径也断了，所以因果效应不再可识别）；真正致命的是第 21 章那种"处理-混杂反馈"，即 <code>L<sub>t</sub></code> 既受 <code>A<sub>t−1</sub></code> 影响、又影响 <code>A<sub>t</sub></code>。一句话：判据永远是那张图，不是时间戳。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 9（负对照结局：一个国内读者大概最用得上的技术要点）</strong>：技术要点 7.3 的双重差分，在中文语境里通常以"基线可比性检查"或"平行趋势检验"的名字出现，但它背后是同一个想法：找一个处理<em>不可能</em>影响的结局 <code>C</code>（处理前的值、临床上不可能受影响的替代结局、理论上应为零效应的结局），看 <code>A</code> 与 <code>C</code> 之间有没有关联。有关联，就说明存在未测混杂，而这在常规的协变量调整之后往往仍然存在。国内把它用起来的三种典型场景：(1) 用队列数据的<strong>入组前</strong>指标（如入组前一年的门诊次数、入组前的住院天数）作为 <code>C</code>，检验入组或分组本身是否已被健康意识驱动；(2) 用<strong>理论上不应受影响的邻近结局</strong>作为 <code>C</code>，例如评价某药物对某病死亡率的影响时去看它对另一项与该药无关的疾病发生率的影响；(3) 医保数据里的<strong>费用分布</strong>——费用几乎被所有慢性病影响，因此"处理组与非处理组的费用差异"常被用作住院次数这类混杂的粗略代理。要注意它的两条硬约束：<code>C</code> 与 <code>Y</code> 必须共享足够多的混杂来源（否则校正不干净），且等混杂假定只能是加性尺度的，所以更稳妥的实践是像 Sofer 等（2016）那样把 <code>C</code> 与 <code>Y</code> 一起放进模型并同时调整已测协变量，而不是机械地相减。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

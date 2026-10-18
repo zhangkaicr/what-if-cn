@@ -103,6 +103,332 @@
 
 <aside class="tnote"><span class="box-label">译注</span>关于 g 公式的软件实现：Robins 在 1986、1987 年提出时变处理的 g 公式后，实证研究中常用参数化版本。正文提到的 R 包 <code>gfoRmula</code>（Lin 等，2019，可通过 CRAN 安装）与 SAS 宏 GFORMULA 是两套主流工具；对应的中文流行病学教材常把它译为“g 计算法”或“参数化 g 公式”。在国内队列研究（如中国 Kadoorie 生物库、心血管队列）中做时变暴露的因果效应估计时，它常被用来模拟“若所有人都采取某干预策略”的结局。</aside>
 
+<h2 id="s-21-2">21.2 时变处理的 IP 加权</h2>
+
+<p>先回顾一下时点固定处理的情形。假使我们只关心表 21.1 中时点固定的 <code>A1</code> 的效应，也就是想比较反事实均值 <code>E[Y<sup>a1=1</sup>]</code> 与 <code>E[Y<sup>a1=0</sup>]</code>。正如第 12 章所见，在可识别性条件之下，每个反事实均值 <code>E[Y<sup>a1</sup>]</code> 都等于由个体特异的非稳定化权重 <code>W<sup>A1</sup> = 1/f(A1|L1)</code>（或稳定化权重 <code>SW<sup>A1</sup> = f(A1)/f(A1|L1)</code>）所构造的伪人群中的均值 <code>E<sup>ps</sup>[Y|A1=a1]</code>。通俗地说，IP 权重的分母是某个人在以其混杂因素取值为条件的条件下、实际接受他所接受的那个处理取值的概率。<code>E<sup>ps</sup>[Y|A1=a1]</code> 则可以由观测数据估计：在伪人群中，取 <code>A1=a1</code> 的那些个体，其 <code>Y</code> 的平均值。</p>
+
+<p>当处理与混杂因素都是时变的时候，时点固定处理的这些 IP 权重就需要推广。对于两个时点上的时变处理 <code>A=(A0,A1)</code> 与时变协变量 <code>L̄=(L0,L1)</code>，非稳定化 IP 权重为</p>
+
+<div class="eqn">W<sup>Ā</sup> = ∏<sub>k=0</sub><sup>1</sup> 1 / f(A<sub>k</sub> | Ā<sub>k−1</sub>, L̄<sub>k</sub>)</div>
+
+<p>稳定化 IP 权重为</p>
+
+<div class="eqn">SW<sup>Ā</sup> = ∏<sub>k=0</sub><sup>1</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>) / ∏<sub>k=0</sub><sup>1</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>, L̄<sub>k</sub>)</div>
+
+<p>其中按定义 <code>A<sub>−1</sub> ≡ 0</code>。通俗地说，时变处理的 IP 权重分母是某个人在以其既往处理与协变量历史为条件的条件下、实际接受他所接受的那段处理历史的概率。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>请注意这里的关键结构：时变处理的权重是<strong>各期条件概率之乘积</strong>，而不是某一期的单独概率。这一点在国内教材里常被一笔带过，但它的后果很实在——每期的条件概率都小于 1，乘积 <code>∏<sub>k</sub> f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 会随随访期数 K 指数式地收缩，于是权重的方差迅速恶化、极端权重大量出现。这正是时变处理下 IP 加权比时点固定处理下更不稳定的主要原因，也是 21.3 节要引入双重稳健估计的动机之一。另一个常被忽略的前提是<strong>逐期可阳性性</strong>：不仅要 <code>Pr(A<sub>k</sub>=a<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 逐期为正，还要保证<em>整条路径</em> <code>(A<sub>k</sub>,L<sub>k</sub>)</code> 在人群中密度不为零；单期可阳性并不自动推出逐期可阳性。</aside>
+
+<p>假设我们想比较反事实均值 <code>E[Y<sup>a0=1,a1=1</sup>]</code> 与 <code>E[Y<sup>a0=0,a1=0</sup>]</code>。在针对静态策略的可识别性假设下，每个反事实均值 <code>E[Y<sup>a0,a1</sup>]</code> 都等于由非稳定化权重 <code>W<sup>Ā</sup></code> 或稳定化权重 <code>SW<sup>Ā</sup></code> 构造的伪人群中的均值 <code>E<sup>ps</sup>[Y|A0=a0, A1=a1]</code>。也就是说，每个反事实均值的 IP 加权估计量就是伪人群中 <code>A=(A0,A1)</code> 那些个体的 <code>Y</code> 平均值。与技术要点 12.2 中时点固定处理的结果类似，<code>E[Y|A0=a0,A1=a1]</code> 的 IP 加权估计等于 <code>E[W<sup>Ā</sup>Y·I(A0=a0,A1=a1)]/E[W<sup>Ā</sup>]</code>，也等于 <code>E[SW<sup>Ā</sup>Y·I(A0=a0,A1=a1)]/E[SW<sup>Ā</sup>·I(A0=a0,A1=a1)]</code>；对非稳定化与稳定化两个伪人群都成立，而且与序贯可交换性是否成立无关。</p>
+
+<p>现在把 IP 加权用到表 21.1 的数据上。图 21.3 中带因果解释的结构化树图，就是在图 21.1 的树图上另加了非稳定化 IP 权重 <code>W<sup>Ā</sup></code> 一列，以及每种处理与协变量历史在相应伪人群中所对应的人数 <code>N<sub>W</sub></code>。伪人群的规模是 128 000，即原始人群的 32 000 人乘以 4（静态策略的个数）。由于本研究没有 <code>L0</code>，IP 权重的分母简化为 <code>f(A0)·f(A1|A0,L1)</code>。</p>
+
+<figure class="fig"><img src="../figures/ch21--figure-21_3.png" alt="图 21.3">
+<figcaption><strong>图 21.3</strong> 表 21.1 数据经 IP 加权后得到的伪人群。在图 21.1 的树图上增加了非稳定化 IP 权重 <code>W<sup>Ā</sup></code> 一列，以及每种处理与协变量历史在伪人群中的人数 <code>N<sub>W</sub></code>；伪人群总规模为 128 000。</figcaption></figure>
+
+<p>反事实均值 <code>E[Y<sup>a0=0,a1=0</sup>]</code> 的 IP 加权估计是伪人群中 <code>E<sup>ps</sup>[Y|A0=0,A1=0]</code>，我们把它估计为伪人群里 32 000 个 <code>(A0=0, A1=0)</code> 个体的平均结局。从图 21.3 的树图读出，这个估计是 <code>84×8000/32000 + 52×24000/32000 = 60</code>。类似地，<code>E[Y<sup>a0=1,a1=1</sup>]</code> 的 IP 加权估计也是 60。因此因果效应 <code>E[Y<sup>a0=1,a1=1</sup>] − E[Y<sup>a0=0,a1=0</sup>]</code> 的估计为 0，与预期一致。IP 加权与 g 公式一样，在传统方法失败的地方成功了。</p>
+
+<p>请注意，我们基于 g 公式得到的 <code>E[Y<sup>a0,a1</sup>]</code> 非参数估计与基于 IP 加权得到的估计<strong>恰好完全相等</strong>。这种相等与因果推断毫无关系。也就是说，即便可识别性条件不成立——此时 g 公式与 IP 加权的估计都没有因果解释——两种做法照样会给出同一个数字。（若改用图 21.3 中的稳定化权重 <code>SW<sup>Ā</sup></code>，得到的同样是 0；不妨自己验算。在非稳定化伪人群里 <code>Pr<sup>ps</sup>(A<sub>k</sub>=1|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 是 1/2，在稳定化伪人群里 <code>Pr<sup>ps</sup>(A<sub>k</sub>=1|Ā<sub>k−1</sub>)</code> 也是 1/2。）</p>
+
+<p>下面把 IP 加权推广到有多个时点 k=0,1,…,K 的高维情形。非稳定化 IP 权重的一般形式为</p>
+
+<div class="eqn">W<sup>Ā</sup> = ∏<sub>k=0</sub><sup>K</sup> 1 / f(A<sub>k</sub> | Ā<sub>k−1</sub>, L̄<sub>k</sub>)</div>
+
+<p>稳定化 IP 权重的一般形式为</p>
+
+<div class="eqn">SW<sup>Ā</sup> = ∏<sub>k=0</sub><sup>K</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>) / ∏<sub>k=0</sub><sup>K</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>, L̄<sub>k</sub>)</div>
+
+<p>当可识别性条件成立时，这些 IP 权重构造出一个伪人群，其中（i）<code>Y<sup>ā</sup></code> 的均值与真实人群中的相同，但（ii）正如第 19 章图 19.1 所示，每个时点 k 的随机化概率要么是常数 1/2（非稳定化权重），要么至多依赖于既往处理历史（稳定化权重）。于是，由于序贯无条件可交换性在两个伪人群中都成立，平均因果效应就是 <code>E[Y|Ā=ā] − E[Y|Ā=ā′]</code>。正文只讨论静态策略；动态策略下的 IP 加权见技术要点 21.2。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 21.2　时变处理的 IP 加权</span>正文对静态策略的描述有个不显眼的前提：<code>SW<sup>Ā</sup></code> 的分子 <code>∏<sub>k</sub> f(A<sub>k</sub>|Ā<sub>k−1</sub>)</code> 依赖于观测到的处理历史。如果策略是静态的，<code>I(Ā<sub>K</sub>=ā)</code> 要么为 0、要么为 1，这个依赖就无所谓了。可一旦策略是动态的，分子里 <code>A<sub>k</sub></code> 的取值就随个体的协变量历史而变，<code>E[Y·I(Ā<sub>K</sub>=A<sup>g</sup><sub>K</sub>)·SW<sup>Ā</sup>]</code> 便不再等于 g 公式。这一点在下一小节的 IP 加权与双重稳健估计里都要用到。</aside>
+
+<p>在真正的序贯随机化试验中，<code>f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 由设计已知，因此可以保证 <code>E[Y<sup>ā</sup>]</code> 与 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā′</sup>]</code> 的非稳定化 IP 加权估计是无偏的。相比之下，在观察性研究中，<code>f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 需要从数据中估计。当数据是高维的，我们可以例如在每个时点 k 拟合一个 logistic 回归模型来估计二值处理的条件概率 <code>Pr(A<sub>k</sub>=1|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code>，再用这些模型给出的 <code>f̂(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 替换 <code>W<sup>Ā</sup></code> 分母中的对应因子。如果这些 <code>f̂(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 基于一个错误设定的 logistic 模型，得到的 <code>E[Y<sup>ā</sup>]</code> 与 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā′</sup>]</code> 估计就会有偏。对稳定化权重 <code>SW<sup>Ā</sup></code>，分子里的 <code>f̂(A<sub>k</sub>|Ā<sub>k−1</sub>)</code> 也要估计；但只要这个估计即使来自错误设定的模型，<code>E[Y<sup>ā</sup>]</code> 与 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā′</sup>]</code> 的估计<strong>仍然无偏</strong>，只是稳定化伪人群中的 <code>f̂(a<sub>k</sub>|a<sub>k−1</sub>)</code> 不再与观测数据密度 <code>f(a<sub>k</sub>|a<sub>k−1</sub>)</code> 一致而已。</p>
+
+<p>假使我们用参数化 g 公式得到 <code>E[Y<sup>ā</sup>]</code> 的一个估计，又用参数化模型估计的 IP 权重得到另一个估计，而两者之差超出了抽样变异所能合理解释的范围（这个差值的抽样变异可以用 bootstrap 量化），那么我们就可以断定：g 公式所用的参数化模型、或 IP 加权所用的参数化模型（或两者）存在错误设定。这个结论<strong>永远</strong>成立，与可识别性假设是否成立无关。它的推论是：应当总是用两种方法都估一遍 <code>E[Y<sup>ā</sup>]</code>，若两个估计相差明显（按某个事先设定的判据），就回头重新检查所有模型，必要时就修改。下一节讲双重稳健估计量如何帮助应对模型错误设定。</p>
+
+<p>另外，正如上一节所讨论的，未知量 <code>E[Y<sup>ā</sup>]</code> 的个数远超样本量的情况并不少见。因此我们需要指定一个模型，把许多策略的信息合并起来，帮助估计某个 <code>E[Y<sup>ā</sup>]</code>。例如，我们可以假设处理历史 ā 对平均结局的效应随累积处理 <code>cum(ā) = ∑<sub>k=0</sub><sup>K</sup> a<sub>k</sub></code> 线性增长。这一假设可以写进<strong>边际结构均值模型</strong></p>
+
+<div class="eqn">E[Y<sup>ā</sup>] = β<sub>0</sub> + β<sub>1</sub> cum(ā)</div>
+
+<p>对所有 ā 成立，它是第 12 章讨论的时点固定处理边际结构均值模型的更一般版本。该模型左端有 2<sup>K</sup> 个未知量（每个 2<sup>K</sup> 种策略 ā 各一个），右端却只有 β<sub>0</sub>、β<sub>1</sub> 两个未知参数。参数 β<sub>1</sub> 度量时变处理 <code>Ā</code> 的平均因果效应，而平均因果效应 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā=0</sup>]</code> 等于 <code>β<sub>1</sub> × cum(ā)</code>。</p>
+
+<p>如第 12 章所讨论的，为估计边际结构模型的参数，可以在稳定化或非稳定化伪人群中用普通最小二乘拟合线性回归模型</p>
+
+<div class="eqn">E[Y|A=θ<sub>0</sub> + θ<sub>1</sub> cum(A)]</div>
+
+<p>这在数学上等价于在原始研究人群中以 <code>SW<sup>Ā</sup></code> 或 <code>W<sup>Ā</sup></code> 为权重做加权最小二乘拟合同一个线性模型（在实际数据分析中，这些权重要换成它们的估计值）。在可识别性条件之下，θ<sub>1</sub> 的加权最小二乘估计对因果参数 β<sub>1</sub> 一致，而不只是对关联参数 θ<sub>1</sub> 一致。</p>
+
+<p>β<sub>1</sub> 的方差——因之也是 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā=0</sup>]</code> 的方差——可以用非参数 bootstrap 估计，也可以通过解析方法计算（后者需要额外的统计分析与编程）。还可以用 β̂<sub>1</sub> 的稳健方差估计直接构造一个保守的 95% 置信区间，大多数统计软件都会直接输出这个量。对于非饱和的边际结构模型，用 <code>SW<sup>Ā</sup></code> 拟合时区间宽度通常比用 <code>W<sup>Ā</sup></code> 更窄，所以 <code>SW<sup>Ā</sup></code> 权重更受推荐。</p>
+
+<p>当然，如果边际结构均值模型错误设定——也就是说反事实均值结局通过累积处理 <code>cum(ā)</code> 以外的某种时变处理函数依赖于处理策略（例如只依赖最后 5 个月的累积处理 <code>∑<sub>k=K−5</sub><sup>K</sup> a<sub>k</sub></code>），或者以非线性方式（例如二次方式）依赖于累积处理——那么 <code>E[Y<sup>ā</sup>]</code> 的估计就不正确。不过，如果我们用 <code>SW<sup>Ā</sup></code> 或 <code>W<sup>Ā</sup></code> 拟合模型</p>
+
+<div class="eqn">E[Y|A=θ<sub>0</sub> + θ<sub>1</sub> cum(A) + θ<sub>2</sub> cum<sub>−5</sub>(A) + θ<sub>3</sub> cum(A)<sup>2</sup>]</div>
+
+<p>那么对联合原假设 <code>θ<sub>2</sub> = θ<sub>3</sub> = 0</code> 作一个 2 个自由度的 Wald 检验，就是对我们边际结构模型正确设定这一原假设的检验。也就是说，<strong>边际结构模型的 IP 加权不受技术要点 21.3 所述 g-零悖论的影响</strong>。实践中人们可能会选用把处理历史 Ā 的不同摘要作为协变量、并使用三次样条这类灵活函数的边际结构模型。</p>
+
+<p>最后，如第 12.5 节所讨论的，我们可以用边际结构模型去探索 <code>L0</code> 中某个协变量子集 V 的效应修饰。例如，对一个二值的基线变量 V，我们把边际结构均值模型扩展为</p>
+
+<div class="eqn">E[Y<sup>ā</sup>|V] = β<sub>0</sub> + β<sub>1</sub> cum(ā) + β<sub>2</sub> V + β<sub>3</sub> cum(ā)V</div>
+
+<p>该模型的参数可以用 IP 权重 <code>W<sup>Ā</sup></code>、或更好的 <code>SW<sup>Ā</sup>(V) = ∏<sub>k=0</sub><sup>K</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>,V) / ∏<sub>k=0</sub><sup>K</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code> 做加权最小二乘拟合普通线性回归模型 <code>E[Y|A,V] = θ<sub>0</sub> + θ<sub>1</sub> cum(A) + θ<sub>2</sub>V + θ<sub>3</sub>V·cum(A)</code> 来估计。在存在处理－混杂反馈的情形下，V 只能包含基线变量；如果 V 含有 <code>L<sub>k</sub></code>（k&gt;0）的某些分量，那么即使处理在任何时点对平均结局都没有效应，θ<sub>1</sub> 与 θ<sub>3</sub> 也可能不等于 0。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.2　动态处理策略下的 IP 加权</span>考虑确定性动态策略 g=(g<sub>0</sub>,…,g<sub>K</sub>)，其中 <code>g<sub>k</sub> ≡ g<sub>k</sub>(a<sup>g</sup><sub>k−1</sub>, l̄<sub>k</sub>)</code>。在策略 g 下，结局 Y 的 g 公式等于 <code>E[Y·I(Ā<sub>K</sub>=A<sup>g</sup><sub>K</sub>)·W<sup>Ā</sup>]</code>，其中 <code>a<sup>g</sup><sub>K</sub></code> 按技术要点 21.1 定义。又 <code>E[Y·I(Ā<sub>K</sub>=A<sup>g</sup><sub>K</sub>)·W<sup>Ā</sup>] = E<sup>ps</sup>[Y | Ā<sub>K</sub> = A<sup>g</sup><sub>K</sub>]</code>，即伪人群中遵循策略 g 的成员的平均 Y。与静态策略不同，<code>E[Y·I(Ā<sub>K</sub>=A<sup>g</sup><sub>K</sub>)·SW<sup>Ā</sup>] / E[I(Ā<sub>K</sub>=A<sup>g</sup><sub>K</sub>)·SW<sup>Ā</sup>]</code> <strong>不</strong>等于 g 公式，因为 <code>SW<sup>Ā</sup></code> 的分子依赖于 A。所以<strong>稳定化权重不能用于动态策略</strong>，此时 <code>E[Y<sup>ā</sup>]</code> 与 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā′</sup>]</code> 的估计会有偏。对稳定化权重 <code>SW<sup>Ā</sup></code>，还必须另外估计分子中的 <code>f̂(A<sub>k</sub>|Ā<sub>k−1</sub>)</code>；即便该估计来自错误设定的模型，<code>E[Y<sup>ā</sup>]</code> 与 <code>E[Y<sup>ā</sup>] − E[Y<sup>ā′</sup>]</code> 的估计仍是无偏的，只是稳定化伪人群中的 <code>f̂(a<sub>k</sub>|a<sub>k−1</sub>)</code> 不再与 <code>f(a<sub>k</sub>|a<sub>k−1</sub>)</code> 一致。对随机动态策略 f<sup>int</sup>，g 公式等于 <code>E[Y · ∏<sub>k=0</sub><sup>K</sup> f<sup>int</sup>(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>) · W<sup>Ā</sup>] = E[Y · ∏<sub>k=0</sub><sup>K</sup> f<sup>int</sup>(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>) / f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)]</code>。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.3　g-零悖论（g-null paradox）</span>使用参数化 g 公式时，即使可识别性条件成立，模型错误设定也会使 <code>E[Y<sup>ā</sup>]</code> 的估计有偏。假设存在处理－混杂反馈，且处理对 Y 无效应的尖锐零假设（sharp null hypothesis）为真，即对任意 ā′ 与 ā 都有 <code>Y<sup>ā</sup> − Y<sup>ā′</sup> = 0</code> 概率为 1。此时 <code>E[Y<sup>ā</sup>]</code> 的 g 公式取值对任意策略 ā 都相同，尽管 <code>E[Y|Ā=ā,L̄=l̄]</code> 与 <code>f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code> 都依赖于 ā。现在假设我们用标准的非饱和参数化模型 <code>E[Y|Ā=ā,L̄=l̄];θ</code> 与 <code>f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>);φ</code> 来估计 g 公式的各个组成部分，且两套模型基于彼此独立的参数 θ 与 φ。Robins 与 Wasserman（1997）证明：只要 <code>L<sub>k</sub></code> 有任何离散分量，这些模型就不可能同时正确设定，因为 <code>E[Y<sup>ā</sup>]</code> 的 g 公式估计值一般会依赖于 ā。其后果是，基于 g 公式估计的推断理论上可能导致尖锐零假设被错误拒绝，<strong>即便在一个序贯随机化实验中也是如此</strong>。这个现象被称为时变处理 g 公式估计的 g-零悖论。进一步讨论见 Cox 与 Wermuth（1999）、McGrath 等（2022）。所幸，g-零悖论并未妨碍实践中给出零的参数化 g 公式效应估计，大概是因为该悖论引入的偏倚相对于典型的随机变异来说很小。
+<br><br>
+相比之下，如第 12 章与第 14 章所述，边际结构均值模型的 IP 加权与结构嵌套均值模型的 g 估计都不受 g-零悖论之害：在尖锐零假设下，无论为处理选择何种函数形式，这些模型都是正确设定的。例如边际结构均值模型 <code>E[Y<sup>ā</sup>] = β<sub>0</sub> + β<sub>1</sub> cum(ā)</code> 在零假设下正确设定，因为此时 β<sub>1</sub>=0，<code>E[Y<sup>ā</sup>]</code> 不依赖于 ā 的函数。同样，如 21.4 节所定义的，任何结构嵌套均值模型 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code> 在尖锐零假设下都正确设定——真参数取 β=0，于是 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,0)=0</code>，与既往处理和协变量历史的函数形式无关。</aside>
+
+<h2 id="s-21-3">21.3 时变处理的双重稳健估计量</h2>
+
+<p>第二部分曾简要提到双重稳健方法：它把 IP 加权与 g 公式结合起来。IP 加权要求处理 A 条件于混杂因素 L 的模型正确，g 公式则要求结局 Y 条件于处理 A 与混杂因素 L 的模型正确。双重稳健方法只要求这两类模型中<strong>至少有一个</strong>正确（而且不必知道是哪一个正确），就能一致地估计因果效应。精细辨析 13.2 描述过一个用于时点固定处理 A 对结局 Y 平均因果效应的双重稳健插入式估计量。本节先回顾一个略有不同的、用于时点固定处理的双重稳健插入式估计量，再把它推广到时变处理。</p>
+
+<p>假使我们想为时点固定的二值处理 A 对二值结局 Y 的平均因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 构造一个双重稳健估计量，设定是可交换性、可阳性性与一致性齐备，混杂因素 L 很多。我们将构造如技术要点 13.2 与 13.3 所讨论的 <code>E[Y<sup>a</sup>]</code> 的双重稳健估计量。<code>E[Y<sup>a=1</sup>]</code> 与 <code>E[Y<sup>a=0</sup>]</code> 这两个双重稳健估计量之差，就是平均因果效应的一个双重稳健估计量。我们构造 <code>E[Y<sup>a</sup>]</code> 的双重稳健过程会用到结局模型 <code>E[Y|A=a,L=l]</code> 的估计值与 <code>Pr[A=1|L]</code> 的模型，然后把两者适当地组合起来。整个过程分三步。</p>
+
+<p>第一步，由处理模型算出预测值 <code>f̂(a|L) ≡ Pr[A=a|L]</code>。第二步，由限制在 <code>A=a</code> 的个体上做极大似然拟合的线性 logistic 模型 <code>Ê(a,L;θ) = expit(θ<sub>a,0</sub> + θ<sub>a,1</sub><sup>T</sup>L + θ<sub>a,2</sub>Ŵ<sup>a</sup>)</code> 算出预测值 <code>Ê[Y|A=a,L] = Ê(a,L;θ̂)</code>，其中协变量包含 <code>Ŵ<sup>a</sup> = 1/f(a|L)</code>。第三步，把 <code>Ê(Y<sup>a=1</sup>)</code> 与 <code>Ê(Y<sup>a=0</sup>)</code> 估计为标准化均值 <code>Ê</code>(Ê(1,L;θ̂)) 与 <code>Ê</code>(Ê(0,L;θ̂))，其中 <code>Ê</code> 表示对全部个体（处理与未处理都包括）的样本平均。二者之差 <code>Ê</code>(Ê(1,L;θ̂)) − <code>Ê</code>(Ê(0,L;θ̂)) 就是因果效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code> 的一个双重稳健估计量。也就是说，在可识别性条件之下，只要处理的模型正确<em>或者</em>结局的模型正确，该估计量就一致地估计平均因果效应。要认识到一点：<code>L</code> 取值相同的处理个体与未处理个体，也有相同的 <code>Ê(1,L;θ̂) = expit(θ̂<sub>1,0</sub> + θ̂<sub>1,1</sub><sup>T</sup>L + θ̂<sub>1,2</sub>/f̂(a=1|L))</code> 取值；它们同样有相同的 <code>Ê(0,L;θ̂) = expit(θ̂<sub>0,0</sub> + θ̂<sub>0,1</sub><sup>T</sup>L + θ̂<sub>0,2</sub>/f̂(a=0|L))</code>。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>这一整套三步走就是所谓的<strong>目标化最小损失型估计量</strong>（targeted minimum loss-based estimator，TMLE；也称目标化极大似然估计量）。它由 van der Laan 与 Rubin（2006）、van der Laan 与 Gruber（2012）引入，英文文献中也常用 bang-bang 权重、TMLE 等名称。它的卖点正是 21.3 节开头那句话：给你<strong>两次</strong>做对的机会——处理模型与结局模型只要有一个对就行。在中文语境中，处理－混杂反馈普遍存在而样本量有限，TMLE 这类方法在医保队列、慢病随访研究里越来越常用；实际实现常借 R 包的 <code>tmle</code>、<code>ltmle</code> 或 <code>drtmle</code>，但要注意它们是否支持多时点时变处理（<code>drtmle</code> 是为纵向数据设计的）。</aside>
+
+<p>现在把这个双重稳健估计量推广到时变处理的设定，我们在其中比较两个处理策略 ā 与 ā′ 下的反事实均值 <code>E[Y<sup>ā</sup>]</code> 与 <code>E[Y<sup>ā′</sup>]</code>。估计 <code>E[Y<sup>ā</sup>]</code> 的双重稳健过程与时点固定处理时一样分三步；不过第二步要复杂一些，因为它需要拟合<em>序贯</em>回归模型。为简化记号，我们只展示如何在"始终处理"策略 ā=1（即 1=<b>1</b><sub>K</sub> 是 K+1 个 1 构成的向量）下得到 <code>E[Y<sup>ā</sup>]</code> 的一个双重稳健估计量。</p>
+
+<p>第一步要求拟合回归模型 <code>π<sub>k</sub>(L̄<sub>k</sub>;α)</code>，用于 <code>π<sub>k</sub> = Pr(A<sub>k</sub>=1|Ā<sub>k−1</sub>=1<sub>k−1</sub>, L̄<sub>k</sub>)</code>，该模型对所有人与所有时点 k 合并拟合。一个人只有在时点 k 之前一直<em>持续接受处理</em>（即 Ā<sub>k−1</sub>=1<sub>k−1</sub>）时才进入时点 k 的模型拟合。接着我们用该模型的预测值 <code>π̂<sub>k</sub>=π̂<sub>k</sub>(L̄<sub>k</sub>;α̂)</code>，为那些截至 m 时点一直受处理的人（Ā<sub>m</sub>=1<sub>m</sub>）估计时变 IP 权重 <code>W<sup>A^m</sup> = ∏<sub>k=0</sub><sup>m</sup> 1/f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>)</code>，它等于 <code>W<sup>1^m</sup> = ∏<sub>k=0</sub><sup>m</sup> 1/π<sub>k</sub>(L̄<sub>k</sub>)</code>。也就是说，对一个截至 K 时点一直受处理（Ā<sub>K</sub>=1<sub>K</sub>）的人，我们在每个时点 m 各赋一个权重 <code>W<sup>1^m</sup></code>，而不是像上一节那样只在随访结束时给一个 <code>W<sup>1^K</sup></code>。举例来说，若我们为 <code>Pr(A<sub>k</sub>=1|Ā<sub>k−1</sub>=1, L̄<sub>k</sub>)</code> 拟合参数化模型 <code>π<sub>k</sub>(L̄<sub>k</sub>;α) = expit(α<sub>0,k</sub> + α<sub>2</sub>L<sub>k</sub>)</code>，那么在表 21.1 这个 K=1、两个时点的例子中，预测值 <code>Pr(A<sub>1</sub>=1|A<sub>0</sub>=1,L̄<sub>1</sub>)</code> 与 <code>Pr(A<sub>0</sub>=1|L<sub>0</sub>)</code> 就是 <code>π̂<sub>1</sub> = expit(α̂<sub>0,1</sub> + α̂<sub>2</sub>L<sub>1</sub>)</code> 与 <code>π̂<sub>0</sub> = expit(α̂<sub>0,0</sub> + α̂<sub>2</sub>L<sub>0</sub>)</code>（因为 A<sub>−1</sub>≡0）。这里我们用了简写 <code>π̂<sub>k</sub></code> 代表 <code>π̂<sub>k</sub>(L̄<sub>k</sub>;α̂)</code>。然后我们为截至 m 一直受处理的人计算时变 IP 权重的估计 <code>Ŵ<sup>1^m</sup> = ∏<sub>k=0</sub><sup>m</sup> 1/π̂<sub>k</sub></code>。至此第一步完成。</p>
+
+<p>第二步要求在每个时点 m 各拟合一个结局模型 <code>Ê<sub>m</sub>(L̄<sub>m</sub>;β<sub>m</sub>)</code>，从最后一个时点 K 开始，一直倒推到 m=0。时点 m 的回归模型只用截至 m 一直受处理的人来拟合，并把 <code>Ŵ<sup>1^m</sup></code> = <code>Ŵ<sup>A^m</sup></code> 作为协变量。时点 K 的模型以 Y 为因变量；m&lt;K 的时点 m 模型则以时点 m+1 模型拟合出的预测值 <code>Ê<sub>m+1</sub> = Ê<sub>m+1</sub>(L̄<sub>m+1</sub>;β<sub>m+1</sub>)</code> 为因变量。对二值 Y，我们可以拟合 logistic 模型 <code>Ê<sub>m</sub>(L̄<sub>m</sub>;β<sub>m</sub>) = expit(γ<sub>m</sub><sup>T</sup>X<sub>m</sub> + ς<sub>m</sub>Ŵ<sup>1^m</sup>)</code>，其中 <code>X<sub>m</sub></code> 是协变量 L̄<sub>m</sub> 的一个向量函数，β<sub>m</sub>=(γ<sub>m</sub>,ς<sub>m</sub>)。即使 <code>Ê<sub>K</sub></code> 不是一个完整的数，也保证落在 [0,1] 内，因此仍可作为 logistic 模型的因变量。对连续型 Y，可以拟合线性回归模型 <code>γ<sub>m</sub><sup>T</sup>X<sub>m</sub> + ς<sub>m</sub>Ŵ<sup>1^m</sup></code>。当我们得到预测值 <code>Ê<sub>0</sub> = Ê<sub>0</sub>(L̄<sub>0</sub>;β̂)</code> 时，第二步完成。</p>
+
+<p>第三步，我们把 <code>E[Y<sup>ā=1</sup>]</code> 的估计算作全体个体 <code>Ê<sub>0</sub></code> 的样本平均。如果（i）对所有 m，结局模型 <code>Ê<sub>m</sub>(L̄<sub>m</sub>;β<sub>m</sub>)</code> 都正确设定，<em>或者</em>（ii）对所有 m，处理模型 <code>π<sub>k</sub>(L̄<sub>k</sub>;α)</code> 都正确设定，那么 <code>Ê[Y<sup>ā=1</sup>]</code> 就是 <code>E[Y<sup>ā=1</sup>]</code> 的（渐近）无偏估计。在这种情况下我们称 <code>Ê[Y<sup>ā=1</sup>]</code> 是双重稳健的。不过，<code>Ê[Y<sup>ā=1</sup>]</code> 实际上是<strong>多重稳健</strong>的，因为只要对任意 m∈{0,1,…,K−1}，"时点 0 到 m 的处理模型正确<em>且</em>时点 m+1 到 K 的结局模型正确"，它就仍然是 <code>E[Y<sup>ā=1</sup>]</code> 的（渐近）无偏估计。我们把估计量的这个性质称为 <strong>K+2 稳健性</strong>。技术要点 21.4 与 21.5 解释了这些稳健性质为何成立，并展示了存在比 <code>Ê[Y<sup>ā=1</sup>]</code> 稳健性更好的估计量。事实上，<code>Ê[Y<sup>ā=1</sup>]</code> 就是一个 2<sup>K</sup>+1 稳健的估计量。要在"从不处理"策略 ā=0（即 0=<b>0</b><sub>K</sub> 为 K+1 个 0 构成的向量）下估计 <code>E[Y<sup>ā</sup>]</code>，照上面同样的步骤、令 ā=0 重复一遍即可。各策略下估计均值之差，就是平均因果效应 <code>E[Y<sup>ā=1</sup>] − E[Y<sup>ā=0</sup>]</code> 的多重稳健估计量。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>这里描述的多重稳健估计量只能用于<strong>静态</strong>策略 ā 下的反事实均值。技术要点 21.6 给出的版本则适用于既可静态又可动态、既可确定性又可随机的任意策略 g，那个估计量有时被称为目标化最小损失型估计量（TMLE）。历史上，多重稳健估计量的实现一直受计算能力与缺乏用户友好软件的制约，在基于风率的生存分析中尤其如此。我们预计不久的将来会有软件可用，届时这类多重稳健估计量（用机器学习加样本分割来拟合）在研究复杂处理策略对失效时间结局的效应时会变得更常见。关于 g 公式不同表示形式及其与上述估计量的联系，见精细辨析 21.2。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.4　K+2 稳健的增广 IP 加权估计量</span>考虑 K=1 的情形，论证可推广到任意 K。g 公式的 ICE 插入式估计量 ψ̂<sub>gf</sub> 为 <code>P<sub>n</sub>[Ê<sub>0</sub>(L<sub>0</sub>)]</code>，其中 <code>P<sub>n</sub></code> 表示样本平均，<code>Ê<sub>0</sub>(L<sub>0</sub>) = Ê[Ê<sub>1</sub>|L<sub>0</sub>,A<sub>0</sub>=1,L<sub>1</sub>,A<sub>1</sub>=1]</code>。ψ 的 IP 加权估计量 ψ̂<sub>IPW</sub> 为 <code>P<sub>n</sub>[A<sub>0</sub>A<sub>1</sub>Y/(π̂<sub>0</sub>π̂<sub>1</sub>)]</code>，其中 π̂<sub>0</sub>、π̂<sub>1</sub> 分别是 <code>π<sub>0</sub>=Pr(A<sub>0</sub>=1|L<sub>0</sub>)</code> 与 <code>π<sub>1</sub>=Pr(A<sub>1</sub>=1|L<sub>0</sub>,L<sub>1</sub>,A<sub>0</sub>=1)</code> 的估计。Robins 等（1994）推导出了 ψ 的增广 IP 加权估计量 ψ̂<sub>TR</sub> = <code>P<sub>n</sub>[Û<sub>TR</sub>]</code>，其中
+<div class="eqn">Û<sub>TR</sub> = A<sub>0</sub>A<sub>1</sub>Y/(π̂<sub>0</sub>π̂<sub>1</sub>) − {A<sub>0</sub>/π̂<sub>0</sub> − 1}Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) − {A<sub>1</sub>/π̂<sub>1</sub> − 1}Ê<sub>0</sub>(L<sub>0</sub>)</div>
+下面说明 ψ̂<sub>TR</sub> 是三重（即 K+2）稳健的。第一，只要 π̂<sub>0</sub> 与 π̂<sub>1</sub> 一致，Û<sub>TR</sub> 最后两项的样本平均就一致于 0，而第一项的样本平均恰是 ψ̂<sub>IPW</sub>，于是 ψ̂<sub>TR</sub>（单重稳健地）一致于 ψ。第二，ψ̂<sub>TR</sub> 是双重稳健的，因为当 <code>Ê[Y|L<sub>0</sub>,A<sub>0</sub>=1,L<sub>1</sub>,A<sub>1</sub>=1]</code> 与 <code>Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=1,L<sub>0</sub></code> 一致于相应的真值时，ψ̂<sub>TR</sub> 一致；这里对 <code>E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=1,L<sub>0</sub>]</code> 用的是与得到 <code>Ê<sub>0</sub>(L<sub>0</sub>)</code> 时相同的回归算法作用在真值 <code>E<sub>1</sub></code> 上。把项重新整理可得 <code>Û<sub>TR</sub> = Ê<sub>0</sub>(L<sub>0</sub>) + A<sub>0</sub>A<sub>1</sub>(Y − Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)) + A<sub>0</sub>(Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) − Ê<sub>0</sub>(L<sub>0</sub>))</code>，后两项的样本平均一致于 0，第一项的样本平均就是 ψ̂<sub>gf</sub>。第三，ψ̂<sub>TR</sub> 是三重稳健的：若 <code>Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)</code> 与 π̂<sub>0</sub> 都一致，则它一致（Molina 等，2017）。这是因为 Û<sub>TR</sub> 可以改写为 <code>A<sub>0</sub>Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)/π̂<sub>0</sub> + (A<sub>1</sub>/π̂<sub>1</sub>)(Y − Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)) − (A<sub>0</sub>/π̂<sub>0</sub> − 1)Ê<sub>0</sub>(L<sub>0</sub>)</code>，后两项的平均收敛到 0，第一项收敛到 <code>E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=1,L<sub>0</sub>]</code> 的一个估计。但当只有 <code>π̂<sub>1</sub></code> 与 <code>E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=a<sub>0</sub>,L<sub>0</sub>]</code> 一致时，它不一致。
+<br><br>
+修改 ψ̂<sub>TR</sub> 可以构造出四重（即 2<sup>K</sup>+1）稳健的估计量 ψ̂<sub>QR</sub>，它在仅有 <code>π̂<sub>1</sub></code> 与 <code>E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=a<sub>0</sub>,L<sub>0</sub>]</code> 一致时仍然一致（Tchetgen Tchetgen，2009）。令 <code>Ẽ<sub>0</sub>(L<sub>0</sub>) = E[ (A<sub>1</sub>Y − (A<sub>1</sub>−1)Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>))|A<sub>0</sub>=1,L<sub>0</sub> ] / π̂<sub>1</sub></code>，则 <code>ψ̂<sub>QR</sub> = P<sub>n</sub>[Û<sub>QR</sub>]</code>，其中 Û<sub>QR</sub> 与 Û<sub>TR</sub> 相同，只是把 Ê<sub>0</sub>(L<sub>0</sub>) 换成了 Ẽ<sub>0</sub>(L<sub>0</sub>)。Ẽ<sub>0</sub>(L<sub>0</sub>) 优于 Ê<sub>0</sub>(L<sub>0</sub>) 的地方在于：如果 <code>E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=1,L<sub>0</sub>]</code> 一致，<em>或者</em> π̂<sub>1</sub> 与 <code>Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) = Ê[Y|L<sub>0</sub>,A<sub>0</sub>=1,L<sub>1</sub>,A<sub>1</sub>=1]</code> 都一致，Ẽ<sub>0</sub>(L<sub>0</sub>) 本身就一致于 <code>Ë<sub>0</sub>(L<sub>0</sub>) = E<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=1,L<sub>0</sub></code>，从而 ψ̂<sub>QR</sub> 是四重稳健的。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.5　插入式的 K+2 稳健估计量</span>技术要点 21.4 中估计量 ψ̂<sub>TR</sub> 的一个潜在缺点是：对二值 Y，ψ̂<sub>TR</sub> 在某个样本中可能落在 ψ 的支撑集 [0,1] 之外。相比之下，<code>ψ̂<sub>gf</sub> = P<sub>n</sub>Ê<sub>0</sub>(L<sub>0</sub>)</code> 是 g 公式的插入式估计量，只要用（参数或非参数）logistic 回归模型估计 <code>E[Y|L<sub>0</sub>,A<sub>0</sub>=a<sub>0</sub>,L<sub>1</sub>,A<sub>1</sub>=a<sub>1</sub>]</code> 与 <code>Ê<sub>0</sub>(L<sub>0</sub>) = E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=a<sub>0</sub>,L<sub>0</sub>]</code>，它就总落在 [0,1] 内。若能保证 <code>P<sub>n</sub>{A<sub>0</sub>A<sub>1</sub>/(π̂<sub>0</sub>π̂<sub>1</sub>)(Y − Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>))}</code> 与 <code>P<sub>n</sub>{(A<sub>0</sub>/π̂<sub>0</sub>)(Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) − Ê<sub>0</sub>(L<sub>0</sub>))}</code> 在每个样本中都为 0，就可以得到同样是三重稳健的插入式估计量 ψ̂<sub>TR,plug</sub> = <code>P<sub>n</sub>Ê<sub>0</sub>(L<sub>0</sub>)</code>，其中 <code>Û<sub>TR</sub> = Ê<sub>0</sub>(L<sub>0</sub>) + A<sub>0</sub>A<sub>1</sub>(Y − Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)) + A<sub>0</sub>(Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) − Ê<sub>0</sub>(L<sub>0</sub>))</code>。例如，在以 <code>A<sub>0</sub>=A<sub>1</sub>=1</code> 的个体为样本、以 Y 为因变量的 <code>Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)</code> logistic 模型中放入一项单变量 <code>θ<sub>1</sub>·A<sub>0</sub>A<sub>1</sub>/(π̂<sub>0</sub>π̂<sub>1</sub>)</code>，就能让 <code>P<sub>n</sub>{A<sub>0</sub>A<sub>1</sub>/(π̂<sub>0</sub>π̂<sub>1</sub>)(Y − Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>))} = 0</code>；再在以 Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) 为因变量、对 <code>A<sub>0</sub>=1</code> 的个体做极大 logistic 似然拟合的 <code>Ê<sub>0</sub>(L<sub>0</sub>) ≡ E[Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>)|A<sub>0</sub>=a<sub>0</sub>,L<sub>0</sub>]</code> 模型中放入一项 <code>θ<sub>0</sub>A<sub>0</sub></code>，就能让 <code>P<sub>n</sub>{(A<sub>0</sub>/π̂<sub>0</sub>)(Ê<sub>1</sub>(L<sub>0</sub>,L<sub>1</sub>) − Ê<sub>0</sub>(L<sub>0</sub>))} = 0</code>。正文给出的 <code>Ê[Y<sup>a=1</sup>]</code> 就是 ψ̂<sub>TR,plug</sub> 的一个实例。
+<br><br>
+Molina 等（2017）指出，这个估计量实际上是 K+2 稳健的。Rotnitzky 等（2017）在使用非参数与机器学习估计量来拟合处理与结局回归函数时，研究了这一估计量及其他多重稳健估计量的渐近偏倚。</aside>
+
+<h2 id="s-21-4">21.4 时变处理的 G-estimation</h2>
+
+<p>假使我们只关心表 21.1 中时点固定处理 <code>A1</code> 的效应，那么可以求助于第 14 章所述的结构嵌套均值模型，用它来刻画时点固定处理在协变量各水平内的条件因果效应。那些模型只有一个方程，因为那时只有一个时点 k=0。而推广到时变处理，要求模型给出的方程数与数据中的时点数一样多。对于表 21.1 中两个时点的时变处理 <code>A=(A0,A1)</code>，我们指定一个（饱和的）<strong>可加</strong>结构嵌套均值模型，含两个方程：</p>
+
+<div class="eqn">时点 k=0：E[Y<sup>a0,a1=0</sup> − Y<sup>a0=0,a1=0</sup> | A0=a0] = β<sub>0</sub>a<sub>0</sub></div>
+
+<div class="eqn">时点 k=1：E[Y<sup>a0,a1</sup> − Y<sup>a0,a1=0</sup> | L1=l1, A0=a0, A1=a1] = a<sub>1</sub>(β<sub>11</sub> + β<sub>12</sub>l<sub>1</sub> + β<sub>13</sub>a<sub>0</sub> + β<sub>14</sub>a<sub>0</sub>l<sub>1</sub>)</div>
+
+<p>由一致性，时点 k=1 的条件期望可以写成 <code>E[Y<sup>a0,a1</sup> − Y<sup>a0,a1=0</sup> | L1=l1, A0=a0, A1=a1]</code>。又由于我们假定对 Y 的序贯可交换性，我们可以而且将会（i）把 k=0 的条件期望中的条件事件 <code>A0=a0</code> 去掉，得到 <code>E[Y<sup>a0,a1=0</sup> − Y<sup>a0=0,a1=0</sup>]</code>；（ii）把 k=1 的条件期望中的 <code>A1=a1</code> 去掉，得到 <code>E[Y<sup>a0,a1</sup> − Y<sup>a0,a1=0</sup> | L1=l1, A0=a0]</code>。</p>
+
+<p>因此，时点 k=1 的方程刻画的是处理在 k=1 的效应——在由 (A0,L1) 定义的 4 种处理与协变量历史<em>各自之内</em>的效应。<code>a1</code> 的效应分别是：在 <code>A0=0, L1=0</code> 的人中为 β<sub>11</sub>；在 <code>A0=0, L1=1</code> 的人中为 β<sub>11</sub>+β<sub>12</sub>；在 <code>A0=1, L1=0</code> 的人中为 β<sub>11</sub>+β<sub>13</sub>；在 <code>A0=1, L1=1</code> 的人中为 β<sub>11</sub>+β<sub>12</sub>+β<sub>13</sub>+β<sub>14</sub>（由一致性，<code>A0=a0</code> 时 <code>L1=L<sup>a0</sup></code>）。模型的这一部分是饱和的，因为第二个方程中的 4 个参数 β<sub>1</sub> 参数化了 <code>a1</code> 对 Y 的效应在既往处理与协变量历史的 4 种可能水平中的取值。第一个方程刻画的是：在时点 k=1 的处理被设为 0 的条件下，时点 k=0 处理的效应。模型的这一部分也是饱和的，因为它只有一个参数 β<sub>0</sub>，用来估计唯一可能历史下的效应（此前既无处理也无混杂因素，所以所有人历史相同）。结构嵌套模型之所以叫"嵌套"，正是因为它有这两个方程。第一个方程刻画的是"在时点 0 接受处理、此后不再接受处理"的效应，第二个方程刻画的是"在时点 1 接受处理、此后不再接受处理"的效应，若有更多时点则依此类推。</p>
+
+<p>现在用 g 估计来估计这个 K=1 的结构嵌套模型的参数。我们沿用第 14 章的做法。先对每个个体 i 写出<strong>可加的、秩保持的</strong>结构嵌套模型</p>
+
+<div class="eqn">Y<sup>ia0,0</sup> = Y<sub>i0,0</sub> + ψ<sub>0</sub>a<sub>0</sub><br>
+Y<sup>ia0,a1</sup> = Y<sup>ia0,0</sup> + ψ<sub>11</sub>a<sub>1</sub> + ψ<sub>12</sub>a<sub>1</sub>L<sup>a0</sup><sub>1,i</sub> + ψ<sub>13</sub>a<sub>1</sub>a<sub>0</sub> + ψ<sub>14</sub>a<sub>1</sub>a<sub>0</sub>L<sup>a0</sup><sub>1,i</sub></div>
+
+<p>其中第二个方程只限于 <code>A0=a0</code> 的个体。也就是说，第二个方程其实是两个方程，一个针对 <code>A0=1</code> 的个体，一个针对 <code>A0=0</code> 的个体。这使我们能够由一致性把 <code>L<sub>1,i</sub></code> 换成 <code>L<sup>a0</sup><sub>1,i</sub></code>——当像图 19.6 那样我们对 <code>L1</code> 并不具备序贯可交换性时，从观测数据识别模型参数需要这一步。我们用 <code>Y<sub>i0,0</sub></code> 来代表 <code>Y<sup>ia0=0,a1=0</sup></code>，以简化记号。（这里没有写出个体下标 i。）</p>
+
+<p>第一个方程是秩保持的，因为效应 ψ<sub>0</sub> 对每个个体都完全相同。于是若受试者 i 的 <code>Y<sub>i0,0</sub></code> 超过受试者 j 的 <code>Y<sub>j0,0</sub></code>，同样的 i 与 j 的排序在 <code>Y<sub>i1,0</sub></code> 上依然成立——模型在各个策略之间保持秩。另外，在方程 2 之下，若 <code>Y<sub>i1,0</sub></code> 超过 <code>Y<sub>j1,0</sub></code>，我们只有当两人具有相同的 <code>A0,i</code> 取值 a<sub>0</sub> 与相同的 <code>L1,i</code>=L<sup>a0</sup><sub>1,i</sub> 取值 l<sub>1</sub> 时，才能确定 <code>Y<sub>i1,1</sub></code> 也超过 <code>Y<sub>j1,1</sub></code>。由于秩的保持是以局部因素（即 <code>L<sup>a0</sup><sub>1</sub>=l1</code> 的取值）为条件的，我们把第二个方程称为<strong>条件（局部）秩保持</strong>模型。</p>
+
+<p>如第 14 章所讨论的，由于存在未测量遗传与环境风险带来的个体异质性，秩保持假定在生物学上是不可信的。因此我们主要关注的是结构嵌套均值模型——它对"是否存在因未测量因素导致的个体间附加效应异质性"完全不作断言。但在给定对 Y 的序贯可交换性的前提下，下面描述的一类秩保持模型的 g 估计量（ψ̂）即使在秩保持模型错误设定的情况下，也对均值模型的参数 β 一致。</p>
+
+<p>g 估计的第一步是把模型与观测数据联系起来，这一点与第 14 章对时点固定处理所做的相同。注意，由一致性，对那些恰好接受了处理取值 a<sub>0</sub> 与 a<sub>1</sub> 的个体，反事实结局 <code>Y<sup>a0,a1</sup></code> 等于观测结局 Y。形式化地说，对满足 <code>(A0=a0, A1=a1)</code> 的个体有 <code>Y<sup>a0,a1</sup> = Y<sup>A0,A1</sup> = Y</code>。类似地，对满足 <code>(A0=a0, A1=0)</code> 的个体有 <code>Y<sup>a0,0</sup> = Y<sup>A0,0</sup></code>，而对 <code>A0=a0</code> 的个体有 <code>L<sup>a0</sup><sub>1</sub> = L1</code>。现在可以把结构嵌套模型改写成观测数据的形式：</p>
+
+<div class="eqn">Y<sup>A0,0</sup> = Y − (ψ<sub>11</sub>A1 + ψ<sub>12</sub>A1L1 + ψ<sub>13</sub>A1A0 + ψ<sub>14</sub>A1A0L1)<br>
+Y<sup>0,0</sup> = Y<sup>A0,0</sup> − ψ<sub>0</sub>A0</div>
+
+<p>g 估计的第二步是用观测数据算出候选反事实 <code>H1(ψ†)</code> 与 <code>H0(ψ†)</code>。做法是把结构嵌套模型中的真值 ψ 换成某个取值 ψ†：</p>
+
+<div class="eqn">H1(ψ†) = Y − (ψ<sub>11</sub><sup>†</sup>A1 + ψ<sub>12</sub><sup>†</sup>A1L1 + ψ<sub>13</sub><sup>†</sup>A1A0 + ψ<sub>14</sub><sup>†</sup>A1A0L1)<br>
+H0(ψ†) = H1(ψ†) − ψ<sub>0</sub><sup>†</sup>A0</div>
+
+<p>与第 14 章一样，目标是找到参数取值 ψ† 使之等于真值 ψ。当 <code>ψ†=ψ</code> 且 <code>A<sub>k−1</sub>=a<sub>k−1</sub></code> 时，候选反事实 <code>H<sub>k</sub>(ψ†)</code> 等于真反事实 <code>Y<sup>a<sub>k−1</sub>,0<sub>k</sub></sup></code>——即在 k−1 及之前都按处理 a<sub>k−1</sub>、此后按处理 0 的策略下的结局。现在我们可以用序贯可交换性在每个时点做 g 估计。精细辨析 21.3 说明了如何 g 估计这个饱和结构嵌套模型的参数 ψ。结果是该结构嵌套模型的所有参数都为 0，这意味着任意静态或动态策略 g 下的反事实均值 <code>E[Y<sup>g</sup>]</code> 都等于 60。这个结果与 g 公式和 IP 加权所得一致。g 估计与 g 公式、IP 加权一样，在传统方法失败之处成功了。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>请留意表 21.2 与表 21.3 的分工：表 21.2 是"时点 1 的候选反事实" <code>H1(ψ)</code> 在 8 种 (A0,L1,A1) 组合下的均值，第一步 g 估计靠它把 β<sub>11</sub>…β<sub>14</sub> 全部逼成 0；表 21.3 是"时点 0 的候选反事实" <code>H0(ψ)</code> 的均值，第二步用它把 β<sub>0</sub> 逼成 0。这种"用序贯可交换性把同一时点上的处理组与非处理组拉平"的做法，就是 g 估计的全部直觉。中文教材里常把它写成"以候选反事实为因变量的处理模型回归"，实质相同，只是很少像本书这样把中间量列表展示出来。</aside>
+
+<figure class="fig"><img src="../figures/ch21--table-21_2.png" alt="表 21.2">
+<figcaption><strong>表 21.2</strong> 候选反事实 <code>H1(ψ)</code> 在 8 种处理与协变量历史下的样本均值，用于估计参数 ψ<sub>11</sub>、ψ<sub>12</sub>、ψ<sub>13</sub>、ψ<sub>14</sub>。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch21--table-21_3.png" alt="表 21.3">
+<figcaption><strong>表 21.3</strong> 候选反事实 <code>H0(ψ)</code> 在 8 种处理与协变量历史下的样本均值，用于估计参数 ψ<sub>0</sub>。</figcaption></figure>
+
+<p>不过在实践中，我们会遇到带多个时点 k、且每个时点都有多个协变量 <code>L<sub>k</sub></code> 的观察性研究。一般而言，结构嵌套均值模型的方程数与数据中的时点数一样多，即 k=0,1,…,K。正文讨论的结构嵌套均值模型最一般的形式如下（更一般的形式见技术要点 21.13）。对每个时点 k=0,1,…,K，</p>
+
+<div class="eqn">E[Y<sup>a<sub>k−1</sub>,a<sub>k</sub>,0<sub>k+1</sub></sup> − Y<sup>a<sub>k−1</sub>,0<sub>k</sub></sup> | L<sub>k</sub>=l<sub>k</sub>, A<sub>k−1</sub>=a<sub>k−1</sub>, A<sub>k</sub>=a<sub>k</sub>] = a<sub>k</sub> γ<sub>k</sub>(a<sub>k−1</sub>, l<sub>k</sub>, β)</div>
+
+<p>其中 <code>a<sub>k−1</sub>, a<sub>k</sub>, 0<sub>k+1</sub></code> 是一个静态策略：在 0 到 k−1 时点赋处理 a<sub>k−1</sub>，在时点 k 赋处理 a<sub>k</sub>，从 k+1 直到随访结束 K 赋处理 0。策略 <code>a<sub>k−1</sub>,a<sub>k</sub>,0<sub>k+1</sub></code> 与 <code>(a<sub>k−1</sub>,0<sub>k</sub>)</code> 的唯一区别是：前者在时点 k 有处理 a<sub>k</sub>，后者在时点 k 为 0。这里每个 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,ψ†)</code> 都是参数向量 ψ† 的已知函数，且 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,ψ†)=0</code>；β 是 ψ† 的真值。同样在对 Y 的序贯可交换性下，我们可以把条件事件中的 <code>A<sub>k</sub>=a<sub>k</sub></code> 去掉。在我们 K=1 的例子中，<code>γ<sub>0</sub></code> 就是 β<sub>0</sub>（l<sub>0</sub> 与 a<sub>−1</sub> 都可以取为恒等于 0），<code>γ<sub>1</sub></code> 是 β<sub>11</sub>+β<sub>12</sub>l<sub>1</sub>+β<sub>13</sub>a<sub>0</sub>+β<sub>14</sub>a<sub>0</sub>l<sub>1</sub>。于是，结构嵌套均值模型就是这样一个模型：它把"在时点 k 处最后给一次大小为 a<sub>k</sub> 的处理闪（blip）"对 Y 的<strong>均值</strong>的效应，作为既往处理与协变量历史 <code>a<sub>k−1</sub>,l<sub>k</sub></code> 的函数 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code> 来刻画。结构嵌套模型与边际结构模型之间的关系见技术要点 21.7。</p>
+
+<p>现在可以讨论一般的、结构嵌套均值模型（其闪函数为 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code>）的参数估计了。为说明我们的估计过程，我们要用到一个事实：<strong>正确设定的局部秩保持模型</strong>（真参数为 ψ）同时也是一个正确设定的结构嵌套均值模型（真参数为 β=ψ）——反之则不然。给定结构嵌套均值模型，我们可以定义</p>
+
+<div class="eqn">H<sub>k</sub>(ψ†) = Y − ∑<sub>j=k</sub><sup>K</sup> A<sub>j</sub> γ<sub>j</sub>(A<sub>j−1</sub>, L<sub>j</sub>, ψ†)</div>
+
+<p>正确设定的、真参数向量为 ψ 的局部秩保持模型，等价于断言 <code>H<sub>k</sub>(ψ)</code> 恰好等于反事实 <code>Y<sup>A<sub>k−1</sub>,0<sub>k</sub></sup></code>——即把时点 j 到 K 的处理效应都剔除之后的 Y。特别地，<code>H0(ψ)</code> 是不接受任何处理时的 <code>Y<sup>0</sup></code>。然而，如果局部秩保持假定不成立（只要处理有效应，这几乎总是如此），但结构嵌套均值模型是对的，我们仍有 <code>E[H<sub>k</sub>(β)|A<sub>k</sub>,L<sub>k</sub>] = E[Y<sup>A<sub>k−1</sub>,0<sub>k</sub></sup>|A<sub>k</sub>,L<sub>k</sub>]</code> 以及 <code>E[H0(β)] = E[Y<sup>0</sup>]</code>。因此，只要我们能拿到 β 的一致估计量 β̂，<code>E[Y<sup>0</sup>]</code> 就可以用 <code>H0(β̂)</code> 的样本平均一致地估计。这正是 g 估计所提供的。</p>
+
+<p>当有多个时点或协变量时，我们需要拟合一个非饱和的结构嵌套均值模型。例如，我们可以假设函数 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code> 对所有 k 都相同。最简单的模型是 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β) = β<sub>1</sub></code>，它假定最后一次处理闪的效应与所有既往历史、所有时点 k 都无关。其他选择还有 <code>β<sub>1</sub> + β<sub>2</sub>k</code>（假定效应随处理时点 k 线性变化），以及 <code>β<sub>1</sub> + β<sub>2</sub>k + β<sub>3</sub>a<sub>k−1</sub> + β<sub>4</sub>l<sub>k</sub> + β<sub>5</sub>l<sub>k</sub>a<sub>k−1</sub></code>（允许时点 k 的处理效应被最近一次的处理与协变量取值修饰）。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 21.3　用饱和结构嵌套模型做 g 估计</span>时点 k=1 的序贯可交换性意味着：在 <code>(A0,L1)</code> 的任一联合层内，<code>A1=1</code> 个体的 <code>Y<sup>A0,0</sup></code> 均值等于 <code>A1=0</code> 个体的均值。因此当 ψ†=ψ 时，<code>H1(ψ†)</code> 的均值也必须相等。先看 <code>(A0,L1)=(0,0)</code> 这一层。由表 21.2 的第 1、2 行可知，<code>H1(ψ)</code> 的均值在 <code>A1=0</code> 时为 84，在 <code>A1=1</code> 时为 84−ψ<sub>11</sub>，故 ψ<sub>11</sub>=0。接着令第 3、4 行（对应 <code>(A0,L1)=(0,1)</code> 层）的 <code>H1(ψ)</code> 均值相等，得 52 = 52−ψ<sub>11</sub>−ψ<sub>12</sub>；既然 ψ<sub>11</sub>=0，就有 ψ<sub>12</sub>=0。继续令第 5、6 行的均值相等，得 76 = 76−ψ<sub>11</sub>−ψ<sub>13</sub>；既然 ψ<sub>11</sub>=ψ<sub>12</sub>=0，就有 ψ<sub>13</sub>=0。最后令第 7、8 行的均值相等，得 44 = 44−ψ<sub>11</sub>−ψ<sub>12</sub>−ψ<sub>13</sub>−ψ<sub>14</sub>，于是 ψ<sub>14</sub>=0。
+<br><br>
+为估计 ψ<sub>0</sub>，我们先把 ψ<sub>11</sub>、ψ<sub>12</sub>、ψ<sub>13</sub>、ψ<sub>14</sub> 的取值代入表 21.3 中 <code>H0(ψ)</code> 均值的表达式。在这个例子中所有参数都为 0，所以 <code>H0(ψ)</code> 的均值就等于观测结局 Y 的均值。然后我们用结构方程模型的第一个方程算出表中每一行的 <code>H0(ψ)</code> 均值——从 <code>H1(ψ)</code> 的均值中减去 ψ<sub>0</sub>A0，如表 21.3 所示。时点 k=0 的序贯可交换性 <code>Y<sup>0,0</sup> ⊥⊥ A0</code> 意味着，16 000 个 <code>A0=1</code> 个体的 <code>H0(ψ)</code> 均值与 16 000 个 <code>A0=0</code> 个体的相同。<code>A0=0</code> 个体中 <code>H0(ψ)</code> 的均值为 <code>84×0.25 + 52×0.75 = 60</code>；<code>A0=1</code> 个体中为 <code>(76−ψ<sub>0</sub>)×0.5 + (44−ψ<sub>0</sub>)×0.5 = 60−ψ<sub>0</sub></code>。故 ψ<sub>0</sub>=0。g 估计到此完成。
+<br><br>
+补充两点。其一，秩保持模型的 g 估计要一致，需要正性；（非饱和结构嵌套均值模型的）g 估计则不需要正性。其二，给定对 Y 的序贯可交换性，秩保持模型的一类 g 估计量即使在秩保持模型错误设定时，也对均值模型参数 β 一致（证明见 Robins 1994）。</aside>
+
+<p>为描述多个时点下结构嵌套均值模型的 g 估计，假设非饱和模型是 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)=β<sub>1</sub></code>。相应的秩保持模型意味着 <code>H<sub>k</sub>(ψ†) = Y − ∑<sub>j=k</sub><sup>K</sup> A<sub>j</sub>ψ†</code>，对任意取值 ψ† 都可以从观测数据算出。我们随后选取 ψ<sub>low</sub> 与 ψ<sub>up</sub>，它们分别比 ψ 的任何实质性可能取值小得多、大得多，并在从 ψ<sub>low</sub> 到 ψ<sub>up</sub> 的一个网格上（比如 ψ<sub>low</sub>, ψ<sub>low</sub>+0.1, ψ<sub>low</sub>+0.2, …, ψ<sub>up</sub>）为每个 ψ† 计算每个个体、每个时点的 <code>H<sub>k</sub>(ψ†)</code> 取值。然后，对每个 ψ†，我们拟合一个在时间上合并的 logistic 回归模型</p>
+
+<div class="eqn">logit Pr(A<sub>k</sub>=1 | H<sub>k</sub>(ψ†), L<sub>k</sub>, A<sub>k−1</sub>) = α<sub>0</sub> + α<sub>1</sub>H<sub>k</sub>(ψ†) + α<sub>2</sub>W<sub>k</sub></div>
+
+<p>用于 k=0,…,K 各时点处理的概率。这里 <code>W<sub>k</sub> = w<sub>k</sub>(L<sub>k</sub>,A<sub>k−1</sub>)</code> 是由个体的协变量与处理数据 <code>L<sub>k</sub>,A<sub>k−1</sub></code> 计算出的一个协变量向量，α<sub>2</sub> 是一行未知参数，每个人贡献 K+1 条观测。β 的 g 估计就是使 α<sub>1</sub> 的估计最接近 0 的那个网格值 ψ†。我们可以用另一种方式免去网格搜索：把估计 β̂ 定义为使 α<sub>1</sub>=0 的得分检验 p 值等于 1 的那个 ψ† 取值。也就是说，β̂ 是下式的解：</p>
+
+<div class="eqn">∑<sub>i=1</sub><sup>N</sup>∑<sub>k=0</sub><sup>K</sup> {A<sub>i</sub> − expit(α̂<sub>0</sub> + α̂<sub>2</sub><sup>T</sup>W<sub>i,k</sub>)} H<sub>i,k</sub>(ψ†) = 0</div>
+
+<p>其中 α̂<sub>0</sub> 与 α̂<sub>2</sub> 由把上面 logistic 模型中的 α<sub>1</sub> 项设为 0 后拟合得到。标准的方程求解器即可使用。若（i）结构嵌套均值模型正确，（ii）对 Y 的序贯可交换性成立，（iii）模型 <code>logit Pr(A<sub>k</sub>=1|L<sub>k</sub>,A<sub>k−1</sub>) = α<sub>0</sub> + α<sub>0</sub>W<sub>k</sub></code> 正确，（iv）<code>H<sub>k</sub>(ψ†)</code> 以线性形式（即作为 <code>H<sub>k</sub>(ψ†)</code> 本身而非 <code>H<sub>k</sub>(ψ†)<sup>2</sup></code> 或任何其他非线性函数）进入上述 logistic 模型（见技术要点 14.2），则估计量 β̂ 一致。ψ 的 95% 置信区间就是使检验 α<sub>1</sub>=0 时 p 值 &gt;0.05 的那组 ψ† 取值的上下限。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>这一段是全章技术含量最高的部分，中文读者容易卡在"H<sub>k</sub>(ψ†) 为什么要乘上 A<sub>k</sub>"上。关键在于：<code>H<sub>k</sub></code> 是一个<strong>把 k 时点及以后的处理效应减掉之后</strong>的残差，把它作为处理模型的因变量，序贯可交换性就要求"k 时刻实际接受处理的人"与"没接受的人"在残差上均值相等——一旦这个相等被破坏，就说明 ψ† 取错了；g 估计就是让破坏程度（α<sub>1</sub>）归零的那个 ψ†。这个"打分—求根"的思路与第 14 章一脉相承，只是在多时点情形下要把所有时点、所有个体堆在一起拟合，网格维度随参数个数指数增长，这正是实践中最常见的计算瓶颈。国内做纵向暴露因果分析时，如果参数多于两三个，实际工作往往直接用技术要点 21.8 的闭式估计量或直接改用 IP 加权。</aside>
+
+<p>上述过程就是第 14 章 g 估计程序向时变处理的推广。为简单起见，我们考虑的是只有单参数 β<sub>1</sub> 的结构嵌套模型，这意味着效应不随时点 k 变化、也不随处理与协变量历史变化。现在假设参数 β 是向量。具体地说，考虑模型 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β) = β<sub>0</sub> + β<sub>1</sub>k + β<sub>2</sub>a<sub>k−1</sub> + β<sub>3</sub>l<sub>k</sub> + β<sub>4</sub>l<sub>k</sub>a<sub>k−1</sub></code>，此时 β 是五维的、l<sub>m</sub> 是一维的。要估计 5 个参数，就需要在处理模型中放入 5 个额外的协变量。例如我们可以拟合模型</p>
+
+<div class="eqn">logit Pr(A<sub>k</sub>=1 | H<sub>k</sub>(ψ†), L<sub>k</sub>, A<sub>k−1</sub>) = α<sub>0</sub> + H<sub>k</sub>(ψ†)(α<sub>1</sub> + α<sub>2</sub>k + α<sub>3</sub>A<sub>k−1</sub> + α<sub>4</sub>L<sub>k</sub> + α<sub>5</sub>L<sub>k</sub>A<sub>k−1</sub>) + α<sub>6</sub>W<sub>k</sub></div>
+
+<p>协变量的具体选择不影响 β 点估计的一致性，但决定了其置信区间的宽度。前面的 g 估计过程于是需要在 5 维网格上搜索，每个 β<sub>j</sub> 分量一维。如果每个分量取 20 个网格点，5 维网格上就有 20<sup>5</sup> 个 β 取值。当 β 的维数大于 2 时，用网格搜索找 g 估计 β̂ 在计算上会很困难。这种情况下我们同样可以免去网格搜索：把 β̂ 定义为使 <code>α<sub>1−5</sub> = (α<sub>1</sub>,…,α<sub>5</sub>) = 0</code> 的得分检验 p 值等于 1 的那个 ψ† 取值。也就是说，β̂ 是下面这个五维估计方程的解：</p>
+
+<div class="eqn">∑<sub>i=1</sub><sup>N</sup>∑<sub>k=0</sub><sup>K</sup> {A<sub>i</sub> − expit(α̂<sub>0</sub> + α̂<sub>6</sub><sup>T</sup>W<sub>i,k</sub>)} H<sub>i,k</sub>(ψ†)(1, k, A<sub>i,k−1</sub>, L<sub>i,k</sub>, L<sub>i,k</sub>A<sub>i,k−1</sub>) = 0</div>
+
+<p>其中 α̂<sub>0</sub> 与 α̂<sub>6</sub> 由把 α<sub>1−5</sub> 设为 0 后拟合上述 logistic 模型得到。标准方程求解器即可使用。事实上，当结构嵌套均值模型对 β 线性时——正如本节讨论的所有例子——上式的解 β̂ 有闭式表达，见技术要点 21.8（该处也给出了估计量的多重稳健形式）。β<sub>j</sub> 的 95% 联合置信区间，是使 5 自由度的得分检验在 5% 水平上不拒绝的那组取值。计算量更小的替代做法是单变量 Wald 置信区间 <code>β̂<sub>j</sub> ± 1.96×标准误</code>。</p>
+
+<p>一旦拿到结构嵌套均值模型参数的一致 g 估计量 β̂，最后一步就是估计所关心策略 g 下的反事实均值 <code>E[Y<sup>g</sup>]</code>。如前所述，<code>E[Y<sup>0</sup>]</code> 可以用 <code>E[H0(β̂)]</code> 的样本平均一致地估计。若不存在由既往协变量历史引起的效应修饰，即 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β) = γ<sub>k</sub>(a<sub>k−1</sub>,β)</code>，则静态策略 a 下的 <code>E[Y<sup>a</sup>]</code> 估计为</p>
+
+<div class="eqn">Ê[Y<sup>a</sup>] = Ê[Y<sup>0^K</sup>] + ∑<sub>k=0</sub><sup>K</sup> a<sub>k</sub> γ<sub>k</sub>(a<sub>k−1</sub>, β̂)</div>
+
+<p>另一方面，如果结构嵌套均值模型依赖于 L<sub>k</sub>，或者我们想估计动态策略 g 下的 <code>E[Y<sup>g</sup>]</code>，那就需要用技术要点 21.9 所述的算法来模拟 L<sub>k</sub>。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 21.2　g 公式的几种表示</span>g 公式在数学上有好几种表示。这些表示在非参数意义下彼此等价，但在实践中导出不同的估计量。本书一直强调的是标准化的推广版本（流行病学行话）：对时点固定处理，均值结局的 g 公式是 <code>∑<sub>l</sub> E[Y|A=a,L=l]f(l)</code>；对时变处理，如本章所述是 <code>∑<sub>l̄</sub> E[Y|Ā=ā,L̄=l̄]∏<sub>k=0</sub><sup>K</sup> f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code>。由于基于这一表示的插入式估计量需要估计混杂因素在整个时间上的<strong>联合密度</strong> <code>∏<sub>k=0</sub><sup>K</sup> f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code>，我们称之为 g 公式的"联合密度建模估计量"。
+<br><br>
+g 公式的另一种表示是<strong>迭代条件期望</strong>（iterated conditional expectations，ICE）。对时点固定处理，我们在第 13.3 节隐式地用了 <code>E[E[Y|A=a,L=l]]</code> 这一表示；对时变处理，这一表示是可以递归定义的 ICE（Robins 1986）。基于 ICE 表示的插入式估计量需要拟合序贯预测算法（例如回归模型）。ICE 估计量见 21.3 节与技术要点 21.4，在那里我们把它与 IP 权重的估计结合起来，构造出双重稳健（实际上是 K+2 稳健）的估计量。
+<br><br>
+g 公式的第三种表示是<strong>IP 加权</strong>。事实上，如技术要点 2.3 对时点固定处理所展示的，在可阳性性之下标准化均值与 IP 加权均值是相等的。对时变处理也是如此（Robins 与 Rotnitzky 1992；Robins 1993；Young 等 2014）。如本章所述，基于 IP 加权表示的估计量需要估计给定既往处理与协变量历史的处理条件密度。我们把这类估计量称为 IP 加权估计量，而不是 g 公式估计量。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.5　边际结构模型与结构嵌套模型</span>结构嵌套均值模型是半参数边际结构均值模型，当且仅当对所有 a<sub>k−1</sub>, l<sub>k</sub>, β 都有 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β) = γ<sub>k</sub>(a<sub>k−1</sub>,β)</code>，即不依赖于 l<sub>k</sub>。具体地说，它是具有如下函数形式的半参数边际结构均值模型：<code>E[Y<sup>a</sup>] = α<sub>0</sub> + ∑<sub>k=0</sub><sup>K</sup> a<sub>k</sub>γ<sub>k</sub>(a<sub>k−1</sub>,β)</code>，其中 <code>a<sub>0</sub> = E[Y<sup>0^K</sup>]</code> 是个未知常数。不过这样的结构嵌套均值模型并不简单等同于边际结构均值模型，因为它还额外施加了"不存在由既往协变量历史引起的效应修饰"这一很强的假设。相比之下，边际结构模型对"是否存在由时变协变量引起的效应修饰"完全不作断言。
+<br><br>
+若指定了 <code>γ<sub>k</sub>(a<sub>k−1</sub>,β)</code> 这样的结构嵌套均值模型，β 既可以用 g 估计，也可以用 IP 加权来估计。但当结构嵌套均值模型（因之边际结构均值模型）正确设定时，<strong>最有效的 g 估计量会比最有效的 IP 加权估计量更有效</strong>，因为 g 估计利用了"不存在由既往协变量引起的效应修饰"这一额外假定来提高效率。
+<br><br>
+反之，假若边际结构均值模型正确、但结构嵌套均值模型不正确（即 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β) ≠ γ<sub>k</sub>(a<sub>k−1</sub>,β)</code>），那么 β 与 <code>E[Y<sup>a</sup>]</code> 的 g 估计会有偏，而 IP 加权估计仍无偏。这就形成了经典的<strong>方差—偏倚权衡</strong>：给定边际结构模型，g 估计在 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β) = γ<sub>k</sub>(a<sub>k−1</sub>,β)</code> 时提高效率，否则引入偏倚。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.6　一个多重稳健估计量</span>设 <code>f<sup>g</sup>(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>)</code> 为策略 g 下时点 m 的处理密度。对静态 a<sup>*</sup>，<code>f<sup>g</sup>(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>) = I(a<sub>m</sub>=a<sup>*</sup><sub>m</sub>)</code>；对确定性动态策略 g，<code>f<sup>g</sup>(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>) = I(a<sub>m</sub> = g<sub>m</sub>(a<sub>m−1</sub>,l<sub>m</sub>))</code>；对随机动态策略 f<sup>int</sup>，<code>f<sup>g</sup>(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>) = f<sup>int</sup>(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>)</code>。令 <code>C<sub>k</sub><sup>g</sup> = ∏<sub>m=0</sub><sup>k</sup> f<sup>g</sup>(A<sub>m</sub>|A<sub>m−1</sub>,L<sub>m</sub>)</code>，若个体的观测处理历史 Ā<sub>k</sub> 与 g 相容则取 0，否则取 1。下面的算法基于 Rotnitzky 等（2017）提出的方案，计算 ψ=<code>E[Y<sup>g</sup>]</code> 的一个多重稳健插入式估计量 ψ̂<sub>dr,plug</sub>，它与 Robins（2000）、Bang 与 Robins（2005）、van der Laan 与 Gruber（2012）、Petersen 等（2014）的估计量密切相关。
+<div class="eqn">1. 对 m=0,1,…,K 拟合 <code>f<sub>m</sub>(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>;α<sub>m</sub>)</code> 以估计 <code>f(a<sub>m</sub>|a<sub>m−1</sub>,l<sub>m</sub>)</code>，求参数向量的极大似然估计 α̂<sub>m</sub>。对每个时点 m 计算权重 <code>Ŵ<sup>g,m</sup> = ∏<sub>k=0</sub><sup>m</sup> f<sup>g</sup>(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>) / ∏<sub>k=0</sub><sup>m</sup> f(A<sub>k</sub>|Ā<sub>k−1</sub>,L̄<sub>k</sub>;α̂<sub>k</sub>)</code>。<br>
+2. 置 T̂<sub>K+1</sub> = Y。<br>
+3. 对 m=K,K−1,…,0 递归：(a) 拟合广义线性模型 <code>Ê<sub>m</sub>(Ā<sub>m</sub>,L̄<sub>m</sub>;γ<sub>m</sub>,ς<sub>m</sub>) = ϕ(γ<sub>m</sub><sup>T</sup>d<sub>m</sub>(Ā<sub>m</sub>,L̄<sub>m</sub>) + ς<sub>m</sub>Ŵ<sup>g,m</sup>)</code>（ϕ 为逆典范连接），用重加权最小二乘（IRLS）在满足 <code>C<sub>m</sub><sup>g</sup>=0</code> 的个体中迭代拟合 <code>E[T̂<sub>m+1</sub>|Ā<sub>m</sub>,L̄<sub>m</sub>]</code>，直至满足 <code>∑ E[Î(C<sub>m</sub><sup>g</sup>)]·(T̂<sub>m+1</sub> − Ê<sub>m</sub>)/Ŵ<sup>g,m</sup> = 0</code> 且 <code>∑ E[b<sub>m</sub>Ê<sub>m</sub>·f<sup>g</sup>(a<sub>m</sub>|Ā<sub>m−1</sub>,L̄<sub>m</sub>)] = 0</code>；然后 (b) 置 T̂<sub>m</sub> = ∑<sub>a<sub>m</sub></sub> Ê<sub>m</sub> f<sup>g</sup>(a<sub>m</sub>|Ā<sub>m−1</sub>,L̄<sub>m</sub>)̂ γ̂<sub>m</sub>。</div>
+4. <code>ψ̂<sub>dr,plug</sub> = Ê[T̂<sub>0</sub>]</code>。
+<br>
+正如 Molina 等（2017）指出的，ψ̂<sub>dr,plug</sub> 是 K+2 稳健的：除了双重稳健之外，只要对任意 p∈{1,…,K}，模型 <code>Ê<sub>m</sub></code> 对 m∈{K,…,p} 正确设定、且模型 <code>f<sub>m</sub></code> 对 m∈{p−1,…,0} 正确设定，它（渐近地）无偏于 ψ。当不把 <code>Ŵ<sup>g,m</sup></code> 用作协变量时，上述算法计算的是 <code>E[Y<sup>g</sup>]</code> 的 g 公式的迭代条件期望（ICE）估计量（精细辨析 21.2），那是一个非双重稳健的 g 公式估计量。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.8　线性结构嵌套均值模型的闭式估计量</span>当（如我们讨论过的所有例子）<code>γ<sub>k</sub>(A<sub>k−1</sub>,L<sub>k</sub>,β) = β<sup>T</sup>R<sub>k</sub></code> 关于 β 线性、<code>R<sub>k</sub> = r<sub>k</sub>(L̄<sub>k</sub>,Ā<sub>k−1</sub>)</code> 是一组已知函数的向量时，给定模型 <code>logit Pr(A<sub>k</sub>=1|L<sub>k</sub>,A<sub>k−1</sub>) = α<sup>T</sup>W<sub>k</sub></code>，β̂ 有如下显式闭式表达：
+<div class="eqn">β̂ = (∑<sub>i</sub>∑<sub>k</sub> X<sub>i,k</sub>(α̂)Q<sub>i,k</sub>)<sup>−1</sup> · ∑<sub>i</sub>∑<sub>k</sub> Y<sub>i</sub>X<sub>i,k</sub>(α̂)Q<sub>i,k</sub></div>
+其中 <code>X<sub>i,k</sub>(α̂) = A<sub>i,k</sub> − expit(α̂<sup>T</sup>W<sub>i,k</sub>)</code>，<code>S<sub>i,k</sub> = ∑<sub>j=k</sub> R<sub>i,j</sub></code>，而 <code>Q<sub>i,k</sub> = q<sub>k</sub>(L̄<sub>i,k</sub>,Ā<sub>i,k−1</sub>)</code> 的维数与 β 相同；Q 的具体选取影响效率但不影响一致性。Q<sub>k</sub> 的最优选取见 Robins（1994）。
+<br><br>
+事实上，当 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code> 关于 β 线性时，通过为 <code>E[H<sub>k</sub>(β)|L̄<sub>k</sub>,Ā<sub>k−1</sub>]</code> 指定一个工作模型 <code>ς<sub>k</sub><sup>T</sup>D<sub>k</sub> = ς<sub>k</sub>d<sub>k</sub><sup>T</sup>(L̄<sub>k</sub>,Ā<sub>k−1</sub>)</code>，并定义
+<div class="eqn">β̃ = (∑<sub>i</sub>∑<sub>k</sub> X<sub>i,k</sub>(α̂)Q<sub>i,k</sub>/D<sub>i,k</sub>)<sup>−1</sup> · ∑<sub>i</sub>∑<sub>k</sub> Y<sub>i</sub>X<sub>i,k</sub>(α̂)Q<sub>i,k</sub>/D<sub>i,k</sub></div>
+可以得到 β 的闭式 2<sup>K</sup>+1 多重稳健估计量 β̃。具体地，若对每个 k，<code>E[Y<sup>A<sub>k−1</sub>,0<sub>k</sub></sup>|L̄<sub>k</sub>,Ā<sub>k−1</sub>]</code> 的模型 ς<sub>k</sub><sup>T</sup>D<sub>k</sub> 正确，<em>或者</em> <code>logit Pr(A<sub>k</sub>=1|L<sub>k</sub>,A<sub>k−1</sub>)</code> 的模型正确，则 β̃ 将是 ψ 的一致渐近正态估计量。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.9　g 估计之后如何估计 E[Y<sup>g</sup>]</span>假设可识别性假定成立，已经得到结构嵌套均值模型 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code> 的一个双重稳健 g 估计 β̃，现在希望估计动态策略 g 下的 <code>E[Y<sup>g</sup>]</code>。可以按以下 Monte Carlo 算法的步骤进行：
+<div class="eqn">1. 用 N 名研究受试者上 <code>H0(β̃)</code> 的样本平均估计"若始终不予处理"的平均结局 <code>E[Y<sup>0^K</sup>]</code>，记该估计为 <code>Ê[Y<sup>0^K</sup>]</code>。<br>
+2. 对 <code>f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code> 拟合一个对人与时间合并的参数化模型，记其估计为 <code>f̂(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code>。<br>
+3. 对 v=1,…,V 重复：(a) 从 <code>f̂(l0)</code> 抽取 l<sub>v,0</sub>；(b) 对 k=1,…,K 递归地，从 <code>f̂(l<sub>k</sub>|ā<sup>v</sup><sub>k−1</sub>,l̄<sup>v</sup><sub>k−1</sub>)</code> 抽取 l<sub>v,k</sub>，其中 <code>ā<sup>v</sup><sub>k−1</sub> = g<sub>k−1</sub>(l<sup>v</sup><sub>k−1</sub>)</code> 是与策略 g 对应的处理历史；(c) 令 <code>Δ̂<sup>g,v</sup> = ∑<sub>j=0</sub><sup>K</sup> a<sup>v,j</sup>γ<sub>j</sub>(a<sup>v,j−1</sup>, l<sup>v,j</sup>, β̃)</code> 为 <code>Y<sup>g</sup> − Y<sup>0^K</sup></code> 的第 v 个 Monte Carlo 估计，其中 <code>a<sup>v,j</sup> = g<sub>j</sub>(l<sup>v,j−1</sup>)</code>。<br>
+4. 令 <code>Ê[Y<sup>g</sup>] = Ê[Y<sup>0^K</sup>] + Ê[∑<sub>v</sub>Δ̂<sup>g,v</sup>/V]</code>。</div>
+若 <code>f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code> 的模型、结构嵌套均值模型 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β)</code>、以及处理模型 <code>Pr(A<sub>k</sub>=1|L<sub>k</sub>,A<sub>k−1</sub>)</code> 或结局模型 <code>E[Y<sup>A<sub>k−1</sub>,0<sub>k</sub></sup>|L̄<sub>k</sub>,Ā<sub>k−1</sub>]</code> 中正确设定的那个（只要其一成立即可），则 <code>Ê[Y<sup>g</sup>]</code> 一致于 <code>E[Y<sup>g</sup>]</code>。置信区间可用非参数 bootstrap 得到。
+<br><br>
+请注意：若估计 β̃ 一致于 β=0，则 <code>γ<sub>k</sub>(a<sub>k−1</sub>,l<sub>k</sub>,β̃)</code> 收敛到 0，于是 <code>Δ̂<sup>g,v</sup></code> 收敛到 0，<strong>即使</strong> <code>f(l<sub>k</sub>|ā<sub>k−1</sub>,l̄<sub>k−1</sub>)</code> 的模型不正确也是如此。也就是说，只要可识别性条件成立，并且我们或者知道 <code>Pr(A<sub>k</sub>=1|L<sub>k</sub>,A<sub>k−1</sub>)</code>（如在序贯随机化实验中那样），或者对每个 k 拥有 <code>Pr(A<sub>k</sub>=1|L<sub>k</sub>,A<sub>k−1</sub>)</code> 与 <code>E[Y<sup>A<sub>k−1</sub>,0<sub>k</sub></sup>|L̄<sub>k</sub>,Ā<sub>k−1</sub>]</code> 中正确设定的那一个的结构嵌套均值模型，就<strong>保持零假设</strong>。</aside>
+
+<h2 id="s-21-5">21.5 删失是一种时变处理</h2>
+
+<p>你也许需要重读第 12.6 节以复习删失。本章迄今为止使用的例子中没有删失：表 21.1 中所有个体的结局都是已知的。但在实践中，我们常常会遇到这样的情形——部分个体失访，于是他们的结局取值未知或被（右）删失。我们在第二部分讨论过删失及处理它的方法。第 8 章说明删失可能引入选择偏倚，即便在零假设下也是如此；第 12 章讨论了我们一般感兴趣的是"若研究人群中无人被删失"的因果效应。</p>
+
+<p>然而在第二部分，我们只考虑了一个大为简化的删失版本：我们没有指定个体是在随访的哪个时点被删失的。也就是说，我们把删失 C 当作时点固定的变量。看待删失更现实的方式，是把它看作时变变量 <code>C1, C2, …, C<sub>K+1</sub></code>，其中 <code>C<sub>m</sub></code> 是一个指示变量：个体在时点 m 仍未被删失时取 0，否则取 1。删失是一种单调型的缺失数据：若个体的 <code>C<sub>m</sub>=0</code>，那么此前所有删失指示也都为 0（<code>C1=0, C2=0, …, C<sub>m−1</sub>=0</code>）。此外，按定义，研究中所有个体都有 <code>C0=0</code>；否则他们就不会被纳入研究。</p>
+
+<p>如果个体在时点 m 被删失，即 <code>C<sub>m</sub>=1</code>，那么在时点 m 之后测量的处理、混杂因素与结局都是未观测到的。因此，分析必然被限制在未删失的人时（person-time）上，即 <code>C<sub>m</sub>=0</code>。例如，21.1 节的反事实均值 <code>E[Y<sup>ā</sup>]</code> 的 g 公式需要改写为</p>
+
+<div class="eqn">∑<sub>l̄</sub> E[Y | C̄=0̄, Ā=ā, L̄=l̄] ∏<sub>k=0</sub><sup>K</sup> f(l<sub>k</sub>|c<sub>k</sub>=0, ā<sub>k−1</sub>, l̄<sub>k−1</sub>)</div>
+
+<p>其中所有项都以"保持未删失"为条件。假使可识别性条件在所有时点 m 上把处理 <code>A<sub>m</sub></code> 换成 <code>(A<sub>m</sub>, C<sub>m+1</sub>)</code> 后依然成立，那么容易证明上面这个表达式正是联合处理 (ā, c̄=0̄) 下反事实均值 <code>E[Y<sup>ā,c̄=0̄</sup>]</code> 的 g 公式，也就是"若所有人都接受了处理策略 ā、且没有任何个体失访"本应观察到的平均结局。反事实均值 <code>E[Y<sup>ā,c̄=0̄</sup>]</code> 也可以在针对联合处理 <code>Ā,C̄</code> 的可识别性条件成立时，用结构均值模型的 IP 加权来估计。为此，我们可以例如在由非稳定化 IP 权重 <code>W<sup>Ā</sup> × W<sup>C̄</sup></code> 构造的伪人群上拟合结局回归模型</p>
+
+<div class="eqn">E[Y|A, C̄=0̄] = θ<sub>0</sub> + θ<sub>1</sub> cum(A)</div>
+
+<p>其中</p>
+
+<div class="eqn">W<sup>C̄</sup> = ∏<sub>k=1</sub><sup>K+1</sup> 1 / Pr(C<sub>k</sub>=0 | C<sub>k−1</sub>=0, Ā<sub>k−1</sub>, L̄<sub>k−1</sub>)</div>
+
+<p>我们通过拟合 <code>Pr(C<sub>k</sub>=0|C<sub>k−1</sub>=0, Ā<sub>k−1</sub>, L̄<sub>k−1</sub>)</code> 的 logistic 回归模型来估计权重的分母。技术要点 21.10 给出到以失效时间为结局的生存分析的推广。</p>
+
+<p>在由非稳定化 IP 权重构造的伪人群中，被删失的个体被具有相同处理与协变量历史取值的未删失个体的副本所替代。因此伪人群的规模与删失之前（即任何失访发生之前）的原始研究人群相同。非稳定化 IP 权重在伪人群中<strong>取消</strong>了删失。或者，我们也可以使用由稳定化 IP 权重 <code>SW<sup>Ā</sup> × SW<sup>C̄</sup></code> 构造的伪人群，其中</p>
+
+<div class="eqn">SW<sup>C̄</sup> = ∏<sub>k=1</sub><sup>K+1</sup> Pr(C<sub>k</sub>=0|C<sub>k−1</sub>=0, Ā<sub>k−1</sub>) / ∏<sub>k=1</sub><sup>K+1</sup> Pr(C<sub>k</sub>=0|C<sub>k−1</sub>=0, Ā<sub>k−1</sub>, L̄<sub>k−1</sub>)</div>
+
+<p>我们用两个独立的模型分别估计 IP 权重的分子与分母：一是 <code>Pr(C<sub>k</sub>=0|C<sub>k−1</sub>=0, Ā<sub>k−1</sub>, L̄<sub>k−1</sub>)</code>，二是 <code>Pr(C<sub>k</sub>=0|C<sub>k−1</sub>=0, Ā<sub>k−1</sub>)</code>。（记住：若 <code>Pr(C<sub>k</sub>=0|Ā<sub>k−1</sub>,C<sub>k−1</sub>=0,L̄<sub>k</sub>)</code> 的模型正确设定，估计的 IP 权重 <code>SW<sup>C̄</sup></code> 均值为 1。）</p>
+
+<figure class="fig"><img src="../figures/ch21--figure-21_4.png" alt="图 21.4">
+<figcaption><strong>图 21.4</strong> 两个时点、结局用第 17 章那样的时变指示变量 <code>D<sub>1</sub>, D<sub>2</sub></code> 表示的生存分析因果图，删失指示变量已略去。严格地说，每个 <code>D<sub>k</sub></code> 都应有箭头指向图上所有后续变量，此处为简洁省略。</figcaption></figure>
+
+<p>由稳定化 IP 权重构造的伪人群，其规模与删失<em>之后</em>的研究人群相同，即伪人群中每个时点 k 被删失个体的比例与研究人群相同。稳定化权重并不在伪人群中消除删失，它们让删失在每个时点 k 相对于<strong>已测量的</strong>协变量历史 L̄<sub>k</sub> 是随机发生的。也就是说，有选择，但没有选择偏倚。无论使用哪一种 IP 权重，伪人群中都没有从 <code>L<sub>k</sub></code> 与 <code>A<sub>k</sub></code> 指向 m&gt;k 的未来 <code>C<sub>m</sub></code> 的箭头。重要的是，在针对联合处理 <code>Ā,C̄</code> 的可交换性条件下，即使 <code>L̄</code> 的某些分量受既往处理影响，IP 加权仍能无偏地估计 <code>Ā,C̄</code> 的联合效应。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>把删失当作"一种时变处理"是本书最有洞见的一步。传统说法是"删失导致选择偏倚，得校正"；本书的说法要更进一步：<strong>删失本身就是一个随时间变化、并且与既往处理及协变量相关的处理</strong>，所以它和血压、血糖这类时变暴露一样，要用 g 公式、IP 加权或 g 估计来对付。这与生存分析中广为人知的 IPCW（inverse probability of censoring weighting，删失逆概率加权）是同一件事——权重里乘进去的是 <code>1/Pr(C<sub>k</sub>=0|·)</code> 而非 <code>1/Pr(A<sub>k</sub>=1|·)</code>。但本书视角的好处是：它让你同时、且对称地处理"暴露是时变的"和"删失是时变的"这两种情形，写成一个联合权重 <code>W<sup>Ā</sup>×W<sup>C̄</sup></code> 或 <code>SW<sup>Ā</sup>×SW<sup>C̄</sup></code>。还有一个容易忽略的细节：<strong>非稳定化权重与稳定化权重在这里不是无关紧要的选择</strong>。非稳定化权重让伪人群恢复到失访前的规模（删失被彻底"填平"），稳定化权重则保持删失后的规模，只把删失变成与已测协变量独立（"有选择但无偏倚"）。若研究关心的是"若无人失访"的总人群风险，就要明确用前者。</aside>
+
+<p>最后，用结构嵌套模型的 g 估计时，我们首先必须用 IP 加权来调整删失带来的选择偏倚。在实践中，这意味着先估计删失的非稳定化 IP 权重 <code>W<sup>C̄</sup></code>，构造出一个无人被删失的伪人群，然后在这个伪人群上做 g 估计。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.10　时变处理的生存分析</span>第 17 章描述了估计"点干预（point intervention）"对失效时间结局效应的 g 方法；本章描述的是估计"持续策略"对非失效时间结局效应的 g 方法。实践中我们常常把第 17 章的方法与本章的方法结合起来，用 g 方法估计持续策略对失效时间结局的效应。下面勾勒两种做法——基于 g 公式的与基于 IP 加权的——在序贯可交换性、可阳性性与一致性成立时估计处理策略 ā 下反事实风险 <code>Pr(D<sup>ā,c̄=0̄</sup><sub>k+1</sub>=1)</code>。图 21.4 的因果图刻画了这样的设定：两个时点，结局是第 17 章中那样的时变指示变量表示的失效时间。每个指示变量 D<sub>k</sub> 都应有箭头指向图上所有后续变量，但为减少杂乱我们省略了这些箭头；为简洁也省略了删失的时变指示变量。
+<br><br>
+风险 <code>Pr(D<sup>ā,c̄=0̄</sup><sub>k+1</sub>=1)</code> 由 1 减去 <code>Pr(D<sup>ā,c̄=0̄</sup><sub>k+1</sub>=0)</code> 的 g 公式识别：
+<div class="eqn">∑<sub>l̄<sub>k</sub></sub> Pr(D<sub>k+1</sub>=0|Ā<sub>k</sub>=ā<sub>k</sub>, L̄<sub>k</sub>=l̄<sub>k</sub>, D<sub>k</sub>=C<sub>k+1</sub>=0) × ∏<sub>m=0</sub><sup>k</sup> f(l<sub>m</sub>|ā<sub>m−1</sub>, l̄<sub>m−1</sub>, D<sub>m</sub>=C<sub>m</sub>=0) Pr(D<sub>m</sub>=0|Ā<sub>m−1</sub>=ā<sub>m−1</sub>, L̄<sub>m−1</sub>=l̄<sub>m−1</sub>, D<sub>m−1</sub>=C<sub>m</sub>=0)</div>
+于是可以拟合离散时间风率 <code>Pr(D<sub>k+1</sub>=1|Ā<sub>k</sub>=ā<sub>k</sub>, L̄<sub>k</sub>=l̄<sub>k</sub>, D<sub>k</sub>=C<sub>k+1</sub>=0)</code> 的模型，以及混杂因素 L 随时间的条件密度 <code>f(l<sub>k</sub>|ā<sub>k−1</sub>, l̄<sub>k−1</sub>, D<sub>k</sub>=C<sub>k</sub>=0)</code> 的模型，得到插入式 g 公式估计。如第 17 章所述，可以用合并的 logistic 模型近似风率；细节与应用见 Young 等（2011）。Wen 等（2021）介绍了 ICE g 公式估计量。
+<br><br>
+另一种做法是对风率 <code>Pr(D<sub>k+1</sub>=1|Ā<sub>k</sub>=ā<sub>k</sub>, L̄<sub>k</sub>=l̄<sub>k</sub>, D<sub>k</sub>=C<sub>k+1</sub>=0)</code> 拟合一个合并的 logistic 模型，其中时点 k 的每个个体被赋予时变的非稳定化 IP 权重
+<div class="eqn">W<sub>k</sub><sup>Ā</sup> = ∏<sub>m=0</sub><sup>k</sup> 1 / f(A<sub>m</sub>|Ā<sub>m−1</sub>, D<sub>m</sub>=C<sub>m</sub>=0, L̄<sub>m</sub>)，　W<sub>k</sub><sup>C̄</sup> = ∏<sub>m=1</sub><sup>k</sup> 1 / Pr(C<sub>m</sub>=0|Ā<sub>m−1</sub>, D<sub>m−1</sub>=C<sub>m−1</sub>=0, L̄<sub>m−1</sub>)</div>
+（或每个时点 k 上与之对应的稳定化 IP 权重）。该模型的参数估计的是 <code>Pr(D<sup>ā,c̄=0̄</sup><sub>k+1</sub>=1|D<sup>ā,c̄=0̄</sup><sub>k</sub>=0)</code> 的边际结构合并 logistic 模型（Robins 1998a）的参数。细节与应用见 Hernán 等（2001）。Wen 等（2022）综述了时变处理生存分析的多重稳健估计量。</aside>
+
+<h2 id="s-21-6">21.6 大 g 公式</h2>
+
+<p>本章以及前两章偏重于那些依赖"给定已测量协变量 L 的序贯可交换性"并由 g 公式来识别的方法。理由是，在实践中，对复杂纵向数据的因果分析很少依赖其他识别条件与识别公式。例如，以"前门公式（front door formula）为识别公式"的那套识别条件为基础的现实应用就很少见。然而，撇开实质上的合理性与实际应用不谈，<strong>不同的识别条件及其公式，在数学上都与"基于所有变量——无论已测量还是未测量——的序贯可交换性和 g 公式"相连</strong>，下面我们就来说明这一点。</p>
+
+<p>当给定已测量协变量 L 的序贯可交换性成立时，我们已经讨论过基于已测量时变协变量 L 的 g 公式如何识别时变处理 A 对结局 Y 的因果效应。现在假使我们手上有一张因果 DAG，其中既有观测变量 A、L、Y 也有未观测变量 U，而已测变量 L 不足以达到序贯可交换性。</p>
+
+<p>对任何一张因果 DAG，把已测量与未测量变量合起来 X=(L,U)，就能保证（联合）序贯可交换性——因为任一处理变量的任一父节点都包含在 A 或 X 之中。因此，如果因果图上每个变量都被测量了、且可阳性性成立，那么基于 X 的 g 公式就能识别任意处理策略 g 下的反事实均值 <code>E[Y<sup>g</sup>]</code>。我们把把 L 换成 X 之后的 g 公式称为<strong>大 g 公式</strong>（the big g-formula），因为它并不单纯基于观测数据。</p>
+
+<p>给定一张因果 DAG、处理 Ā 与结局 Y、一个处理策略 g，以及事实变量（factuals）A、L、Y、U，我们可以显式写出 <code>Y<sup>g</sup></code> 的分布（密度）的大 g 公式。大 g 公式只依赖事实变量 A、L、Y、U 的分布。（我们把 A、L、Y、U 称为"事实变量"是为了与反事实相区分。事实变量是真实世界中存在的变量；与观测变量不同，有些事实变量——比如 U——在数据分析中是拿不到的，常常是因为它们没有被测量。）大 g 公式是在任意处理策略下识别反事实密度的正确公式，但大 g 公式在实践中无法使用，因为它含有未测量变量。于是有一个有趣的数学问题：大 g 公式能否被化简成观测数据 A、L、Y 联合分布的某个泛函？如果能，我们就有了一个新公式，它（i）复现大 g 公式的结果（因而是一个正确公式），同时（ii）只用观测变量的分布写成（因而是一个能用于数据分析的公式）。</p>
+
+<p>例如，在被称为前门准则的那套识别条件下，<code>E[Y<sup>a</sup>]</code> 的大 g 公式可化简为一个只含观测变量的公式——前门公式（证明见技术要点 21.11）。因此，前门公式是图 7.14 因果图所蕴含的前门假设下 <code>E[Y<sup>a</sup>]</code> 均值的一个有效公式。</p>
+
+<p>更一般地，我们希望能够回答以下两个问题。第一，我们能否总是判断出：大 g 公式可以在不引入任何超出"关于 (A,L,Y,U) 的联合分布服从因果 DAG 所蕴含的 d-分离关系"这一假定之外的新假定的前提下，被改写成一个只依赖观测变量 (A,L,Y) 分布的公式？第二，当第一个问题的答案为肯定时，我们能否显式地把这样一个识别公式写出来？这两个问题的答案都是肯定的。</p>
+
+<p>重要的是，这些纯粹是关于"服从 DAG 上由 d-分离刻画的一定的独立性关系的 (A,L,Y,U) 分布之性质"的数学问题。也就是说，这两个问题既不涉及反事实，也不涉及因果。与因果的唯一联系，是"DAG 是一张因果 DAG"这一断言。如果确实如此，大 g 公式就有因果解释；如果不是，肯定的答案虽然依然成立，却没有因果含义。当然，在观察性分析中，我们永远无法确定我们猜想的那张图确实是一张因果图。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>这一节的分量比标题看上去更重：大 g 公式其实是一个"万能参照系"。它把图上所有可测与不可测变量的分布都写进了公式，因而在理论上永远正确；实践中的各种识别公式（g 公式、前门公式、IV 公式、do-calculus 的各种情形）本质上都是它在某个可测子集上的化简。所以判断一个公式对不对的最好办法，就是把它写成大 g 公式，再看能不能把未测量变量消掉——消不掉就不是识别公式。这也解释了为什么非参数化识别条件的判定（Tian & Pearl 2002；Shpitser & Pearl 2006；Huang & Valtorta 2006）在理论上如此干净：它只问"该图上的大 g 公式是否只依赖可测分布"，不问因果。</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>从中文读者的实用角度补一句：大 g 公式在数据里永远算不出来，但**边际结构模型（MSM）在中文语境下的常见实现方式**恰恰是它的一个"可算子集"。国内做时变暴露研究（队列随访、医保数据库、慢病管理项目）时，主流做法通常有两条：一是**参数化 g 公式**——用 MSM 把 <code>E[Y<sup>ā</sup>]</code> 写成累积暴露 <code>cum(ā)</code> 的函数，再用协变量模型的预测值代入 g 公式求和；二是**IP 加权 MSM**——直接用时变 IP 权重把队列"重加权"成一个虚拟队列，然后在这个虚拟队列里跑普通回归。两者在本章的框架里其实是同一个模型 <code>E[Y<sup>ā</sup>]=β<sub>0</sub>+β<sub>1</sub>cum(ā)</code> 的两条估计路径，而参数化 g 公式路径恰好免疫 21.2 节技术要点 21.3 讲的 g-零悖论，IP 加权路径则效率更高、且能自然地纳入效应修饰与异质性处理效应。做"若所有人都持续暴露/持续治疗会怎样"这类政策模拟时，这两条路径的结论若不一致，按本书的建议就该回头检查模型设定。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.11　用大 g 公式证明前门公式</span>技术要点 7.4 中我们在图 7.14 的因果图下给出了反事实概率 <code>Pr[Y<sup>a</sup>=y]</code> 的前门公式证明。这里给出另一个基于大 g 公式的证明。这个第二证明只依赖图 7.14 所蕴含的条件独立性，但<strong>不需要</strong>反事实 <code>Y<sup>m</sup></code> 存在。
+<br><br>
+图 7.14 下 <code>Pr[Y<sup>a</sup>=y]</code> 的大 g 公式是
+<div class="eqn">∑<sub>m</sub>∑<sub>u</sub> Pr[Y=y|M=m, A=a, U=u] Pr[M=m|A=a, U=u] Pr[U=u]</div>
+由于拿不到关于 U 的数据，<code>Pr[Y<sup>a</sup>=y]</code> 被识别当且仅当大 g 公式只依赖观测数据 (Y,M,A) 的分布。现在我们说明在上述假设下它确实如此，即 g 公式化简为前门公式：
+<div class="eqn">= ∑<sub>m</sub> Pr[M=m|A=a] ∑<sub>u</sub> Pr[Y=y|M=m,U=u]{∑<sub>a′</sub> Pr[U=u|A=a′]Pr[A=a′]}<br>
+= ∑<sub>m</sub> Pr[M=m|A=a] ∑<sub>a′</sub> {∑<sub>u</sub> Pr[Y=y|M=m,A=a′,U=u]Pr[U=u|M=m,A=a′]}Pr[A=a′]<br>
+= ∑<sub>m</sub> Pr[M=m|A=a] ∑<sub>a′</sub> Pr[Y=y|M=m,A=a′]Pr[A=a′]</div>
+第一个等号由 d-分离 <code>U ⊥⊥ M | A</code> 与 <code>A ⊥⊥ Y | M,U</code> 得到，第二个等号由 <code>U ⊥⊥ M | A</code> 与 <code>A ⊥⊥ Y | M,U</code> 得到，最后的结果正是前门公式。
+<br><br>
+现在我们再给出前门公式的另一个证明，它同样不需要反事实 <code>Y<sup>m</sup></code> 存在。在确立了 <code>Pr[Y<sup>a</sup>=y]</code> 是由 (Y,M,A,U) 分布给出、形式为大 g 公式的函数之后，我们可以应用一个耦合（coupling）论证。假定所有人在实质问题上都同意某个定义良好的 <code>Y<sup>m</sup></code> 并不存在。然而，任何关于图 7.14 是马尔可夫的 (Y,M,A,U) 事实数据分布，都与一个"细如数据"（as detailed as the data）的底层 FFRCISTG 模型相容（Robins 与 Richardson 2010），而后者按定义形式上就包含变量 <code>Y<sup>m</sup></code>。技术要点 7.4 中的证明表明，在该模型下大 g 公式等于前门公式。由此可知，不存在关于图 7.14 是马尔可夫的、使得这个等式不成立的事实分布；否则该事实分布就与"细如数据"的 FFRCISTG 模型不相容。技术要点 21.12 基于 SWIG 的一个性质给出了前门公式的另一种证明。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.12　用 SWIG 上处理节点的 d-分离证明前门公式</span>这里利用一条我们尚未讨论过的 SWIG 性质来证明前门公式。给定一张因果图 G，令 G<sup>a</sup> 为策略 a 对应的 SWIG，并令 B<sup>a</sup> 与 C<sup>a</sup> 为观测到的非处理节点 (Y<sup>a</sup>,L<sup>a</sup>) 的两个不相交子集。我们只假定处理反事实是良定义的。SWIG G<sup>a</sup> 满足如下性质（Shpitser 等，2022）：若固定节点 a<sup>m</sup> 在给定 C<sup>a</sup> 条件下与 B<sup>a</sup> d-分离，则 <code>Pr(B<sup>a</sup>=b|C<sup>a</sup>=c)</code> 不依赖于 a<sup>m</sup>。这一性质与我们先前讨论过的"任何以处理 a<sup>m</sup> 为非端点的路径都被阻断"并不冲突。为说明这条新性质的含义，考虑图 7.14 的前门图所蕴含的 SWIG G<sup>a</sup>。在 G<sup>a</sup> 上令 B<sup>a</sup>=Y<sup>a</sup>、C<sup>a</sup>=(M<sup>a</sup>,A<sup>a′</sup>)。由于从 a<sup>a</sup> 到 Y<sup>a</sup> 的唯一路径经过非碰撞因子 M<sup>a</sup>，而 M<sup>a</sup> ∈ C<sup>a</sup>，故 a 在给定 C<sup>a</sup> 条件下与 B<sup>a</sup> d-分离。于是按该性质，对任意 a 与 a′ 都有 <code>E[Y<sup>a</sup>|M<sup>a</sup>,A<sup>a′</sup>] = E[Y<sup>a′</sup>|M<sup>a</sup>,A<sup>a′</sup>]</code>。请注意这条性质不是跨世界的（cross-world）；它刻画的是不同单世界反事实分布之间的关系。
+<br><br>
+现在我们用这条 SWIG 性质，在良定义的反事实 <code>Y<sup>m</sup></code> 不存在的情况下证明前门公式。我们继续假定 <code>(Y<sup>a</sup>,M<sup>a</sup>,A<sup>a</sup>)</code> 按 SWIG G<sup>a</sup> 分解，而 (Y<sup>a′</sup>,M<sup>a′</sup>,A<sup>a′</sup>) 按 SWIG G<sup>a′</sup> 分解。沿技术要点 7.4 的证明往下走，直到需要证明 <code>E[Y<sup>a</sup>|M<sup>a</sup>] = ∑<sub>a′</sub> E[Y|M,A=a′]Pr(A=a′)</code> 这一步。此时我们有
+<div class="eqn">E[Y<sup>a</sup>|M<sup>a</sup>] = ∑<sub>a′</sub> E[Y<sup>a</sup>|M<sup>a</sup>,A<sup>a′</sup>]Pr(A=a′|M<sup>a</sup>) = ∑<sub>a′</sub> E[Y<sup>a′</sup>|M<sup>a</sup>,A<sup>a′</sup>]Pr(A=a′|M<sup>a</sup>)</div>
+最后一步由 <code>M<sup>a</sup></code> 与 A 的 d-分离得到。我们这条新的 SWIG 性质给出 <code>E[Y<sup>a</sup>|M<sup>a</sup>,A<sup>a</sup>] = E[Y<sup>a</sup>|M<sup>a</sup>,A<sup>a′</sup>] = E[Y|M<sup>a</sup>,A<sup>a</sup>] = E[Y|M,A<sup>a</sup>]</code>，最后一个等号由一致性得到。于是 <code>E[Y<sup>a</sup>|M<sup>a</sup>] = ∑<sub>a′</sub> E[Y|M,A<sup>a</sup>]Pr(A<sup>a</sup>)</code>，即所需结论。有意思的是，由此可知：尽管对所有 a、a′ 都有 <code>E[Y<sup>a</sup>|M<sup>a</sup>] = E[Y<sup>a′</sup>|M<sup>a</sup>]</code>，但 <code>E[Y<sup>a</sup>|M<sup>a</sup>] ≠ E[Y|M]</code>，因为 <code>E[Y|M] = ∑<sub>a′</sub> E[Y|M,A<sup>a′</sup>]Pr(A<sup>a′</sup>|M)</code>，而与反事实 <code>M<sup>a</sup></code> 不同，观测到的事实变量 <code>M = M<sup>A</sup></code> 并不独立于 A。</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.13　一般结构嵌套均值模型的形式定义</span>Robins（2004）指出，在结构嵌套均值模型（SNMM）中，"最后一次处理闪之后遵循 0̄"这个策略本身没什么特别的。我们可以改为相对于任意策略 g 来定义闪函数。给定 g=(g<sub>0</sub>,g<sub>1</sub>,…,g<sub>K</sub>)，可加 SNMM 是这样一个模型：它刻画"在时点 t 接受大小为 a<sup>t</sup> 的处理闪、随后从 t+1 起遵循 g"，与"从 t 起就遵循 g"这两种情形下 Y 的因果效应（条件于截至时点 t 的处理与协变量历史）。也就是说，可加 SNMM 为如下的反事实对比建模：
+<div class="eqn">γ<sup>g</sup><sub>t</sub>(a<sup>t</sup>, l<sup>t</sup>) = E[Y<sup>a^(t−1),a^t,g^(t+1)</sup> − Y<sup>a^(t−1),g^t,g^(t+1)</sup> | A<sup>t−1</sup>=a<sup>t−1</sup>, A<sup>t</sup>=a<sup>t</sup>, L<sup>t</sup>=l<sup>t</sup>]</div>
+其中 t=0,…,K，<code>a=(a<sup>0</sup>,a<sup>1</sup>,…,a<sup>K</sup>)</code>，<code>g<sup>t+1</sup>=(g<sup>t+1</sup>,…,g<sup>K</sup>)</code>。我们把 <code>Y<sup>a^(t−1),a^t,g^(t+1)</sup></code> 记作 <code>Y<sup>a^(t−1),g^t,g^(t+1)</sup></code>，以强调 a<sup>t</sup> 与 g<sup>t</sup> 的各自特殊作用。注意当 <code>a<sup>t</sup> = g<sub>t</sub>(a<sup>t−1</sup>,l<sup>t</sup>)</code> 时 <code>γ<sup>g</sup><sub>t</sub>(a<sup>t−1</sup>,a<sup>t</sup>,l<sup>t</sup>) ≡ 0</code>。若如正文所假定的那样我们有序贯可交换性，则可从 <code>γ<sup>g</sup><sub>t</sub></code> 定义的条件事件中去掉 <code>A<sup>t</sup>=a<sup>t</sup></code>。
+<br><br>
+SNMM 假定 <code>γ<sup>g</sup><sub>t</sub>(a<sup>t</sup>,l<sup>t</sup>) = γ<sup>g</sup><sub>t</sub>(a<sup>t</sup>,l<sup>t</sup>;β)</code>，其中 <code>γ<sup>g</sup><sub>t</sub>(a<sup>t</sup>,l<sup>t</sup>;β†)</code> 是参数向量 β† 的已知有限维函数，且当 β†=0 或 <code>a<sup>t</sup>=g<sub>t</sub>(a<sup>t−1</sup>,l<sup>t</sup>)</code> 时取 0。若定义
+<div class="eqn">H<sub>k</sub>(γ<sup>g</sup>) = Y − ∑<sub>t=k</sub><sup>K</sup> γ<sup>g</sup><sub>t</sub>(A<sup>t</sup>, L<sup>t</sup>)</div>
+则仅由一致性（Robins 2004）就有 <code>E[H<sub>k</sub>(γ<sup>g</sup>)|L<sub>k</sub>,A<sub>k</sub>] = E[Y<sup>A<sub>k−1</sub>,g<sup>k</sup></sup>|L<sub>k</sub>,A<sub>k</sub>]</code>（k=0,…,K）以及 <code>E[H0(γ<sup>g</sup>)] = E[Y<sup>g</sup>]</code>。因此，只要能识别 <code>γ<sup>g</sup><sub>t</sub>(a<sup>t</sup>,l<sup>t</sup>)</code>，就能识别 <code>E[Y<sup>A<sub>k−1</sub>,g<sup>k</sup></sup>|L<sub>k</sub>,A<sub>k</sub>]</code> 与 <code>E[Y<sup>g</sup>]</code>。在可阳性性与序贯可交换性之下，上述等式组进一步给出 <code>E[H<sub>k</sub>(γ<sup>g</sup>)|L<sub>k</sub>,A<sub>k</sub>] = E[H<sub>k</sub>(γ<sup>g</sup>)|L<sub>k</sub>,A<sub>k−1</sub>]</code>，从而 <code>γ<sup>g</sup><sub>t</sub></code> 是非参数可识别的。Robins（2004）还定义了最优决策的结构嵌套模型（opt-SNMM），并证明在可阳性性与序贯可交换性之下，可以用 opt-SNMM 估计最优处理策略 <code>g<sub>opt</sub> = argmax<sub>g</sub> E[Y<sup>g</sup>]</code>。
+<br><br>
+但序贯可交换性并不是唯一可能的识别假定。例如 Zahn 等（2022）证明，在一种时变平行趋势假定之下，<code>γ<sup>g</sup><sub>t</sub></code> 也是可识别的；该假定推广了带时变处理与协变量的双重差分估计中所通常作的识别假定。在技术要点 21.9 中，我们取 SNMM 里的 g 为"从不处理"策略，即 g=0，并描述了在序贯可交换性假定下识别每个策略 g 的 <code>E[Y<sup>g</sup>]</code> 的算法。当序贯可交换性不成立时，我们可以改用其他足以识别"定义该 SNMM 时所用的 g"之 <code>E[Y<sup>g</sup>]</code> 的假定（例如时变平行趋势），但这不足以识别任意其他策略 g′ 的 <code>E[Y<sup>g′</sup>]</code>。为此需要额外的假定。例如 Shahn 等（2022）证明：若在时变平行趋势之外，再假定"条件于既往处理与已测协变量历史，不存在由未测量混杂因素 U 引起的加性效应修饰"，则 <code>E[Y<sup>g′</sup>]</code> 对所有 g′ 都可识别，从而最优策略 <code>g<sub>opt</sub> = argmax<sub>g′</sub> E[Y<sup>g′</sup>]</code> 也是可识别的。Shahn 等（2022）说明了如何用结构嵌套均值模型来估计 g<sub>opt</sub>。</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

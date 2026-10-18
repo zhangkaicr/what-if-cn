@@ -3,32 +3,297 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 9 章 · 测量偏倚与“非因果”图 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 9 章 · 测量偏倚与"非因果"图 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 9 章 · 测量偏倚与“非因果”图</h1>
-<p class="muted">第一部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第一部分 · 无模型的因果推断 · Part I — Causal inference without models</p>
+  <h1>第 9 章 · 测量偏倚与"非因果"图</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 9. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">假设有位研究者做了一项随机化试验，要回答这样一个因果问题："一个人抬头看天，会让路人也跟着抬头吗？"她发现自己抬头与路人抬头之间存在一个很弱的关联。这个弱关联反映的是一个弱因果效应吗？按随机化试验的定义，这项研究不应有混杂偏倚。而且也不会有选择偏倚，因为所有路人的反应——看了还是没看——都被记录下来了。但还有另一个问题：负责记录路人反应的那位合作者犯了很多错。具体地说，她漏掉了一半"路人抬头了"的情形，把这些反应记成了"没抬头"。于是，即便处理（研究者抬头看天）真的对结局（别人抬头）有很强的效应，对结局的错误分类也会稀释处理与（被错测的）结局之间的关联。</p>
+
+<p>当研究数据的测量过程导致处理与结局之间的关联被削弱或被加强时，我们就说存在测量偏倚。由于测量误差可以出现在任何研究设计之下——随机化试验和观察性研究都不例外——在解释效应估计值时，测量偏倚总是需要考虑。本章要描述的，就是由测量误差引起的各类偏倚。</p>
+
+<h2 id="s-9-1">9.1 测量误差</h2>
+
+<p>在前几章里，我们隐含地作出过一个不现实的假设：所有变量都被完美测量。考虑一项观察性研究，目的是估计降胆固醇药物 A 对肝病 Y 的风险的影响。我们往往预期处理 A 会被测得不那么完美。比如说，如果用药信息来自病历摘录，摘录者在转录数据时可能出错，医生可能忘记写下病人被开了这个药，病人也可能根本没吃医生开的药。于是我们分析数据集里的处理变量就不是真正的用药情况，而是被测出来的用药情况。我们把这个被测的处理记作 <code>A<sup>*</sup></code>（读作"A 星"），它对某个个体来说未必等于真正的处理 <code>A</code>。</p>
+
+<p><span class="box-label">边注</span>　离散变量的测量误差称为<strong>错误分类</strong>（misclassification）。</p>
+
+<p>心理学文献有时把 <code>A</code> 称作"构念"（construct），把 <code>A<sup>*</sup></code> 称作"测量"或"指标"（measure / indicator）。在观察性学科中，真正的难点在于：借助关于被观测之测量的数据（例如病历里的他汀使用信息），去推断那个未被观测的构念（例如是否真的在用降胆固醇药）。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_1.png" alt="图 9.1：处理 A 影响结局 Y 与被测处理 A 星，而 U_A 影响 A 星">
+<figcaption><strong>图 9.1</strong>　被测处理 <code>A<sup>*</sup></code> 的因果图。真正的处理 <code>A</code> 既影响结局 <code>Y</code>，也影响被测处理 <code>A<sup>*</sup></code>；节点 <code>U<sub>A</sub></code> 表示除 <code>A</code> 以外决定 <code>A<sup>*</sup></code> 取值的全部因素。</figcaption></figure>
+
+<p>图 9.1 的因果图画出了变量 <code>A</code>、<code>A<sup>*</sup></code> 与 <code>Y</code>。为简明起见，我们挑选了一个对 <code>A</code> 对 <code>Y</code> 的因果效应既无混杂也无选择偏倚的情形。真正的处理 <code>A</code> 同时影响结局 <code>Y</code> 和被测处理 <code>A<sup>*</sup></code>。图中还包含节点 <code>U<sub>A</sub></code>，用来代表除 <code>A</code> 以外决定 <code>A<sup>*</sup></code> 取值的全部因素。我们把某个个体的错测值 <code>A<sup>*</sup></code> 与真值 <code>A</code> 之差，称为该个体的 <code>A</code> 的测量误差。测量误差的大小与方向由 <code>U<sub>A</sub></code> 中的因素决定。请注意，在因果图中加入节点 <code>U<sub>A</sub></code> 并不是严格必要的，因为 <code>U<sub>A</sub></code> 既不是图中其他变量的共同原因，也不是一个会被条件于的变量。我们仍然把它画进来，是为了把那些造成测量误差的因素明确地表示出来，也为了方便与接下来要讨论的因果图作直接比较。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 9.1　测量误差的独立性与非差异性</span>
+<p>对每个个体，我们把 <code>A</code> 的测量误差定义为差 <code>e<sub>A</sub> = A<sup>*</sup> − A</code>，把 <code>Y</code> 的测量误差定义为差 <code>e<sub>Y</sub> = Y<sup>*</sup> − Y</code>。</p>
+<p>记 <code>f(·)</code> 为概率密度函数（pdf）。如果处理的测量误差 <code>e<sub>A</sub></code> 与结局的测量误差 <code>e<sub>Y</sub></code> 的联合 pdf 等于各自边缘 pdf 之积，即</p>
+<div class="eqn" style="text-align:center"><code>f(e<sub>Y</sub>, e<sub>A</sub>) = f(e<sub>Y</sub>) f(e<sub>A</sub>)</code></div>
+<p>我们就说这两个测量误差是<strong>独立</strong>的。若处理测量误差 <code>e<sub>A</sub></code> 的 pdf 与结局 <code>Y</code> 无关，即</p>
+<div class="eqn" style="text-align:center"><code>f(e<sub>A</sub> | Y) = f(e<sub>A</sub>)</code></div>
+<p>我们就说 <code>e<sub>A</sub></code> 是<strong>非差异性</strong>的。类似地，若结局测量误差 <code>e<sub>Y</sub></code> 的 pdf 与处理 <code>A</code> 无关，即</p>
+<div class="eqn" style="text-align:center"><code>f(e<sub>Y</sub> | A) = f(e<sub>Y</sub>)</code></div>
+<p>我们就说 <code>e<sub>Y</sub></code> 是非差异性的。</p>
+</aside>
+
+<p>除了处理 <code>A</code>，结局 <code>Y</code> 同样可能测错。图 9.2 的因果图加入了被测结局 <code>Y<sup>*</sup></code>，以及负责 <code>Y</code> 的测量误差的那些因素 <code>U<sub>Y</sub></code>。图 9.2 刻画的是实践中极为常见的一种情形：你想算处理 <code>A</code> 对结局 <code>Y</code> 的平均因果效应，可变量 <code>A</code> 与 <code>Y</code> 或者没有被正确测量，或者根本无法被正确测量。于是，那个一心想识别出 <code>A</code> 对 <code>Y</code> 因果效应的研究者，手头只有错测版本 <code>A<sup>*</sup></code> 与 <code>Y<sup>*</sup></code>。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_2.png" alt="图 9.2：处理与结局各有独立的非差异性测量误差">
+<figcaption><strong>图 9.2</strong>　被测处理 <code>A<sup>*</sup></code> 与被测结局 <code>Y<sup>*</sup></code> 的因果图。测量误差 <code>U<sub>A</sub></code> 与 <code>U<sub>Y</sub></code> 相互独立，且分别与结局真值 <code>Y</code>、处理真值 <code>A</code> 无关——即两个测量误差都是非差异性的。</figcaption></figure>
+
+<p>图 9.2 还刻画了另一个情形：对处理 <code>A</code> 对结局 <code>Y</code> 的因果效应，既没有混杂也没有选择偏倚。按照我们在前几章的推理，在这种情形里关联即因果。我们可以计算 <code>A</code> 与 <code>Y</code> 之间的任何关联度量，并赋予它关于 <code>A</code> 对 <code>Y</code> 效应的因果解释。比如，关联风险比</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[Y<sup>*</sup> = 1 | A<sup>*</sup> = 1] / Pr[Y<sup>*</sup> = 1 | A<sup>*</sup> = 0]</code></div>
+
+<p>就等于因果风险比</p>
+
+<div class="eqn" style="text-align:center"><code>Pr[Y<sup>a=1</sup> = 1] / Pr[Y<sup>a=0</sup> = 1]</code></div>
+
+<p>我们在前几章一直隐含着、而现在把它挑明了的假设是：关于 <code>A</code> 与 <code>Y</code> 的数据是被完美测量的。</p>
+
+<p>现在考虑更现实的情形：手头只有处理与结局的错测版本 <code>A<sup>*</sup></code> 与 <code>Y<sup>*</sup></code>。这时，<code>A<sup>*</sup></code> 与 <code>Y<sup>*</sup></code> 之间的关联度量就没有保证等于 <code>A</code> 对 <code>Y</code> 的因果效应度量。关联风险比一般会不同于因果风险比 <code>Pr[Y<sup>a=1</sup> = 1] / Pr[Y<sup>a=0</sup> = 1]</code>。我们把这种情况称为存在<strong>测量偏倚</strong>或<strong>信息偏倚</strong>。在测量偏倚存在的情况下，可交换性、可阳性性与一致性这三个可识别性条件，不足以算出处理 <code>A</code> 对结局 <code>Y</code> 的因果效应。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（为什么测量偏倚不能像混杂那样"调整掉"）</strong>：这是本章最容易被读者滑过去的一点。混杂之所以能被调整掉，是因为混杂因素是一个<em>共同原因</em>：它同时影响处理与结局，而我们的数据里恰好有它的值，于是条件于它就能把后门路径关上。选择偏倚之所以能被调整掉，是因为选择变量是一个<em>共同效应</em>（碰撞因子的后代），条件于它相当于做了一次有选择的人群比较，而我们知道这次比较的人群是怎么选出来的。测量偏倚的处境完全不同：<code>A<sup>*</sup></code> 不是 <code>A</code> 的"替身"，它是一个新变量，<code>Y<sup>*</sup></code> 也是。<strong>把 <code>A<sup>*</sup></code> 放进回归里当协变量，并不会让 <code>A</code> 的信息凭空回来</strong>——你只是把问题从"漏掉了混杂"换成了"手里的处理根本不是处理"。更麻烦的是，这类偏倚连"偏了没有、往哪边偏、偏多少"都无法从数据内部判断出来，因为真值从未被观测过。相比之下，混杂偏倚的方向至少在理论上可以由因果结构推断（在某些结构下只会朝一个方向偏）。实践含义有两条：第一，测量偏倚无法靠"多加协变量、多加项"来自我安慰，它需要额外的<em>信息</em>（验证子样本、外部数据、误差的函数形式），而不是额外的<em>调整</em>；第二，正因为如此，减少测量偏倚的根本办法是把测量程序做好——这句听起来像废话，但原书把它明确写成了正文的结论，并在 9.2 节末尾再次强调。另有一个容易踩的坑：给结局分层或在模型里加交互项，并不会减少测量误差，它只会让 <code>Y<sup>*</sup></code> 的错测方式在层与层之间换一种花样，从而制造出并不存在的效应修饰。</p>
+</aside>
+
+<h2 id="s-9-2">9.2 测量误差的结构</h2>
+
+<p>混杂的因果结构可以概括为处理与结局存在共同原因；选择偏倚的因果结构可以概括为条件于处理与结局（或它们的祖先）的共同效应。测量偏倚则在存在测量误差时出现，但并没有哪一种单一结构能够概括测量误差。本节按两个性质——独立性与非差异性——来给测量误差的结构分类（正式定义见技术要点 9.1）。</p>
+
+<p>图 9.2 的因果图分别画出了处理 <code>A</code> 与结局 <code>Y</code> 的测量误差 <code>U<sub>A</sub></code> 与 <code>U<sub>Y</sub></code>。按照 d-分离的规则，<code>U<sub>A</sub></code> 与 <code>U<sub>Y</sub></code> 是独立的，因为它们之间的路径被碰撞因子（<code>A<sup>*</sup></code> 或 <code>Y<sup>*</sup></code>）挡住了。什么样的情形会产生独立的测量误差？比如，关于用药 <code>A</code> 和肝毒性 <code>Y</code> 的信息都来自电子病历，而其中的数据录入错误是杂乱无章地发生的。但在另一些情形里，暴露与结局的测量误差可能是相依的，如图 9.3 所示。举例来说，如果这些信息是通过事后电话访谈获得的，而一个人回忆自己病史的能力（<code>U<sub>AY</sub></code>）同时影响处理 <code>A</code> 与结局 <code>Y</code> 的测量，那么测量误差就是相依的。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_3.png" alt="图 9.3：处理与结局的测量误差相依但仍非差异性">
+<figcaption><strong>图 9.3</strong>　相依但非差异性的测量误差。共同的回忆能力因素 <code>U<sub>AY</sub></code> 同时影响 <code>U<sub>A</sub></code> 与 <code>U<sub>Y</sub></code>，于是处理与结局的测量误差彼此相依；但 <code>U<sub>A</sub></code> 仍与 <code>Y</code> 无关、<code>U<sub>Y</sub></code> 仍与 <code>A</code> 无关，两个误差依然是非差异性的。</figcaption></figure>
+
+<p>图 9.2 与图 9.3 刻画的情形是：决定处理测量误差的因素 <code>U<sub>A</sub></code> 与结局真值 <code>Y</code> 无关，决定结局测量误差的因素 <code>U<sub>Y</sub></code> 与处理真值 <code>A</code> 无关。我们于是说，处理相对于结局的测量误差是非差异性的，结局相对于处理的测量误差也是非差异性的。图 9.4 给出的是独立但差异性（differential）的测量误差的一个例子：结局真值影响了处理的测量，也就是多了一条从 <code>Y</code> 指向 <code>U<sub>A</sub></code> 的箭头。下面我们举几个处理测量误差为差异性的例子。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_4.png" alt="图 9.4：结局 Y 指向 U_A，独立但差异性的处理测量误差">
+<figcaption><strong>图 9.4</strong>　独立但差异性的处理测量误差。箭头 <code>Y → U<sub>A</sub></code> 表示结局真值 <code>Y</code> 影响处理 <code>A</code> 的测量（回忆偏倚），<code>U<sub>A</sub></code> 与 <code>U<sub>Y</sub></code> 仍然相互独立。</figcaption></figure>
+
+<p>假设结局 <code>Y</code> 不是肝毒性而是痴呆，并且用药 <code>A</code> 是通过访谈研究对象确定的。由于痴呆的存在会影响回忆 <code>A</code> 的能力，我们预期图中有从 <code>Y</code> 指向 <code>U<sub>A</sub></code> 的箭头。同样，在一项研究孕期饮酒 <code>A</code> 对出生缺陷 <code>Y</code> 影响的调查中，如果饮酒量是事后靠回忆问出来的，我们也会预期有 <code>Y → U<sub>A</sub></code> 这条箭头——因为回忆可能受妊娠结局的影响。这两个例子导致的测量偏倚通常被称为<strong>回忆偏倚</strong>（recall bias）。结构相同的另一种偏倚出现在这样的时候：用药物 <code>A</code> 的血药浓度 <code>A<sup>*</sup></code> 来代替实际用药 <code>A</code>，而血药浓度是在肝毒性 <code>Y</code> 已经出现之后才测的——因为肝毒性会影响测到的血药浓度。由此产生的测量偏倚通常被称为<strong>反向因果偏倚</strong>（reverse causation bias）。</p>
+
+<p>图 9.5 的因果图画的是独立但差异性测量误差的另一个例子：处理真值影响了结局的测量，也就是一条从 <code>A</code> 指向 <code>U<sub>Y</sub></code> 的箭头。什么情况下会出现结局的差异性测量误差？比如，医生怀疑用药 <code>A</code> 会导致肝毒性 <code>Y</code>，于是对服药的病人监测得比其他病人更密切。图 9.6 与图 9.7 画的是既相依又差异性的测量误差，它们可能由前面几种情形的组合产生。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_5.png" alt="图 9.5：处理 A 指向 U_Y，独立但差异性的结局测量误差">
+<figcaption><strong>图 9.5</strong>　独立但差异性的结局测量误差。箭头 <code>A → U<sub>Y</sub></code> 表示处理真值 <code>A</code> 影响结局 <code>Y</code> 的测量（例如医生对服药者监测更密）。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_6.png" alt="图 9.6：相依且差异性的处理测量误差">
+<figcaption><strong>图 9.6</strong>　相依且差异性的处理测量误差：既保留了回忆偏倚式的 <code>Y → U<sub>A</sub></code>，又保留了 <code>U<sub>AY</sub></code> 造成的误差相依。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_7.png" alt="图 9.7：相依且差异性的结局测量误差">
+<figcaption><strong>图 9.7</strong>　相依且差异性的结局测量误差：<code>U<sub>AY</sub></code> 使两个测量误差相依，而 <code>A → U<sub>Y</sub></code> 使结局的测量成为差异性的。</figcaption></figure>
+
+<p>总结一下，我们讨论了四种类型的测量误差：独立非差异性（图 9.2）、相依非差异性（图 9.3）、独立差异性（图 9.4 与图 9.5）、相依差异性（图 9.6 与图 9.7）。测量误差的具体结构决定了哪些方法可以用来校正它。例如，当测量误差是独立非差异性时，测量误差校正方法的文献非常丰富。一般而言，测量误差校正方法依赖于建模假设与验证样本（validation sample，即关键变量被测得几乎无误差的那部分数据子集）的组合。关于测量误差校正方法本身的描述超出了本书的范围。我们的目标只是要强调：<strong>测量变量这件事本身（就像挑选个体这件事本身一样）可能引入偏倚</strong>（关于它有多强、往哪个方向，见精细辨析 9.1）。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 9.1　测量偏倚的强度与方向</span>
+<p>一般来说，测量误差会导致偏倚。一个值得留意的例外是：<code>A</code> 与 <code>Y</code> 本来不关联、而测量误差既独立又非差异性的情形。假如图 9.2 中 <code>A → Y</code> 的箭头不存在，那么 <code>A</code> 与 <code>Y</code> 的关联以及 <code>A<sup>*</sup></code> 与 <code>Y<sup>*</sup></code> 的关联都会是零。在其他所有情况下，测量误差都可能使 <code>A<sup>*</sup></code> 与 <code>Y<sup>*</sup></code> 的关联比 <code>A</code> 与 <code>Y</code> 的关联更远离零值，或者更靠近零值。更糟的是，即便在图 9.2 那种独立非差异性的测量误差结构下，对于非二分的序数处理和连续处理，非极端强度的测量误差也可能让 <code>A<sup>*</sup></code>–<code>Y<sup>*</sup></code> 的趋势与 <code>A</code>–<code>Y</code> 的趋势方向相反。这种在独立非差异性测量误差下出现的趋势反转，发生在"<code>A</code> 给定时 <code>A<sup>*</sup></code> 的条件均值是 <code>A</code> 的非单调函数"之时。细节参见 Dosemeci、Wacholder 与 Lubin（1990），以及 Weinberg、Umbach 与 Greenland（1994）。VanderWeele 与 Hernán（2009）用带符号的因果图给出了一个更一般的框架。</p>
+<p>测量偏倚的大小取决于测量误差的大小。也就是说，测量偏倚一般随着 <code>U<sub>A</sub> → A<sup>*</sup></code> 与 <code>U<sub>Y</sub> → Y<sup>*</sup></code> 这两条箭头变强而增大。因果图不编码定量信息，因此它无法用来描述偏倚的量级。</p>
+</aside>
+
+<p>真实的因果图需要同时表示来自混杂、选择与测量这三种偏倚。对付错误测量所致偏倚的最好办法，说到底，就是改进分析中所用变量的测量程序。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（中文文献里的"信息偏倚""报告偏倚""回忆偏倚"落在哪一格）</strong>：国内流行病学教材讲"偏倚"时，通常按<strong>来源</strong>分类，于是有"信息偏倚"（information bias，下分"报告偏倚"recall bias/observer bias 与"访问者偏倚"interviewer bias）、"选择偏倚"、"混杂"三类。这套分类不是错的，只是与本章的分类不在一个坐标轴上。本章的<strong>两个轴</strong>是：(a) 处理与结局的测量误差是否<em>相依</em>；(b) 是否<em>差异性</em>——即 <code>U<sub>A</sub></code> 是否依赖 <code>Y</code>、<code>U<sub>Y</sub></code> 是否依赖 <code>A</code>。两者与中文标签的大致对应如下。</p>
 <ul>
-<li>阅读<a href="chch8.html">上一章</a>与<a href="chch10.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li><strong>回忆偏倚</strong>（报告偏倚的典型形态）：如图 9.4，<code>Y → U<sub>A</sub></code>。这是<em>差异性</em>的典型例子，处理测量误差的方向依赖于结局，因此不能靠非差异性测量误差那一套校正方法处理。中文文献中"问卷回忆既往用药或暴露史不可靠""病例组更愿意回忆"这类批评，说的都是这条箭头。</li>
+<li><strong>反向因果偏倚</strong>：如图 9.4 的另一个版本（<code>Y → U<sub>A</sub></code>，且测量对象受结局影响，例如用肝毒性发生后的血药浓度代替实际用药）。中文期刊里写作"反向因果""指征性偏倚"（reverse causation、ambiguity bias），讨论<em>横断面</em>设计中的暴露—疾病关系时特别常见。</li>
+<li><strong>差异性观察偏倚</strong>：如图 9.5，<code>A → U<sub>Y</sub></code>。知道病人是否服药、因而对服药者检查更频繁或化验更多，是临床数据里的日常情形。注意它在中文文献里常被误归为"选择偏倚"（因为"检测次数不同"听起来像"入选机会不同"），但结构上它落在<em>结局测量误差</em>这一侧，属于测量偏倚。</li>
+<li><strong>非差异性的测量误差</strong>：图 9.2。这类在中文文献里往往根本没被命名——它表现为效应被"稀释"向零值，于是常被含糊地说成"存在混杂"或"信息偏倚"。实际含义很明确：如果暴露与结局都由同一套常规流程测得，且错测与真值无关，那么风险比的估计通常<strong>偏向零值</strong>（连续型结局则是向均值收缩），表现为效应被低估，且往往是"真实效应不小、测出来却不显著"这种令人困惑的局面。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>9.1 Measurement error</li>
-    <li>9.2 The structure of measurement error</li>
-    <li>9.3 Mismeasured confounders and colliders</li>
-    <li>9.4 Causal diagrams without mismeasured variables?</li>
-    <li>9.5 Many proposed causal diagrams include noncausal arrows</li>
-    <li>9.6 Does it matter that many proposed diagrams include noncausal arrows?</li></ul>
-</div>
+<p>这套对照对读中文文献很实用。当一篇文章只笼统写"存在信息偏倚"时，你要追的问题是：错测是否<em>依赖</em>真值？若不依赖（用一份<em>与结局无关</em>的数据评估过的测量工具，例如统一的检验方法、经过效度检验的问卷、药品发放记录），那么偏倚的方向大体是明确的（收缩）；若依赖，就不存在这种安慰，需要额外的敏感性分析。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（非差异性能校正、差异性不能：一个"有没有验证子样本"的分水岭）</strong>：这四类结构里，只有独立非差异性（图 9.2）真正存在成熟的校正方法，原因在方法内部：校正靠的是<em>参数化</em>地把真值与测量值的关系写出来（经典测量误差模型 <code>A = E[A|A<sup>*</sup>] + e<sub>A</sub></code>，即回归校正），再用<em>额外的数据</em>把 <code>E[A|A<sup>*</sup>]</code> 这个光滑函数从两个分布的差异中估出来。可用的额外数据就是<strong>验证样本</strong>：一小撮人的真值被准确测量了（毒理学研究里的动物对照、随访研究里的重复测量、健康体检人群的重复抽血、健康保险数据库里同一指标的两套编码）。没有验证样本，回归校正在结构上就不可识别——你会发现任何一组参数都能拟合出你看到的关联。</p>
+<p>差异性测量误差为什么难？因为它把待估量的东西变成"错测如何依赖于另一个变量"，而后者本身也是被错测的；<code>Y → U<sub>A</sub></code> 这条箭头一旦成立，<code>A<sup>*</sup></code> 与 <code>Y</code> 的关联里就混入了与 <code>Y</code> 有关、且无法与因果效应分开的那部分。中文综述里常见的"两阶段方法校正暴露测量误差"，其前提几乎总是"误差与结局独立且误差方差已知或可估"。真正处理差异性误差的文献相对稀少，通常只能靠<strong>定量偏倚分析</strong>（quantitative bias analysis）或<strong>负对照</strong>暴露，把误差大小当作需要<em>假设</em>而非<em>估计</em>的参数来处理——这一点与第 15 章的代理变量思想、精细辨析 7.4 讨论的"未测混杂因子的可估性"是同一个困境。实务建议：在中文临床研究的方案与讨论部分，把"错测是否依赖结局或处理"明确写出来，并给出敏感性分析的参数区间，比笼统地写"本研究可能存在测量偏倚"要经得起审稿。</p>
+</aside>
+
+<h2 id="s-9-3">9.3 测量错误的混杂因子与对撞因子</h2>
+
+<p>除了处理 <code>A</code> 与结局 <code>Y</code>，混杂因素 <code>L</code> 本身也可能测错。混杂因素的错误测量，即便处理与结局都被完美测量，也可能导致偏倚。</p>
+
+<p>看图 9.8 的因果图，它包含变量用药 <code>A</code>、肝病 <code>Y</code> 与肝炎病史 <code>L</code>。既往有肝炎 <code>L</code> 的人更不容易被开药 <code>A</code>，也更容易罹患肝病 <code>Y</code>。正如第 7 章讨论过的，处理 <code>A</code> 对结局 <code>Y</code> 的效应存在混杂，因为存在一条开放的后门路径 <code>A ← L → Y</code>；但在给定 <code>L</code> 的条件下不存在未测混杂，因为后门路径 <code>A ← L → Y</code> 可以通过条件于 <code>L</code> 被阻断。也就是说，给定混杂因素 <code>L</code>，已处理者与未处理者可交换，于是可以套用 IP 加权或标准化来计算 <code>A</code> 对 <code>Y</code> 的平均因果效应。基于 <code>L</code>、<code>Y</code>、<code>A</code> 的标准化（或 IP 加权）风险比，就等于因果风险比 <code>Pr[Y<sup>a=1</sup> = 1] / Pr[Y<sup>a=0</sup> = 1]</code>。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_8.png" alt="图 9.8：混杂因素 L 影响处理 A 与结局 Y，同时被错测为 L 星">
+<figcaption><strong>图 9.8</strong>　混杂因素 <code>L</code>（肝炎病史）既影响用药 <code>A</code> 又影响肝病 <code>Y</code>，后门路径 <code>A ← L → Y</code> 因此是开放的；但 <code>L</code> 本身被错测成了 <code>L<sup>*</sup></code>。</figcaption></figure>
+
+<p>上述推理里隐含的假设同样是：混杂因素 <code>L</code> 被完美测量。假设研究者拿不到研究对象的病历，为了弄清既往是否诊断过肝炎，只能通过问卷询问。由于并非所有参与者都能准确回忆自己的病史——有人不想让别人知道，有人有记忆问题，还有人只是在填问卷时出了错——混杂因素 <code>L</code> 就带着误差被测量了。请注意图 9.8 并没有画出代表 <code>L</code> 的测量误差来源的 <code>U<sub>L</sub></code>，因为这种误差的具体结构与我们的讨论无关。</p>
+
+<p>研究者手里只有错测变量 <code>L<sup>*</sup></code> 的数据，而没有 <code>L</code> 的。遗憾的是，后门路径 <code>A ← L → Y</code> 一般不能通过条件于 <code>L<sup>*</sup></code> 被阻断。基于 <code>L<sup>*</sup></code>、<code>Y<sup>*</sup></code>、<code>A</code> 的标准化（或 IP 加权）风险比，一般会不同于因果风险比 <code>Pr[Y<sup>a=1</sup> = 1] / Pr[Y<sup>a=0</sup> = 1]</code>。我们于是说存在测量偏倚或信息偏倚。图 9.9 的因果图给出了 <code>A</code> 对 <code>Y</code> 的因果效应存在混杂、而 <code>L</code> 并不是 <code>A</code> 与 <code>Y</code> 共同原因的一个例子。在这里，<code>L</code> 的错误测量同样导致测量偏倚，因为后门路径 <code>A ← L ← U → Y</code> 一般不能通过条件于 <code>L<sup>*</sup></code> 被阻断。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_9.png" alt="图 9.9：未测混杂 U 经由 L 影响 A 与 Y，L 被错测为 L 星">
+<figcaption><strong>图 9.9</strong>　后门路径 <code>A ← L ← U → Y</code> 经过未测的混杂因素 <code>U</code>。条件于错测的 <code>L<sup>*</sup></code> 无法阻断这条路径。</figcaption></figure>
+
+<p>另一种看法是：把图 9.8 与图 9.9 中由混杂因素错测带来的偏倚，看成<em>未测混杂</em>的一种形式，而不是<em>测量偏倚</em>的一种形式。事实上，图 9.8 的因果图与图 7.8 的那张是等价的。你可以把 <code>L</code> 想作一个未测变量，把 <code>L<sup>*</sup></code> 想作一个<strong>代理混杂因素</strong>（surrogate confounder，见精细辨析 7.2）。究竟该用哪套术语——未测混杂，还是混杂因素的错测——对实际用途并不重要。不过在某些情形下，使用错测变量就足以完成混杂调整。若干例子见精细辨析 9.2。</p>
+
+<p>混杂因素的错误测量还可能造成<strong>表面上的效应修饰</strong>。举个例子，假设所有报告了既往肝炎诊断的研究对象（<code>L<sup>*</sup> = 1</code>）都确实得过肝炎，而报告没有既往肝炎诊断的人（<code>L<sup>*</sup> = 0</code>）中只有一半其实得过（<code>L = 1</code>）。也就是说，混杂因素的真值与测量值在 <code>L<sup>*</sup> = 1</code> 这一层上重合，在 <code>L<sup>*</sup> = 0</code> 这一层上不重合。再假设处理 <code>A</code> 对任何个体的肝病 <code>Y</code> 都没有效应，即锐零假设成立。当研究者把分析限制在 <code>L<sup>*</sup> = 1</code> 这一层时，不会存在 <code>L</code> 造成的混杂，因为进入分析的所有对象 <code>L</code> 取值相同（都是 <code>L = 1</code>）。于是他们在 <code>L<sup>*</sup> = 1</code> 层里找不到 <code>A</code> 与 <code>Y</code> 的关联。但当研究者把分析限制在 <code>L<sup>*</sup> = 0</code> 这一层时，混杂就来了，因为 <code>L<sup>*</sup> = 0</code> 这一层里既有 <code>L = 1</code> 也有 <code>L = 0</code> 的人，是两者的混合。于是研究者会发现 <code>A</code> 与 <code>Y</code> 存在非零关联，其来源是未被控制的 <code>L</code> 混杂。如果研究者并不知道"混杂因素在 <code>L<sup>*</sup> = 0</code> 层里被错测、在 <code>L<sup>*</sup> = 1</code> 层里没有"这件事，他们可能会天真地断定，<code>L<sup>*</sup> = 0</code> 层与 <code>L<sup>*</sup> = 1</code> 层的关联度量都可以解释为效应度量。由于这两个关联度量并不相同，研究者便会说 <code>L<sup>*</sup></code> 是 <code>A</code> 对 <code>Y</code> 效应的修饰因子——尽管真正的混杂因素 <code>L</code> 并不存在任何效应修饰。</p>
+
+<p>最后，对撞因子 <code>C</code> 也可能被测错。这种情形画在图 9.10 的因果图里，它与图 8.2 等价。当关心图 9.10 下 <code>A</code> 对 <code>Y</code> 的效应时，条件于错测的对撞因子 <code>C<sup>*</sup></code> 一般会引入选择偏倚，因为 <code>C<sup>*</sup></code> 是该对撞因子的后代，因而是处理 <code>A</code> 与结局 <code>Y</code> 的共同效应。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_10.png" alt="图 9.10：对撞因子 C 被错测为 C 星">
+<figcaption><strong>图 9.10</strong>　对撞因子 <code>C</code> 被错测为 <code>C<sup>*</sup></code>。条件于 <code>C<sup>*</sup></code> 相当于条件于 <code>A</code> 与 <code>Y</code> 的一个共同后代，会打开碰撞路径并引入选择偏倚。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 9.2　混杂因素错测何时不成问题</span>
+<p>在许多医学应用中，混杂因素的测量误差并不引入任何偏倚。假设高血压 <code>L</code> 同时影响接受降压治疗 <code>A</code> 的概率和发生脑卒中 <code>Y</code> 的概率。然而医生和患者并不是根据真正的血压 <code>L</code>、而是根据诊室里测到的血压 <code>L<sup>*</sup></code> 来决定治疗方案的。也就是说，<code>L<sup>*</sup></code> 是决策者能够接触到的、关于血压的全部信息。</p>
+<p>图 9.11（在结构上与图 7.2 等价）刻画的就是这种情形。可能被错测的 <code>L<sup>*</sup></code> 完全中介了 <code>L</code> 对 <code>A</code> 的效应，因为 <code>L</code> 中任何没有被 <code>L<sup>*</sup></code> 捕捉到的成分都仍然是未知的，因而也不可能影响"是否给药"这一决策。由此可知，<code>A</code> 与 <code>Y</code> 之间的后门路径可以通过条件于真值 <code>L</code> 或测量值 <code>L<sup>*</sup></code> 任一个来阻断。因此，研究者拿到的是真值 <code>L</code> 还是测量值 <code>L<sup>*</sup></code> 无关紧要，两者中的任何一个都足以完成混杂调整。</p>
+<p>图 9.12 展示了一个更极端的例子。在这张因果图下，拿到真正的 <code>L</code> 不足以完成混杂调整，而拿到被测的 <code>L<sup>*</sup></code> 却足够。一般性的道理是：<strong>只要数据中包含的信息不少于决策者做决策时所拥有的信息，效应就可以被识别</strong>——无论这些信息来自被完美测量的变量，还是来自带误差的变量。</p>
+</aside>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_11.png" alt="图 9.11：L 星完全中介 L 对 A 的效应">
+<figcaption><strong>图 9.11</strong>　被测的血压 <code>L<sup>*</sup></code> 完全中介了真血压 <code>L</code> 对治疗 <code>A</code> 的效应（另有 <code>L → Y</code>）。条件于 <code>L</code> 或条件于 <code>L<sup>*</sup></code> 都能阻断 <code>A</code> 与 <code>Y</code> 之间的后门路径。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_12.png" alt="图 9.12：未测的 U1 直接影响 Y，而 L 星仍能阻断混杂">
+<figcaption><strong>图 9.12</strong>　未测因素 <code>U<sub>1</sub></code> 直接影响结局 <code>Y</code>，另有 <code>U<sub>2</sub></code> 同时影响 <code>L</code> 与 <code>L<sup>*</sup></code>。此时条件于真值 <code>L</code> 不足以调整混杂，条件于 <code>L<sup>*</sup></code> 却足够。</figcaption></figure>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（"错测的混杂因素"与"未测混杂"是同一枚硬币；何时可以不等价）</strong>：本节明确指出，图 9.8 那张图与图 7.8 的图是等价的——把 <code>L</code> 视为未测、把 <code>L<sup>*</sup></code> 视为代理混杂因素，得到的是同一套可识别性结论。这一等价性在中文文献里很少被写出来，但它有直接的实践后果：<strong>面对一个被错测的混杂因素，"把它当混杂因素去调整"和"把它当未测因素去做代理调整"，需要满足的是同一组条件</strong>。这解释了为什么有些研究会把"变量质量不佳的混杂因素"直接改造成一个代理变量（如用"就诊次数"代理"整体健康状况"），再用倾向性评分或工具变量去处理——做法上等价，效果上却受制于同一个假设：<em>代理变量必须捕获混杂因素与结局相关的那部分</em>。精细辨析 9.2 进一步指出，等价关系可以被打破：只要错测版本 <code>L<sup>*</sup></code> 完整地传递了决策者实际看到的信息（图中 <code>L → A</code> 的所有成分都经过 <code>L<sup>*</sup></code>），<code>L<sup>*</sup></code> 就比 <code>L</code> 更好用。这条判据在中国真实世界研究中非常实用：医保结算数据、门诊病历、医保个人账户的年度额度清单，恰恰是<em>决策者当时真实看到的东西</em>，把它们当作"带误差的混杂因素"悲观处理，还是当作"决策变量的完整体现"乐观处理，结论可能完全相反。判据是：<code>L</code> 中没被 <code>L<sup>*</sup></code> 捕捉到的那部分成分，能不能影响决策？不能（比如那部分连医生都不知道，或者根本不影响开什么药），就可以放心用 <code>L<sup>*</sup></code>；能，就不能。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（表面上多出来的"效应修饰"：一个反复出现的报告错误）</strong>：本节那个 <code>L<sup>*</sup> = 0</code> 层里 <code>L</code> 被错测的例子，在中文文献里有一个极易辨认的对应物：<strong>亚组里的效应方向或显著性不一致</strong>。分析者看到一组人（<code>L<sup>*</sup> = 1</code>）里效应不显著、另一组人（<code>L<sup>*</sup> = 0</code>）里显著，而这两个 <code>L<sup>*</sup></code> 取值只是某个混杂因素<em>记录质量不同</em>的代理（比如一个来自病历回顾获得的既往诊断，另一个来自自填问卷），就宣布"该因素存在效应修饰"。在本节的例子里，这甚至会在真实的锐零假设下"制造出"一个非零关联。相应的诊断清单是：</p>
+<ul>
+<li>这个亚组变量是<strong>混杂因素</strong>，还是<strong>混杂因素的不完美测量</strong>？如果同一份信息在不同人身上质量不同（比如体检中心查过血，而社区只问过病史），那它就是后者。</li>
+<li>各亚组内的<strong>测量方法是否一致</strong>？不一致时，效应差异可能只是检测灵敏度差异。</li>
+<li>各亚组内的<strong>样本量</strong>？一组几百人、另一组几十人时，"显著与否"的差别往往只是把握度差别，此时 P 值的差异（<code>p<sub>1</sub> = 0.03</code> 对 <code>p<sub>2</sub> = 0.49</code>）比点估计的差异更有说服力。</li>
+</ul>
+<p>这几条与中文期刊里常见的"亚组分析"审读意见高度重合：审稿人问的往往正是"这个分层变量本身测得准不准"和"各层暴露测量方式是否一致"，而不是"这个因素是不是效应修饰"。</p>
+</aside>
+
+<h2 id="s-9-4">9.4 没有测量错误变量的因果图？</h2>
+
+<p>在前几章画因果图时，我们隐含地作出过两个简化假设，而且它们彼此相关。在本节与下一节里，我们要把这些假设及其后果挑明。</p>
+
+<p>第一个假设是：图上的所有变量都被完美测量。这个假设不现实，因为实践中处理、结局、混杂因素以及其他任何感兴趣的变量都常常免不了测量误差。在本章中，我们已经描述了因果图如何表示被错测的变量，以及在不同类型的测量误差下该怎么画。我们也考察了使用这些错测变量——它们是研究者唯一能拿到的变量——去识别因果效应会有什么后果。</p>
+
+<p>举个例子，假设我们关心处理 <code>A</code> 对结局 <code>Y</code> 的效应，但只有被测的处理 <code>A<sup>*</sup></code> 与被测的结局 <code>Y<sup>*</sup></code> 的数据。我们已经看到，即便处理 <code>A</code> 对结局 <code>Y</code> 的效应为零、即便既无混杂也无选择偏倚，处理或结局的测量误差也可能诱发出 <code>A<sup>*</sup></code> 与 <code>Y<sup>*</sup></code> 之间的一个非因果关联。同样，在存在混杂的情形下，我们也看到混杂因素的测量误差可能使被测的混杂因素 <code>L<sup>*</sup></code> 无法阻断某条后门路径——而如果我们拿到的是真正的混杂因素 <code>L</code>，那条路径本来是可以阻断的。</p>
+
+<p>由于所有变量都可以预期会带一些测量误差，有人可能会说，因果图总该同时画出每个变量的真值与测量值。然而在许多情形中，测量误差的大小可能被判断为（或者被确认为）小到无关紧要。在这些情形下，一张不区分变量测量值与真值的因果 DAG 出于简明考虑反而更可取。如果在所有变量被完美测量时存在混杂与选择偏倚，那么在存在测量误差时，这些偏倚通常也会存在（尽管如精细辨析 9.2 所示，例外也是有的）。画不含测量误差的因果图，能让我们专注于混杂与选择偏倚，而不被测量问题分心。</p>
+
+<p>把不含测量误差的因果图当作第一层近似，往往是有帮助的。一旦我们对完美测量下可能出现的偏倚有了较好的理解，就可以把测量误差作为额外的一层复杂度加上去。这种画因果图的两步法，帮助我们隔离混杂与选择这两个偏倚来源，而不至于被第三个来源——测量——压垮。本书采取的正是这个做法：当重点是混杂与选择偏倚时，我们就略去因果图上变量真值与测量值的区分。</p>
+
+<p>我们迄今所作的第二个假设同样与测量有关，它是任何因果图的一个根本假设。我们在下一节讨论它。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（"画图时先不管测量误差"这一策略在中文语境下的代价）</strong>：9.4 节其实是在给一套常见做法开脱：文献里的因果图几乎从不画 <code>A<sup>*</sup></code>、<code>L<sup>*</sup></code>，作者通常只画真值。这在偏倚以混杂为主、且研究者的首要任务是"把混杂因素挑干净"时是合理的；原书的理由也很实在——把测量误差画进来会让图膨胀一倍，而它的量级无法从图上判断（精细辨析 9.1 明确说：因果图不编码定量信息，因而无法描述偏倚的大小）。但中文文献中这一省略常常被推得太远，有两点值得警惕。</p>
+<p>其一，<strong>自报数据研究</strong>（问卷调查、医保患者自述用药、回顾性调查既往暴露）若图上只画 <code>A</code> 而不提及 <code>A<sup>*</sup></code>，读者会默认数据里就有真值，而实际上所有分析用的都是 <code>A<sup>*</sup></code>。更糟的是，这类研究随后报告的往往<em>就是</em>从 <code>A<sup>*</sup></code> 算出的关联，却把它称作 "<code>A</code> 的效应"。本节末尾那句"最好的办法是改进测量程序"在这种情形下不是套话，而是唯一有效的建议。</p>
+<p>其二，<strong>代理变量与错测变量的混用</strong>。中文综述里常见"用吸烟量 <code>L<sup>*</sup></code> 代理社会经济状况 <code>L</code>""用就诊次数代理疾病严重程度"这类做法。这在本章的框架下是被允许的，但必须交代清楚一件常被忽略的事：如果 <code>L<sup>*</sup></code> 既是 <code>L</code> 的测量、又同时充当混杂调整的变量，那么 <code>L</code> 中未被 <code>L<sup>*</sup></code> 捕捉的那部分是否仍然混杂，取决于 <code>L → A</code> 是否完全经由 <code>L<sup>*</sup></code> 传递（对比图 9.11 与图 9.12）。这个条件很少被明说，但它恰恰决定了"用代理变量调整"到底是在<em>消除</em>混杂，还是只是在<em>移动</em>混杂。</p>
+</aside>
+
+<h2 id="s-9-5">9.5 许多提出的因果图包含非因果箭头</h2>
+
+<p>考虑图 9.13 的因果图（它与图 7.1 相同）。令 <code>A</code>、<code>Y</code>、<code>L</code> 分别为三个二值变量，代表给 COVID-19 患者使用的抗病毒治疗、死亡，以及肥胖（定义为体质指数大于 30）。肥胖的病人更可能接受治疗，并且在不接受治疗的情况下更可能住院。因此，专家们画出了一张从 <code>L</code> 分别指向 <code>A</code> 与 <code>Y</code> 的 DAG。为简明起见，我们假定是否给药这一决策只受 <code>L</code> 以及医生个人偏好（与图上其他任何变量都无关）的影响。同样为了简明，我们假定所有变量都没有测量误差；具体来说，<code>L</code> 的真值等于它的测量值 <code>L<sup>*</sup></code>，所以后者不必画进图里。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_13.png" alt="图 9.13：专家提出的 DAG，含 L 指向 Y 的非因果箭头">
+<figcaption><strong>图 9.13</strong>　专家提出的 DAG：肥胖 <code>L</code> 既指向治疗 <code>A</code>，又指向死亡 <code>Y</code>。这张图缺少 <code>L</code> 与 <code>Y</code> 的共同原因，因此并非一张真正的因果 DAG。</figcaption></figure>
+
+<p>我们此前讨论过，在因果图中处理节点的地位与其他节点不同（见 6.4 节）。原因在于：要对处理 <code>A</code> 对结局 <code>Y</code> 的效应作出有意义的定量因果推断，必须存在定义明确的、对 <code>A</code> 的实际干预或假想干预。否则反事实结局 <code>Y<sup>a</sup></code> 就无从定义，也无法与观测到的结局 <code>Y</code> 联系起来，即一致性条件不成立（见第 3 章）。在我们的例子里，处理 <code>A</code> 所代表的干预是定义明确的，因为我们对如何给予或不给抗病毒治疗有很好的理解。因此，从 <code>A</code> 到 <code>Y</code> 有没有箭头，同样是定义明确的。</p>
+
+<p>现在把讨论扩展到那些不被视为处理的节点，比如图 9.13 中的肥胖 <code>L</code>。正如第 3 章反复讨论的，对肥胖 <code>L</code> 影响死亡 <code>Y</code> 的干预并没有被定义清楚。因此，反事实结局 <code>Y<sup>l</sup></code> 无法定义。</p>
+
+<p>到目前为止，本书一直回避这个问题，但健康与社会科学中提出的许多 DAG 都包含这样的箭头：从一些并不存在定义明确干预的变量出发，比如图 9.13 中的 <code>L</code>。这些箭头——比如图 9.13 中的 <code>L → Y</code>——并没有因果解释。为了探究使用这类含有非因果箭头的 DAG 会带来什么后果，下面我们把图 9.13 讨论得更细一些。我们把 <code>L → A</code> 与 <code>L → Y</code> 两条箭头分开来看。</p>
+
+<p>当专家们画出 <code>L → A</code> 这条箭头时，他们在恰当地使用自己的专业知识。专家们知道，医生在得知病人肥胖之后更可能给病人用药。对于 <code>L</code> 对 <code>A</code> 的效应，人们可以设想出定义明确的干预，例如向主治医生呈现一位体质指数与正在做治疗决策的那位病人不同的病人。因此，画出 <code>L → A</code> 是合理的。关于这一点更多的讨论，见读完下一段之后的精细辨析 9.3。</p>
+
+<p>那么专家们画出 <code>L → Y</code> 有正当理由吗？假设专家们知道肥胖病人更容易死亡，却提不出关于 <code>L</code> 对 <code>Y</code> 效应的定义明确的干预。那么 <code>L → Y</code> 这条箭头就没有因果解释。在本章以及全书中，我们把"因果 DAG"这个词限定给那些所有箭头都有明确因果解释的 DAG。因此，按照这一定义、并考虑当前的知识状态，图 9.13 是一张"非因果"图。我们给"非因果"加了引号，是为了提醒读者：因果文献中大量的论文仍然把同时包含因果箭头与非因果箭头的 DAG 定义为因果图。更多讨论见精细辨析 9.4。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 9.3　干预是否定义明确，取决于所关心的结局</span>
+<p>正文里我们说过，即便对 <code>L</code> 影响 <code>Y</code> 没有定义明确的干预，对 <code>L</code> 影响 <code>A</code> 仍可能存在定义明确的干预。这句话需要更好的解释：如果我们真的知道如何干预 <code>L</code> 来研究它对 <code>A</code> 的效应，那是什么阻止我们用同样的干预去研究它对 <code>Y</code> 的效应？</p>
+<p>这个表面上的矛盾源于记号的滥用。在我们的例子里，符号 <code>L</code> 同时指代了两个概念：(i) 身体体重这一物理量（以千克计）；(ii) 该物理量的记录值（以千克计）。在不存在测量误差的世界里，(i) 与 (ii) 的数值相同，把两个概念混为一谈没有实际影响。然而，当我们在正文中说 <code>L</code> 对 <code>A</code> 存在定义明确的干预时，指的是对 (ii) 而不是对 (i) 的干预，因此有必要把两个概念区分开。</p>
+<p>让我们用符号 <code>L</code> 表示物理量"体重"，用 <code>L<sup>*</sup></code> 表示 <code>L</code> 的记录值。如果我们把 <code>L<sup>*</sup></code> 加进因果 DAG，那么在假设没有测量误差的前提下，会有一条从 <code>L</code> 到 <code>L<sup>*</sup></code> 的确定性箭头，以及一条从 <code>L<sup>*</sup></code> 到 <code>A</code> 的普通箭头。按照这张扩充后的因果 DAG，体重 <code>L</code> 只有在医生得知 <code>L<sup>*</sup></code> 的值之后才会影响治疗 <code>A</code>。因此，如果我们干预的是记录值 <code>L<sup>*</sup></code>，那么即便物理量 <code>L</code> 保持不变，医生的行为也会与"我们能直接干预 <code>L</code>"的情形完全相同。正文里说"当结局是 <code>A</code> 时 <code>L</code> 上存在定义明确的干预"，说的正是这个意思——反事实 <code>A<sup>l</sup></code> 是定义明确的；而当结局是 <code>Y</code> 时则不是，因为反事实 <code>Y<sup>l</sup></code> 没有定义。</p>
+</aside>
+
+<p>现在假设第二组专家对"肥胖病人更容易死亡"这一已知事实提出了另一种解释：肥胖是某个隐藏因素 <code>H</code> 的代理或替身，而 <code>H</code> 对 <code>Y</code> 有因果效应。相应的因果图是图 9.14（在结构上与图 7.2 相同），它包含了未测的、也可能是未知的变量 <code>H</code>，比如遗传因素、与脂肪储备有关的代谢因素、肠道菌群，以及大概还有一些尚未被科学发现的因素。按照图 9.14，因素 <code>H</code> 对治疗 <code>A</code> 的效应完全由 <code>L</code> 中介；也就是说，<code>H</code> 与 <code>A</code> 之间没有直接箭头。如果（比如）现实中用于做出治疗决策的信息只有肥胖 <code>L</code>，这个假定就是合理的。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_14.png" alt="图 9.14：隐藏因素 H 是 L 与 Y 的共同原因">
+<figcaption><strong>图 9.14</strong>　隐藏因素 <code>H</code>（遗传、代谢、菌群等）既影响肥胖 <code>L</code> 又影响死亡 <code>Y</code>，而 <code>H</code> 对治疗 <code>A</code> 的效应完全由 <code>L</code> 中介。这是一张所有箭头都可作因果解释的 DAG。</figcaption></figure>
+
+<p>与图 9.13 一样，图 9.14 编码了两条（合理的）假设：一是存在关于肥胖 <code>L</code> 对治疗 <code>A</code> 效应的定义明确的干预——由箭头 <code>L → A</code> 表示；二是不存在不经由 <code>A</code> 的 <code>L</code> 对 <code>Y</code> 的直接效应。因此，与之对应的反事实是 <code>A<sup>l</sup></code> 与 <code>Y<sup>a</sup></code>，它们蕴含着存在一个关于 <code>L</code> 对 <code>Y</code> 效应的定义明确的干预，其结果为 <code>Y<sup>l</sup> = Y<sup>A^l</sup></code>（外层上标里的 <code>l</code> 是反事实 <code>A<sup>l</sup></code> 的取值）。也就是说，<code>Y<sup>l</sup></code> 等于 <code>Y<sup>a</sup></code>，其中 <code>a</code> 等于反事实 <code>A<sup>l</sup></code>。用技术要点 6.2 的说法，我们说 <code>Y<sup>l</sup></code> 是由 <code>Y<sup>a</sup></code> 与 <code>A<sup>l</sup></code> 通过递归代入得到的。请注意，对于图 9.14 的因果图 <code>Y<sup>l</sup></code> 是定义明确的，而对于图 9.13 不是，这之间并不矛盾——因为假定图 9.14 是因果图，就意味着图 9.13 不是：图 9.13 遗漏了 <code>L</code> 与 <code>Y</code> 的共同原因 <code>H</code>。另见精细辨析 9.6。</p>
+
+<p>图 9.14 还编码了这样一个假设：对未知因素 <code>H</code> 影响 <code>L</code> 和 <code>Y</code> 的效应，都存在定义明确的干预。也就是说，图 9.14 上的箭头 <code>H → L</code> 与 <code>H → Y</code> 意味着分别存在与对 <code>H</code> 的定义明确干预相对应的反事实 <code>L<sup>h</sup></code> 与 <code>Y<sup>h</sup></code>。我们同时 stipulate 两件事，而这里可能显得不合直觉：(i) 现有的知识水平不足以刻画 <code>H</code> 中的许多因素；(ii) 对 <code>H</code> 影响 <code>L</code> 与 <code>Y</code> 的效应都存在定义明确的干预。为了解释我们为什么可以这样做、从而在当前知识水平下把图 9.14 视为因果图，我们把 <code>H</code> 定义得更精确一些。</p>
+
+<p>当存在一个像图 9.13 中 <code>L</code> 那样的变量、使得 <code>Y<sup>l</sup></code> 病态定义时，我们引入 <code>L</code> 的一个高维父节点 <code>H</code>，它编码了 <code>L</code> 的全部未测因果决定因素——已知的与未知的都在内（除了图上已经存在的那些已知但未测的变量 <code>U</code>）。<code>H</code> 也可能是其他变量（比如 <code>Y</code>）的直接原因，因而是它们的父节点。我们把 <code>L</code> 看成 <code>H</code> 的低维"效应"，或者说 <code>H</code> 的代理：<code>H</code> 被记录下来以供数据分析。举例来说，在我们的肥胖例子中，连续变量体质指数 <code>L</code> 是那些大体未知的、调节体重的因素 <code>H</code> 的一个效应。在某些情形下，<code>L</code> 甚至可以被看作 <code>H</code> 的确定性（多对一）函数。</p>
+
+<p>尽管我们并不知道如何干预 <code>H</code> 的那些（数量众多且未知的）成分中会影响 <code>Y</code> 的那些，我们仍然假定存在对 <code>Y</code> 有因果效应的因素 <code>H</code>。由于现有的知识并未排除"<code>H</code> 对 <code>Y</code> 的效应存在定义明确的干预"这一可能，箭头 <code>H → Y</code> 就获得了暂时的正当性，因此我们认为图 9.14 是一张因果图。</p>
+
+<p>为清晰起见，在本节中我们区分了 <code>H</code> 与 <code>U</code>：<code>H</code> 指两个变量之间的未测共同原因，其中前一个变量对后一个变量的效应是病态定义的；<code>U</code> 指两个变量之间的未测共同原因，其中前一个变量对后一个变量的效应是定义明确的。在本书大部分地方，我们并不作这个区分，一律用 <code>U</code> 代表所有未测变量。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 9.4　有明确统计解释的"非因果"图</span>
+<p>考虑一种 DAG 表示，用于某个 FFR-CISTG 模型，它假定 (i) 处理 <code>A</code> 是唯一存在定义明确干预、从而拥有反事实 <code>(M<sup>a</sup>, Y<sup>a</sup>)</code> 的变量；(ii) 图上变量的分布按该 DAG 分解，即每个变量在其父节点给定后，与其非后代条件独立。在这类 DAG 中，箭头一般并不具有因果解释。箭头只是通过 d-分离编码了图上变量（以及相应的 SWIG，见技术要点 21.12）所满足的条件独立性。在 DAG 的这种"非因果"解释下，图 9.13 中的 <code>L → Y</code> 箭头并不必仅仅因为对 <code>L</code> 的干预没有定义清楚而被删掉。</p>
+<p>Richardson 与 Robins（2013）指出了这种做法的严重困难。具体来说，如果箭头没有因果解释，那么就没有理由预期研究变量的分布能被任何（不完整的）DAG 表示（即按其分解）。在存在未测变量 <code>U</code> 时，这个困难会被放大，因为那时甚至无法从观测数据中检验某些条件独立性。举例来说，图 7.14 的前门图蕴含 <code>Y</code> 在给定 <code>M</code> 与 <code>U</code> 时与 <code>A</code> 独立。任何把图 7.14 选作恰当因果 DAG 的研究者，必定有实质性的理由去设定这个条件独立性。事实上，许多研究者可能很难想象，除"相信 <code>A</code> 与 <code>Y</code> 共享一个共同原因 <code>U</code>、并且 <code>A</code> 对 <code>Y</code> 的因果效应完全由 <code>M</code> 中介"之外，还能有什么理由——而这种信念赋予了图上每一条箭头以因果解释。另见精细辨析 9.5。</p>
+<p>另一种理解是：研究者对"<code>M</code> 反事实 <code>Y<sup>m</sup></code> 存在"这一强因果主张持怀疑态度，于是用非因果箭头作为回应。这种"非因果"思路把图 7.14 解释为：在观测变量之间假设存在统计独立性 <code>Y ⊥⊥ A | M</code>，而这个独立性会在未来一项把 <code>A</code> 随机分配的试验中成立。于是，如果该独立性在未来的试验中不成立，那么"<code>M</code> 反事实存在"这一强因果主张的正当性，就与图 7.14 的结构一起被证伪。</p>
+</aside>
+
+<aside class="finepoint"><span class="box-label">精细辨析 9.5　与前门公式的联系</span>
+<p>图 9.14 恰恰就是图 7.14 的前门图，只不过把 <code>A → M</code> 换成了 <code>L → A</code>。因此，技术要点 7.4 中的前门公式，在把 <code>A</code>、<code>a</code>、<code>a′</code> 分别替换为 <code>L</code>、<code>l</code>、<code>l′</code>，把 <code>M</code>、<code>m</code> 分别替换为 <code>A</code>、<code>a</code> 之后，就识别了 <code>E[Y<sup>l</sup>]</code>。</p>
+<p>假设某位研究者修改了图 9.14，加上一条直接的 <code>L → Y</code> 箭头。他的理由是：当营养师和物理治疗师被转介来面对一位 <code>L</code> 取值很高的个体时，他们会提供额外的辅助照护（比如饮食建议、预防深静脉血栓的锻炼等），而这些并没有记录在研究者能看到的病历里。在未经修改的图 9.14 中，反事实变量 <code>Y<sup>l</sup></code> 不同于加了直接 <code>L → Y</code> 箭头之后图中的 <code>Y<sup>l′</sup></code>。在未修改的图里，<code>Y<sup>l</sup> − Y<sup>l′</sup></code> 是沿因果路径 <code>L → A → Y</code> 的 <code>l</code> 相对于 <code>l′</code> 的效应；而在修改后的图里，<code>Y<sup>l</sup> − Y<sup>l′</sup></code> 则是沿 <code>L → Y</code> 与 <code>L → A → Y</code> 两条路径的总效应。事实上，与未修改的图不同，在修改后的图下 <code>E[Y<sup>l</sup>]</code> 是不可识别的。</p>
+<p>人们或许会猜想：沿路径 <code>L → A → Y</code> 的 <code>l</code> 相对于 <code>l′</code> 的效应，在两张图里应当相同，因而仍可由前门公式识别。这个猜想确实成立，不过我们要把证明推迟到第 23 章讨论路径特异效应的识别时再做。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（大量已发表的因果图画了非因果箭头，对读者意味着什么）</strong>：9.5 节指出，因果文献中的许多 DAG 从"并不存在定义明确干预"的变量出发画出箭头，例如把"肥胖 → 死亡"当作一条因果箭头。对读者的实际意义可以分成三层。</p>
+<p>其一，<strong>阅读层面</strong>：看到一张论文里的 DAG，不必默认它就是因果 DAG。你要问的只有一句话——"图中每一条箭头 <code>X → Z</code>，我能否说出 <code>X</code> 的哪种具体干预（或干预的哪个具体版本）会改变 <code>Z</code>？"如果 <code>X</code> 是年龄、体重、血压、种族、社会经济状况这类只能被观察而难以被操控的变量，而它对 <code>Z</code> 的效应是通过无数条机制实现的，那么这张图严格说就不是因果图。特别值得警惕的是常见的"<strong>一条箭头直接指向结局</strong>"，尤其在自变量与结局都可能受未测共同原因影响的场合（见下一条）。</p>
+<p>其二，<strong>推断层面</strong>：非因果图未必给出错误答案，但这是运气而非保证。9.6 节那个例子之所以安全，是因为图 9.13 与图 9.14 给出了同一套识别公式；把 <code>L → Y</code> 换成 <code>H → L</code> 与 <code>H → Y</code> 之后，调整 <code>L</code> 依然恰好能阻断 <code>A</code> 与 <code>Y</code> 之间的后门路径。这种"凑巧"依赖于：隐藏的共同原因恰好完全经由被测的 <code>L</code> 起作用。真实研究中，只要它多出任何一条旁路（例如精细辨析 9.5 中营养师提供额外照护的那个例子，<code>H</code> 还直接影响 <code>Y</code>），<code>L</code> 就不再充分。因此从非因果图推出的结论，应当被视为<em>有待论证的假设</em>，而不是已被论证的结论。</p>
+<p>其三，<strong>写作层面</strong>：中文期刊正在快速积累带 DAG 的观察性研究，因此有一件事值得在投稿前自查：如果把图上每个节点换成"能否为它设计一个明确的干预"，你的图能剩下几条箭头？如果一条都剩不下，说明你画的其实是"变量之间的关联结构图"，那么在图注里说清楚这一点、并且不要使用"因果图"这个词，比默默沿用"因果 DAG"的流行叫法要安全得多——审稿人未必会替你发现这层区别，而你自己的论证也不依赖"因果"二字。</p>
+</aside>
+
+<h2 id="s-9-6">9.6 许多因果图包含非因果箭头这件事要紧吗？</h2>
+
+<p>我们已经看到，专家们最初提出的那张 DAG（图 9.13）不是因果 DAG，因为其中一条箭头（从 <code>L</code> 指向 <code>Y</code> 的那条）无法作因果解释。然而，尽管这张 DAG 在因果上是错的，它对于就处理 <code>A</code> 对结局 <code>Y</code> 的效应作因果推断却已经够用：无论我们使用图 9.13 这张非因果 DAG，还是图 9.14 那张因果 DAG，都会得出同一个结论——条件于 <code>L</code> 就能阻断 <code>A</code> 与 <code>Y</code> 之间的所有后门路径。因此，图 9.13 这张缺少节点 <code>H</code>、却含有非因果箭头 <code>L → Y</code> 的 DAG，正确地指引了数据分析，因为在计算 <code>A</code> 对 <code>Y</code> 的平均因果效应时，识别公式（在本例中是标准化或 IP 加权）所需要的全部内容就是调整 <code>L</code>。这个结论在意料之中，因为在两张 DAG 中都没有箭头从未测变量指向处理 <code>A</code>（另见精细辨析 9.2）。这个过度简化的情景说明了一个普遍问题：在现实中复杂的设定里，专家的知识很少足以画出一张所有成分都已知的因果图。</p>
+
+<p>事实上，健康与社会科学中提出的许多 DAG 之所以是非因果 DAG，正是因为它们缺少使 DAG 成为因果图的那些隐藏变量 <code>H</code>。当我们把一个变量（比如肥胖及其后代死亡）纳入图中，却不存在关于它对后代之效应的定义明确的干预时，我们实际上是在宣告：我们的 DAG 是非因果的。不过，所关心因果效应的识别公式，有可能无论从非因果 DAG 推导、还是从带隐藏节点的因果 DAG 推导，都恰好相同。我们的例子正是如此：如果图 9.14 是正确的 DAG，那么使用图 9.13 的 DAG 也会得到同一个识别公式。</p>
+
+<p>但非因果 DAG 也可能误导人。考虑图 9.15 的 DAG。宣称这张 DAG 是因果 DAG，就意味着我们相信存在关于 <code>L</code> 对 <code>Y</code> 效应的定义明确的干预（因为存在一条从 <code>L</code> 直接指向 <code>Y</code> 的箭头）。反过来，在不存在这种定义明确干预的情况下，这张 DAG 是非因果的，我们只能寄希望于基于 <code>L</code> 的识别公式碰巧是对的。</p>
+
+<p>按照我们前面的推理，图 9.16 刻画的是：我们测到的变量 <code>L</code> 实际上是某个未知变量 <code>H</code> 的代理，而对 <code>H</code> 存在定义明确的干预。在图 9.15 中，<code>A</code> 与 <code>Y</code> 之间的后门路径被 <code>L</code> 阻断；但在图 9.16 中，它并没有被阻断。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_15.png" alt="图 9.15：含直接 L 指向 Y 箭头的 DAG">
+<figcaption><strong>图 9.15</strong>　一张声称含有 <code>L → Y</code> 的 DAG。宣称它是因果图，等于宣称存在关于 <code>L</code> 对 <code>Y</code> 效应的定义明确干预；<code>U → L</code> 与 <code>U → A</code> 同时存在。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_16.png" alt="图 9.16：L 是 H 的代理，U 同时影响 H 与 A">
+<figcaption><strong>图 9.16</strong>　图 9.15 的"因果版"：<code>L</code> 被识别为隐藏变量 <code>H</code> 的代理，<code>U</code> 直接指向 <code>A</code>。此时 <code>A ← U → H → Y</code> 是一条不被 <code>L</code> 阻断的开放后门路径。</figcaption></figure>
+
+<p>因此，如果研究者并不知道自己那个被测变量其实是代理混杂因素 <code>L</code>，却提出了图 9.15 而不是图 9.16，他们就会错误地得出"<code>L</code> 足以阻断所有后门路径"的结论，正如 9.3 节所讨论的。在画因果 DAG 时，我们必须仔细想清楚：那些恰好被测量到的变量，是否也就是那些存在定义明确干预的变量。否则，对 DAG 中非因果箭头的忽视，会让我们对自己的效应估计抱有一种虚假的信心。另一个例子见精细辨析 9.6。</p>
+
+<p>从第 6 章引入因果图至今，我们已经走了很长一段路。因果 DAG 与 SWIG 是研究者用来组织并交流其因果假设的有力工具，但正如本章所看到的，这些图也受制于因果推断本身固有的那些实践约束。具体来说，在缺少关于 <code>X</code> 对 <code>Y</code> 效应的定义明确干预的情况下，因果箭头 <code>X → Y</code> 是无法被有意义地解释的。当我们提出一张因果 DAG 时，需要仔细思考其中每一条箭头的解释。不加科学审视地接受含有非因果箭头的 DAG，可能导致因果推断上的错误结论。这种谨慎对于刻画电路的因果图而言是不必要的（那里所有干预都是定义明确的），但对于健康与社会科学中提出的因果图却是不可或缺的。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_17.png" alt="图 9.17：研究者最初提出的非因果 DAG">
+<figcaption><strong>图 9.17</strong>　研究者最初提出的 DAG：<code>L</code> 是 <code>A</code> 的后代、同时与 <code>Y</code> 相关，<code>U</code> 影响 <code>A</code> 并与 <code>L</code> 相关。因为 <code>L</code> 是 <code>A</code> 的后代，<code>A</code> 对 <code>Y</code> 的效应不可识别。</figcaption></figure>
+
+<p>前面关于"定义明确的干预"的讨论，为了教学目的作了简化。如第 3 章所讨论，没有一种干预是完美定义的，但就某些干预而言，科学共识认为它们已经足够定义明确。我们已经论证过，定量因果推断从根本上依赖的，正是这个（诚然是模糊的）"足够定义明确的干预"概念。因此，在本书余下部分中，除了若干处标记得很清楚的例外，我们将假定所有 DAG 都是严格因果的，即 DAG 上每一条箭头都代表一个足够定义明确的干预。也就是说，每一条箭头都对应着这样的一种干预：依据现有的科学知识，它可以被明确规定到不剩下任何有意义的含糊之处。几年或几十年之后，我们也许会发现，我们的信念——因而我们的因果图——当初是错的。</p>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_18.png" alt="图 9.18：把 L 改写为 H 的代理后的因果 DAG">
+<figcaption><strong>图 9.18</strong>　把图 9.17 改造为因果图：加入隐藏变量 <code>H</code>（<code>A → H → Y</code>），并把 <code>L</code> 表示为 <code>H</code> 的后代。此时后门路径 <code>A ← U → H → Y</code> 不被任何被测变量阻断，效应仍不可识别。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch9--figure-9_19.png" alt="图 9.19：U 直接影响代理变量 L，效应重新变得可识别">
+<figcaption><strong>图 9.19</strong>　另一种修正：<code>U</code> 直接指向代理变量 <code>L</code>，而不指向 <code>H</code>。若这才是真实的因果 DAG，则 <code>A</code> 与 <code>Y</code> 之间没有开放的后门路径，效应可以识别。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 9.6　从非因果图到因果图</span>
+<p>假设有些关心 <code>A</code> 对 <code>Y</code> 效应的研究者提出了图 9.17 的 DAG。为了画出这张图，他们依据了关于变量时间顺序的先验知识，以及以下两个事实：(i) 被测变量 <code>L</code> 与 <code>Y</code> 相关；(ii) 存在一组未测但已知的因素 <code>U</code> 影响 <code>A</code> 并与 <code>L</code> 相关。如精细辨析 7.4 所讨论的，如果图 9.17 是真实的因果 DAG，那么 <code>A</code> 对 <code>Y</code> 的效应不可识别，因为 <code>L</code> 是 <code>A</code> 的后代。</p>
+<p>进一步反思之后，研究者意识到：并不存在关于 <code>L</code> 对 <code>Y</code> 效应的定义明确的干预。因此，箭头 <code>L → Y</code> 不是因果箭头，他们的 DAG 不是因果图。为了把图 9.17 转变为一幅因果图，他们加入了带有指向 <code>Y</code> 的因果箭头的隐藏变量 <code>H</code>，并把 <code>L</code> 表示为 <code>H</code> 的代理。图 9.18 描绘了他们修正后的 DAG。如果图 9.18 是真实的因果 DAG，那么 <code>A</code> 对 <code>Y</code> 的效应仍不可识别，因为后门路径 <code>A ← U → H → Y</code> 无法被任何被测变量阻断。</p>
+<p>请注意，研究者保留了箭头 <code>U → A</code>，这意味着他们相信存在关于 <code>U</code> 对 <code>A</code> 效应的定义明确的干预。他们还把图 9.17 中从 <code>U</code> 与 <code>A</code> 指向 <code>L</code> 的箭头改道，指向图 9.18 中的 <code>H</code>。这意味着研究者相信：必然存在关于 <code>U</code> 与 <code>A</code> 对 <code>H</code> 效应的定义明确的干预，并且 <code>U</code> 与 <code>A</code> 对 <code>L</code> 的效应完全由它们对 <code>H</code> 的效应中介。（即便 <code>L</code> 是 <code>H</code> 的确定性函数——这与图 9.18 并不矛盾——条件于 <code>L</code> 也不会阻断经过 <code>H</code> 的路径，因为 <code>H</code> 并不是 <code>L</code> 的确定性函数：它的维度和复杂度都高于 <code>L</code>。）</p>
+<p>图 9.18 让 <code>H</code> 继承了图 9.17 中所有指向 <code>L</code> 的箭头，这并不总是有道理的。例如，<code>U</code> 也可能像图 9.19 的因果 DAG 那样直接影响 <code>L</code>，而不是影响 <code>H</code>。如果图 9.19 确实是真实的因果 DAG，那么 <code>A</code> 对 <code>Y</code> 的效应就是可识别的，因为 <code>A</code> 与 <code>Y</code> 之间不存在开放的后门路径。请注意，在图 9.19 中，代理变量 <code>L</code> 不可能是 <code>H</code> 的确定性函数，因为它同时也受 <code>U</code> 影响。一个"U 对代理变量 <code>L</code> 有直接效应、对 <code>H</code> 没有直接效应"的例子是：<code>U</code> 表示医生决定开具某项特定诊断检查，<code>L</code> 表示这项检查的结果，<code>H</code> 表示该检查结果的潜在生物学决定因素。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 8（把非因果图改造成因果图：两种修正方式与它们的实践差别）</strong>：精细辨析 9.6 给出的两条修正路线，在中国的真实世界研究里都能找到对应，而且二者的可识别性结论相反，值得对照记住。图 9.18 式的修正是"加一个高维隐藏父节点 <code>H</code>，把 <code>L</code> 看成 <code>H</code> 的代理"；图 9.19 式的修正是"让 <code>U</code> 直接指向代理 <code>L</code>"。前者下 <code>A ← U → H → Y</code> 开放，效应不可识别；后者下没有开放后门路径，效应可识别。现实中这两条路对应的是两类完全不同的数据：</p>
+<ul>
+<li><strong>接近图 9.18 的情形</strong>：<code>L</code> 是某个复杂、几乎测不全的构造的低维投影——体质指数之于代谢与遗传、影像"印象"之于基础疾病、"就诊次数"之于潜在疾病负担、某个医保分型之于整体健康状态。这类 <code>L</code> 与结局之间通常存在多条不经由 <code>A</code> 的通路，因此调整 <code>L</code> 往往不足以识别 <code>A</code> 的效应。</li>
+<li><strong>接近图 9.19 的情形</strong>：<code>L</code> 是某一次具体临床测量的结果，而"为什么这次测量会被安排"只影响 <code>L</code>、不影响结局与处理的分配。精细辨析 9.6 举的例子——<code>U</code> 是医生决定开某项检查、<code>L</code> 是检查结果、<code>H</code> 是结果的生物学决定因素——在筛查研究、影像学研究、实验室参考区间研究中非常常见。</li>
+</ul>
+<p>还有两个可以直接搬进方案写作的做法。第一，<strong>把"哪些节点存在定义明确干预"逐条写出来</strong>（通常是一张表：变量名、是否可干预、可行的干预形式）。本节之所以反复强调"每一条箭头都要过一遍这一关"，原因就在这里：这张表同时也是未来做敏感性分析时的参数清单。第二，<strong>不要在"非因果图"上做识别</strong>。若你的图里有几条箭头经不起这一关，就把结论表述为"在本研究假设的图结构下"所得，并在讨论部分按精细辨析 9.6 的思路列出至少一个替代结构（图 9.18 与图 9.19 式的两种修正），说明结论在其中一种之下会翻转。国内综述与指南中越来越常见的一种写法，正是只报告一个 DAG 的识别结论而不给替代结构；一旦审稿人追问"如果 <code>L</code> 只是某个 <code>H</code> 的代理呢"，往往无从回答。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

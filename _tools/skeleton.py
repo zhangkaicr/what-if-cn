@@ -37,10 +37,18 @@ def main() -> None:
                 secs.append({"id": m.group(1), "title": m.group(2)})
 
         num = f.stem[2:]
-        out[f"ch{num}"] = {"title": title, "sections": secs}
+        # pdftotext 的页边界偶尔会把下一章首个小节号带进本章。
+        # 只保留与本章编号一致的条目，避免后续校验把串章误报为"小节缺失"。
+        keep = [s for s in secs if s["id"].startswith(num + ".")]
+        dropped = len(secs) - len(keep)
+        if dropped:
+            print(f"    [warn] {f.stem}: 丢弃 {dropped} 个非本章编号 -> "
+                  f"{[s['id'] for s in secs if s not in keep]}")
+
+        out[f"ch{num}"] = {"title": title, "sections": keep}
 
         print(f"### ch{num} | {title}")
-        for s in secs:
+        for s in keep:
             print(f"    {s['id']} {s['title']}")
         print()
 

@@ -3,31 +3,191 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 11 章 · 为什么需要模型 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 11 章 · 为什么需要模型 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 11 章 · 为什么需要模型</h1>
-<p class="muted">第二部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第二部分 · 基于模型的因果推断 · Part II — Causal inference with models</p>
+  <h1>第 11 章 · 为什么需要模型</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 11. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
-<ul>
-<li>阅读<a href="chch10.html">上一章</a>与<a href="chch12.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
-</ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>11.1 Data cannot speak for themselves</li>
-    <li>11.2 Parametric estimators of the conditional mean</li>
-    <li>11.3 Nonparametric estimators of the conditional mean</li>
-    <li>11.4 Smoothing</li>
-    <li>11.5 The bias-variance trade-off</li></ul>
-</div>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">别担心，不会再有关于“你抬头会不会让别人也跟着抬头”的章首故事了。那个例子我们已经榨得比看上去可能的还要彻底。本书第二部分的多数例子都会用到真实数据，数据集可以从本书网站下载。
+第一部分基本停留在概念层面，计算被压到最少，用手算就能完成。相比之下，第二部分的材料要求动用计算机去拟合回归模型，比如线性模型和 logistic 模型。由于本书不可能对回归技术做一次系统的入门介绍，我们假定读者对这些常用模型已有基本理解和实际使用经验。本书网站提供了 R、SAS、Stata 和 Python 的代码链接，可以复现正文中描述的分析；凡涉及具体代码段的地方，正文边注都会指明是哪个程序。</p>
+
+<p>本章说明第一部分所用的非参数估计量与第二部分所用的参数（基于模型的）估计量之间的差别。我们还会回顾平滑这个概念，并简要讨论任何建模决策都牵涉其中的偏差-方差权衡。本章想说明的是：无论分析目标是因果推断，还是姑且说预测，数据分析都需要模型。在下一章之前，我们先把因果的讨论搁在一边。请记住，关于建模的统计文献浩如烟海，本章只能挑出其中几个关键问题。</p>
+
+<h2 id="s-11-1">11.1 数据不会自己说话</h2>
+
+<p>设想一个由 16 名人类免疫缺陷病毒（HIV）感染者组成的研究人群。与本书第一部分不同，我们不再把这 16 个人看作各自代表 10 亿个跟他们完全相同的人。他们只是从一个庞大的、也许纯属假设的超级总体（super-population）中随机抽取的 16 个人，而这个超级总体就是目标人群。</p>
+
+<p><span class="box-label">边注</span>　一致性估计量（consistent estimator）的严格定义见第 10 章。</p>
+
+<p>研究开始时，每个人接受一定水平的处理 <code>A</code>（抗逆转录病毒治疗），并在研究全程维持该水平。研究结束时，对所有人测量一个连续结局 <code>Y</code>（CD4 细胞计数，单位为 cells/mm<sup>3</sup>）。我们希望一致地估计出这 16 人所属人群中、处理水平为 <code>A = a</code> 的个体的 <code>Y</code> 均值。也就是说，估计量（estimand）是未知的总体参数 <code>E[Y|A = a]</code>。</p>
+
+<p>按第 10 章的定义，<code>E[Y|A = a]</code> 的估计量 <code>E[Ŷ|A = a]</code> 是数据的某个函数，用来估计这个未知的总体参数。通俗地说，<code>E[Ŷ|A = a]</code> 是一致估计量，意思就是“样本量越大，估计值就越接近总体值 <code>E[Y|A = a]</code>”。<code>E[Ŷ|A = a]</code> 的两个可能例子是：(i) 接受 <code>A = a</code> 的那些人的 <code>Y</code> 样本均值；(ii) 数据集中第一个恰好取 <code>A = a</code> 的观测值。接受 <code>A = a</code> 者的 <code>Y</code> 样本均值是总体均值的一致估计量；第一个取 <code>A = a</code> 的观测值则不是。实践中我们要求所有估计量都一致，所以用样本均值去估计总体均值。</p>
+
+<p>假设处理 <code>A</code> 是一个二值变量，有两个可能取值：不治疗（<code>A = 0</code>）与治疗（<code>A = 1</code>）。有一半的人接受了治疗（<code>A = 1</code>）。图 11.1 是一幅散点图，把 16 个人各画成一个点，点的纵坐标表示该个体的结局值 <code>Y</code>。8 个接受治疗的人排在 <code>A = 1</code> 这一列，8 个未接受治疗的人排在 <code>A = 0</code> 这一列。按第 10 章的定义，对人群中处理水平 <code>A = a</code> 个体的 <code>Y</code> 均值的估计，就是把估计量（在我们的例子里是样本均值）应用到某个具体数据集上得到的数值结果。</p>
+
+<figure class="fig"><img src="../figures/ch11--figure-11_1.png" alt="图 11.1">
+<figcaption><strong>图 11.1</strong>　16 名 HIV 感染者的结局散点图。横轴为二值处理 <code>A</code>（0 = 未治疗，1 = 治疗），纵轴为结局 <code>Y</code>（CD4 细胞计数）。每列 8 个点。</figcaption></figure>
+
+<p>我们对接受治疗者总体均值的估计，是 <code>A = 1</code> 那一列的样本均值 146.25；对未接受治疗者的估计，是 <code>A = 0</code> 那一列的样本均值 67.50。若接受治疗者与未接受治疗者可交换（exchangeability），差值 146.25 − 67.50 就可以解释为处理 <code>A</code> 对结局 <code>Y</code> 在目标人群中平均因果效应的一个估计。不过，本章要谈的并不是做因果推断。我们当前的目标只是说明：当我们要估计 <code>E[Y|A = a]</code> 这类总体量时，为什么需要模型——不管这些估计最终有没有因果解释。</p>
+
+<p>现在假设处理 <code>A</code> 是一个多值变量，可以取 4 个值：不治疗（<code>A = 1</code>）、低剂量（<code>A = 2</code>）、中剂量（<code>A = 3</code>）、高剂量（<code>A = 4</code>）。每个处理水平上各有四分之一的人。图 11.2 展示了这 16 人的结局取值。要估计这 4 个处理组中的总体均值，我们只需算出相应的样本均值。对 <code>A = 1</code>、<code>A = 2</code>、<code>A = 3</code>、<code>A = 4</code>，估计值依次是 70.0、80.0、117.5 和 195.0。</p>
+
+<figure class="fig"><img src="../figures/ch11--figure-11_2.png" alt="图 11.2">
+<figcaption><strong>图 11.2</strong>　同一个 16 人研究人群，处理 <code>A</code> 改为取 4 个水平（1 = 不治疗，2 = 低剂量，3 = 中剂量，4 = 高剂量）时的结局散点图，每水平 4 人。</figcaption></figure>
+
+<p>图 11.1 与图 11.2 描绘的，分别是取 2 个类别和取 4 个类别的离散（分类）变量。由于研究人数固定为 16，类别数越多，每个类别里的人就越少。每一类里的样本均值仍然是相应总体均值的一个严格无偏估计量，但随着每类人数减少，样本均值恰好接近相应总体均值的概率会下降。各类别均值 95% 置信区间（见第 10 章）的长度，在图 11.2 的数据上会比图 11.1 的更长。</p>
+
+<p>最后，假设 <code>A</code> 表示以 mg/天计的治疗剂量，取值是 0 到 100 之间的整数。图 11.3 展示了 16 个人各自的结局取值。由于处理的可能取值数远多于研究人数，有很多 <code>A</code> 的取值没有任何人接受过。比如，研究人群里就没有剂量 <code>A = 90</code> 的个体。</p>
+
+<figure class="fig"><img src="../figures/ch11--figure-11_3.png" alt="图 11.3">
+<figcaption><strong>图 11.3</strong>　同一个 16 人研究人群，处理 <code>A</code> 为 0–100 mg/天整数剂量时的结局散点图。注意没有点在 <code>A = 90</code> 处——研究里没人接受这个剂量。</figcaption></figure>
+
+<p>这就产生了一个问题：目标人群中处理水平 <code>A = 90</code> 的个体，其结局 <code>Y</code> 的均值该怎么估计？我们在图 11.1 与图 11.2 中使用的估计量——按处理水平分组的样本均值——在图 11.3 里那些没有任何个体的处理水平上是未定义的。如果处理 <code>A</code> 真的是一个连续变量，那么样本均值对几乎所有处理水平都将无法定义。（一个连续的 <code>A</code> 可以看成是拥有不可数无穷多个类别的分类变量。）</p>
+
+<p>上面这一串描述说明：我们不可能总是让数据“自己说话”，从而得到有意义的估计。更多时候，我们需要用一个模型来补充数据，下一节就来说这件事。</p>
+
+<h2 id="s-11-2">11.2 条件均值的参数估计量</h2>
+
+<p>我们想从图 11.3 的数据里估计处理水平 <code>A = 90</code> 个体的 <code>Y</code> 均值，也就是 <code>E[Y|A = 90]</code>。假设我们预期 <code>A = 90</code> 个体的 <code>Y</code> 均值落在 <code>A = 80</code> 与 <code>A = 100</code> 两个均值之间。事实上，假设我们知道：在整个 <code>A</code> 取值范围内，处理水平特异的 <code>Y</code> 总体均值是 <code>A</code> 的一个线性函数。更精确地说，我们知道 <code>Y</code> 的均值 <code>E[Y|A]</code> 在 <code>A = 0</code> 处取某个值 <code>θ<sub>0</sub></code>，随后 <code>A</code> 每增加一个单位，均值增加（或减少）<code>θ<sub>1</sub></code> 个单位。或者更紧凑地写：</p>
+
+<p style="text-align:center"><code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code></p>
+
+<p><span class="box-label">边注</span>　更一般地说，对两者关系形状的这种限制被称为<strong>函数形式</strong>（functional form），有些作者称之为<strong>剂量-反应曲线</strong>（dose-response curve）。我们不用后一个说法，因为它暗示着处理的剂量对反应有因果效应，而在存在混杂的情况下这完全可能是假的。</p>
+
+<p>这个等式是对条件均值函数 <code>E[Y|A]</code> 形状的一个限制。这类特定限制称为<strong>线性均值模型</strong>（linear mean model），而 <code>θ<sub>0</sub></code> 与 <code>θ<sub>1</sub></code> 称为该模型的<strong>参数</strong>（parameters）。凡是用有限多个参数来描述条件均值函数的模型，都称为<strong>参数条件均值模型</strong>（parametric conditional mean models）。在我们的例子里，参数 <code>θ<sub>0</sub></code> 与 <code>θ<sub>1</sub></code> 定义了一条直线，它在纵轴上的截距是 <code>θ<sub>0</sub></code>，斜率是 <code>θ<sub>1</sub></code>。也就是说，这个模型规定所有条件均值函数都是直线，只不过截距和斜率可以各不相同。</p>
+
+<p>现在，我们可以把图 11.3 的数据与这个参数均值模型结合起来，为 0 到 100 之间的所有取值 <code>a</code> 估计 <code>E[Y|A = a]</code> 了。第一步是得到参数 <code>θ<sub>0</sub></code> 和 <code>θ<sub>1</sub></code> 的估计 <code>θ̂<sub>0</sub></code> 与 <code>θ̂<sub>1</sub></code>。第二步是用这些估计去估计任意 <code>A = a</code> 处的 <code>Y</code> 均值。例如，要估计处理水平 <code>A = 90</code> 个体的 <code>Y</code> 均值，我们用 <code>E[Ŷ|A = 90] = θ̂<sub>0</sub> + 90θ̂<sub>1</sub></code>。为每个个体算出的 <code>E[Ŷ|A]</code>，称为该个体的<strong>预测值</strong>（predicted value）。</p>
+
+<p><code>θ<sub>0</sub></code> 和 <code>θ<sub>1</sub></code> 的一个严格无偏估计量可以用普通最小二乘法得到。下面给出一个非技术性的说明。把图 11.3 里所有可能的候选直线都想一遍，每条直线对应一组不同的截距 <code>θ<sub>0</sub></code> 与斜率 <code>θ<sub>1</sub></code>。对每条候选线，可以计算每个点到它的垂直距离（即<strong>残差</strong>，residual），把这 16 个残差各自平方，再把 16 个平方残差加起来。使这个和最小的直线就是“最小二乘”线，这条线的参数值 <code>θ̂<sub>0</sub></code> 与 <code>θ̂<sub>1</sub></code> 就是“最小二乘”估计。<code>θ̂<sub>0</sub></code> 与 <code>θ̂<sub>1</sub></code> 的取值可以用线性代数轻松算出，任何一本统计教材都会讲。</p>
+
+<figure class="fig"><img src="../figures/ch11--figure-11_4.png" alt="图 11.4">
+<figcaption><strong>图 11.4</strong>　图 11.3 数据上的两参数线性条件均值模型 <code>E[Y|A] = θ<sub>0</sub></code> + <code>θ<sub>1</sub>A</code>：最小二乘直线拟合结果。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　代码：Program 11.2。在残差方差不依赖于 <code>A</code>（同方差性，homoscedasticity）的假设下，<code>θ<sub>0</sub></code> 的 Wald 95% 置信区间为 (−21.2, 70.3)，<code>θ<sub>1</sub></code> 的为 (1.28, 2.99)，<code>E[Y|A = 90]</code> 的为 (172.1, 261.6)。</p>
+
+<p>在我们的例子里，参数估计是 <code>θ̂<sub>0</sub></code> = 24.55 与 <code>θ̂<sub>1</sub></code> = 2.14，它们定义了图 11.4 中那条直线。因此，处理水平 <code>A = 90</code> 个体的 <code>Y</code> 预测均值是 <code>E[Ŷ|A = 90] = 24.55 + 90 × 2.14 = 216.9</code>。由于普通最小二乘估计用上了所有数据点来寻找最佳直线，<code>A = a</code> 组中 <code>Y</code> 的均值 <code>E[Y|A = a]</code>，是靠借用那些处理值 <code>A</code> 不等于 <code>a</code> 的个体的信息来估计的。</p>
+
+<p>那么，什么叫模型？模型由对数据联合分布的事前限制来定义。我们的线性条件均值模型说，条件均值函数 <code>E[Y|A]</code> 是一条直线，这就限制了它的形状。比如，这个模型把 <code>A = 90</code> 处的 <code>Y</code> 均值限制在 <code>A = 80</code> 与 <code>A = 100</code> 两处均值之间。这一限制由参数 <code>θ<sub>0</sub></code> 和 <code>θ<sub>1</sub></code> 编码进来。也就是说，参数条件均值模型通过它的事前限制，为数据中不足的信息补充了一些外部信息。</p>
+
+<p>参数估计量——即以参数条件均值模型为基础的估计量——让我们能够估计那些原本无从估计的量，比如目标人群中处理水平 <code>A = 90</code> 个体的 <code>Y</code> 均值，尽管研究人群里一个这样的人也没有。但天下没有免费的午餐。使用参数模型时，只有当模型编码的那些限制是对的、也就是说模型被正确设定（correctly specified）时，推论才是正确的。因此，本书余下很大一部分篇幅所讨论的、基于模型的因果推断，都依赖于（近似）无模型误设这一条件。既然参数模型几乎从来不可能被完全设定，某种程度的模型误设几乎总是预期之中的。用非参数估计量可以在一定程度上弥补这一点，这正是下一节的内容。</p>
+
+<h2 id="s-11-3">11.3 条件均值的非参数估计量</h2>
+
+<p>回到图 11.1 的数据。处理 <code>A</code> 是二值的，我们想一致地估计接受治疗者 <code>E[Y|A = 1]</code> 与未接受治疗者 <code>E[Y|A = 0]</code> 的 <code>Y</code> 均值。假设我们已经如此沉迷于模型，以至于决定用模型来估计这两个量。我们再次提出线性模型</p>
+
+<p style="text-align:center"><code>E[Y|A] = θ<sub>0</sub></code> + <code>θ<sub>1</sub>A</code></p>
+
+<p>其中 <code>E[Y|A = 0] = θ<sub>0</sub> + 0 × θ<sub>1</sub> = θ<sub>0</sub></code>，<code>E[Y|A = 1] = θ<sub>0</sub> + 1 × θ<sub>1</sub> = θ<sub>0</sub> + θ<sub>1</sub></code>。我们用最小二乘法得到参数估计 <code>θ̂<sub>0</sub></code> = 67.5 与 <code>θ̂<sub>1</sub></code> = 78.75。于是 <code>E[Ŷ|A = 0] = 67.5</code>，<code>E[Ŷ|A = 1] = 146.25</code>。请注意，我们基于模型得到的 <code>Y</code> 均值估计，与 11.1 节算出的样本均值一模一样。这不是巧合，而是意料之中的结果。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 11.2。在本书中，我们把“模型”定义为对自然可能状态的事前数学限制（Robins, Greenland 1986）。第一部分之所以取名“无模型的因果推断”，正是因为它只描述了饱和模型。</p>
+
+<p>我们再回头审视一遍处理 <code>A</code> 为二值时的模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code>。把它改写成 <code>E[Y|A = 1] = E[Y|A = 0] + θ<sub>1</sub></code>，就能看出这个模型不过是说：接受治疗者的均值 <code>E[Y|A = 1]</code> 等于未接受治疗者的均值 <code>E[Y|A = 0]</code> 加上某个量 <code>θ<sub>1</sub></code>，而 <code>θ<sub>1</sub></code> 可正可负可为零。可这句话当然永远成立！于是，对 <code>E[Y|A = 1]</code> 和 <code>E[Y|A = 0]</code> 的取值，这个模型没有施加任何限制。也就是说，当处理 <code>A</code> 为二值时，<code>E[Y|A = a] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 根本算不上模型，因为它和样本均值一样，还是让数据自己说话。凡是不对数据分布施加限制的“模型”，都称为<strong>饱和模型</strong>（saturated models）。它们形式上像个模型，即便并不符合我们对模型的定义，人们通常还是把它们称作模型。</p>
+
+<p>一般地说，当一个条件均值模型里的参数个数，等于总体中未知条件均值的个数时，这个模型就是饱和的。例如，线性模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 有两个参数，而当 <code>A</code> 为二值时总体中恰好有两个未知的条件均值：<code>E[Y|A = 1]</code> 与 <code>E[Y|A = 0]</code>。既然两个参数的取值没有被模型限制，两个均值的取值自然也没有被限制。</p>
+
+<p><span class="box-label">边注</span>　饱和模型的特点是：等号两边的未知数个数相同。</p>
+
+<p>作为对照，看图 11.3 的数据，<code>A</code> 可以取 0 到 100 之间的值。线性模型 <code>E[Y|A] = θ<sub>0</sub></code> + <code>θ<sub>1</sub>A</code> 只有两个参数，却要估计 101 个量，也就是 <code>E[Y|A = 0]</code>、<code>E[Y|A = 1]</code>、…、<code>E[Y|A = 100]</code>。用两个参数去无偏地估计 101 个量，唯一的指望就是运气好到让这 101 个均值恰好都落在一条直线上。当一个模型只有少数几个参数、却被用来估计很多总体量时，我们说这个模型是<strong>简约的</strong>（parsimonious）。</p>
+
+<p>这里我们把条件均值函数的非参数估计量定义为：那些在没有任何事前限制的条件下、仅从数据产生估计的估计量（更严格的定义见精细辨析 11.1）。对二值处理，总体均值 <code>E[Y|A = a]</code> 的一个非参数估计量就是它的经验版本，即样本均值，等价地说，就是本节描述的那个饱和模型。当 <code>A</code> 是取值 100 级的离散变量而样本里没有人 <code>A = 90</code> 时，<code>E[Y|A = 90]</code> 的非参数估计量并不存在。本书第一部分介绍的所有因果推断方法——标准化、IP 加权、分层、匹配——都以饱和模型下总体量的非参数估计量为基础，因为它们对效应估计的取值没有施加任何事前限制。相比之下，本书第二部分介绍的大多数因果推断方法，依赖的都是数据分布某一部分的参数估计量。参数估计正是在数据无法自己说话时用来借用信息的一种手段。</p>
+
+<p><span class="box-label">边注</span>　<strong>可识别性假设</strong>（identifiability assumptions）是：即便拥有无穷多的数据，为了算出这个参数也必须做出的假设。<strong>建模假设</strong>（modeling assumptions）是：由于我们没有无穷多的数据，为了估计这个参数而额外做出的假设。形式化地说，可识别性假设使参数成为观测数据联合分布的一个唯一函数。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 11.1　Fisher 一致性</span>
+<p>正文中我们对非参数估计量的定义，与统计学中所称的 Fisher 一致估计量（Fisher consistent estimator，Fisher 1922）恰好吻合。所谓 Fisher 一致估计量，是指这样一个总体量的估计量：当它是用整个总体而非一个样本来计算时，得到的正是该总体参数的真值。按照定义，Fisher 一致估计量不带任何模型限制；但如正文所述，对许多总体量而言，Fisher 一致估计可能并不存在。严格说来，Fisher 一致估计量（在存在的情况下）就是饱和模型下总体量的非参数极大似然估计。</p>
+<p>在统计文献中，“非参数估计量”这个词有时也被用来指那些并非 Fisher 一致、但只施加了极弱限制的估计量，比如核回归模型。详见技术要点 11.1。</p>
+</aside>
+
+<h2 id="s-11-4">11.4 平滑</h2>
+
+<p>再来看图 11.3 的数据和线性模型 <code>E[Y|A] = θ<sub>0</sub></code> + <code>θ<sub>1</sub>A</code>。参数 <code>θ<sub>1</sub></code> 是处理剂量 <code>A</code> 每增加一个单位、<code>Y</code> 的均值差多少。因为 <code>θ<sub>1</sub></code> 只是一个数，模型就规定：<code>A</code> 每增加一个单位、<code>Y</code> 的均值差在整个 <code>A</code> 取值范围内必须保持恒定，也就是说，模型要求条件均值结局作为处理剂量 <code>A</code> 的函数沿着一条直线走。图 11.4 画出了最佳拟合的那条直线。</p>
+
+<p>但完全可以设想这样的情形：在低剂量处，<code>A</code> 每增加一个单位带来的均值差较大；在高剂量处，同样的增量带来的均值差较小。如果剂量一旦超过某个水平，继续加量产生的效果就越来越小，那么就会出现这种情况。在这种情形下，模型 <code>E[Y|A] = θ<sub>0</sub></code> + <code>θ<sub>1</sub>A</code> 就是错的。不过，线性模型可以做得更灵活。</p>
+
+<p>比方说，我们对图 11.3 的数据拟合模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code>，其中 <code>A<sup>2</sup> = A × A</code> 就是 A 的平方。它仍然被称为线性模型，因为条件均值被表达成一个线性组合，即各协变量（<code>A</code> 与 <code>A<sup>2</sup></code>）与其对应系数（参数 <code>θ<sub>1</sub></code> 与 <code>θ<sub>2</sub></code>）之积的和，再加上一个截距（<code>θ<sub>0</sub></code>）。然而，只要 <code>θ<sub>2</sub></code> 不为零，<code>(θ<sub>0</sub>, θ<sub>1</sub>, θ<sub>2</sub>)</code> 定义出来的就是一条曲线——一条抛物线——而不是直线。我们把 <code>θ<sub>1</sub></code> 称为线性项 <code>A</code> 的参数，把 <code>θ<sub>2</sub></code> 称为二次项 <code>A<sup>2</sup></code> 的参数。</p>
+
+<p><span class="box-label">边注</span>　小心：“线性”一词常有两种含义。当一个模型被表示成参数与变量函数的线性组合时，它就是线性的，即便这些函数本身是变量的非线性函数（比如协变量的高次幂或对数）。</p>
+
+<p>把这个三参数线性模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code> 的曲线找出来，只需对图 11.3 的数据做普通最小二乘估计。估计出的曲线见图 11.5。参数估计为 <code>θ̂<sub>0</sub></code> = −7.41、<code>θ̂<sub>1</sub></code> = 4.11、<code>θ̂<sub>2</sub></code> = −0.02。处理水平 <code>A = 90</code> 个体的 <code>Y</code> 预测均值，由 <code>E[Ŷ|A = 90] = θ̂<sub>0</sub> + 90θ̂<sub>1</sub></code> + <code>90 × 90θ̂<sub>2</sub> = 197.1</code> 得到。</p>
+
+<p><span class="box-label">边注</span>　代码：Program 11.3。在同方差性假设下，<code>E[Ŷ|A = 90]</code> 的 Wald 95% 置信区间为 (142.8, 251.5)。</p>
+
+<figure class="fig"><img src="../figures/ch11--figure-11_5.png" alt="图 11.5">
+<figcaption><strong>图 11.5</strong>　三参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code> 在图 11.3 数据上的拟合曲线。与图 11.4 的直线相比，曲线在高剂量段已明显趋于平缓。</figcaption></figure>
+
+<p>我们可以继续加参数：为三次项加 <code>θ<sub>3</sub>A<sup>3</sup></code>，为四次项加 <code>θ<sub>4</sub>A<sup>4</sup></code>，一直加到十五次项 <code>θ<sub>15</sub>A<sup>15</sup></code>。到那时，模型里的参数个数就等于数据点（个体）个数了。曲线形状会随着参数个数的增加而改变。一般来说，模型里的参数越多，出现的拐点就越多。</p>
+
+<p>也就是说，曲线通常会随着参数个数的增加而变得更“wiggly”（起伏不平），更不平滑。一个只有 2 个参数的线性模型——一条直线——是最平滑的模型。一个参数个数与数据点一样多的模型则最不平滑，因为它能有的拐点数和数据点数一样多。事实上，这样的模型会插值数据，也就是样本中的每个数据点都恰好落在估计出的条件均值函数上。</p>
+
+<p>建模往往可以被看作这样一个过程：把嘈杂的数据转换成或多或少平滑的曲线。之所以会发生平滑，是因为模型要借用许多数据点的信息，去预测协变量取某一特定组合时的结局取值。而平滑来自于：<code>E[Y|A = a]</code> 是靠借用 <code>A</code> 不等于 <code>a</code> 的个体的信息来估计的。所有参数估计量都包含某种程度的平滑。</p>
+
+<p>平滑的程度取决于在个体之间借用了多少信息。两参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 估计 <code>E[Y|A = 90]</code> 时，用的是研究人群里所有人的信息去找那条最小二乘直线。而一个参数个数与个体数相同的模型，在估计数据中出现过的那些 <code>A</code> 取值处的 <code>E[Y|A]</code> 时，不借用任何信息；不过对数据中没出现过的 <code>A</code> 取值，它仍然会借用信息（通过插值）。</p>
+
+<p>用介于其间的参数个数，或者更一般地通过限制参与估计的个体个数，可以得到中间程度的平滑。例如，为估计 <code>E[Y|A = 90]</code>，我们可以只对剂量在 80 到 100 之间的个体拟合两参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code>。也就是说，我们只从 <code>A = 90</code> 附近一个 10 单位宽的窗口里借用信息。<code>A = 90</code> 周围的窗口越宽，达到的平滑就越多。</p>
+
+<p><span class="box-label">边注</span>　我们用针对连续结局的模型作例子。相同的推理也适用于针对二值结局的模型，比如 logistic 模型（见技术要点 11.1）。</p>
+
+<p>在上面这些过于简化的例子里，所有模型都只含一个协变量（要么 <code>A</code> 一个参数，要么 <code>A</code> 与 <code>A<sup>2</sup></code> 两个参数），所以曲线可以画在二维的书页上。在实际应用中，模型往往包含许多不同的协变量，所谓的曲线其实是超维曲面。无论问题的维数是多少，平滑这个概念都不变：模型里的参数越少，预测（反应）曲面就越平滑。</p>
+
+<h2 id="s-11-5">11.5 偏差-方差权衡</h2>
+
+<p>在前几节里，我们用图 11.3 的 16 个人去估计目标人群中接受 <code>A = 90</code> 剂量的个体的结局均值 <code>E[Y|A = 90]</code>。由于研究人群里没人接受 <code>A = 90</code>，我们没法让数据自己说话，于是把数据与一个线性模型结合起来。估计值 <code>E[Ŷ|A = 90]</code> 会随模型而变：在两参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 下，估计是 216.9（95% 置信区间：172.1, 261.6）；在三参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code> 下，估计是 197.1（95% 置信区间：142.8, 251.5）。我们用了两个不同的参数模型，得到两个不同的估计。哪个更好？216.9 还是 197.1 更接近目标人群里的真值？</p>
+
+<p>如果两者之间的关系真的是曲线形的，那么两参数模型的估计会有偏，因为它假定的是一条直线。反过来，如果关系真的就是一条直线，那么两个模型的估计都是有效的。原因在于：三参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code> 在直线情形下（此时 <code>θ<sub>2</sub> = 0</code>）和抛物线情形下（此时 <code>θ<sub>2</sub></code> ≠ 0）都被正确设定。有一个保险的做法：宁可用三参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A + θ<sub>2</sub>A<sup>2</sup></code>，而不用两参数模型 <code>E[Y|A] = θ<sub>0</sub> + θ<sub>1</sub>A</code>。因为三参数模型在直线和抛物线两种情形下都被正确设定，它产生偏差的可能性更小。一般来讲，模型里的参数越多，模型施加的限制就越少；模型越不平滑，它对模型误设所致偏差的抵抗力就越强。</p>
+
+<p>不过，越不平滑的模型虽然可能给出偏差更小的估计，方差也会更大，也就是估计值周围的 95% 置信区间更宽。举例来说，用三参数模型时，<code>E[Ŷ|A = 90]</code> 周围的 95% 置信区间就比用两参数模型时宽得多。然而，一旦基于两参数模型的 <code>E[Ŷ|A = 90]</code> 估计本身有偏，那个标准的（名义的）95% 置信区间就不再是校准的（calibrated），也就是说，它覆盖真参数 <code>E[Y|A = 90]</code> 的概率达不到 95%。</p>
+
+<p>这种偏差-方差权衡是大量数据分析的核心。使用模型的研究者需要决定：比如通过多加几个参数来换取一些防偏差的保护，值不值得付出方差上的代价。虽然有一些正式程序可以辅助这类决策，但实践中许多研究者是靠传统惯例、参数的可解释性、软件可得性之类的标准来选定模型的。在本书中，我们通常会假定自己的参数模型被正确设定。这是一个不现实的假定，但它让我们得以把注意力集中在因果分析特有的那些问题上。毕竟，模型误设是任何一类数据分析都可能出现的问题，与估计最终是否带有因果解释无关。实践中，认真的研究者总会质疑自己模型的有效性，并会在与既有专家知识相容的不同模型设定下再做一遍分析。他们的目的是评估估计对模型设定的敏感程度。</p>
+
+<p>现在，我们已经准备好来描述模型在因果推断中的使用了。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 11.2　模型维数与频率学派区间、贝叶斯区间的关系</span>
+<p>在频率学派统计推断中，概率被定义为频率；在贝叶斯推断中，概率被定义为信念程度，这与“概率即频率”是很不一样的概念（de Finetti 1972）。第 10 章介绍的是频率学派推断所用的置信区间。贝叶斯统计推断用的是可信区间（credible interval），它的解释更自然：一个贝叶斯 95% 可信区间意味着，在给定已观测数据的条件下，“估计量落在这个区间内的概率是 95%”。然而，部分原因在于必须事先说明研究者的信念程度，贝叶斯推断不像频率学派推断那样常用。</p>
+<p>有意思的是，在简单的、低维的参数模型中且样本量很大时，95% 贝叶斯可信区间同时也是 95% 频率学派置信区间；而在高维或非参数模型中，贝叶斯 95% 可信区间未必是 95% 置信区间，因为它覆盖估计量的次数可能远低于 95%。这些结果背后的原因是：贝叶斯推断要求为所有未知参数指定一个先验分布。在低维参数模型中，数据所含的信息压倒了合理先验中所含的信息，于是推断对所选先验相对不敏感。但到了高维模型，情况就不一样了：如果真正生成数据的参数值在所选先验下属于低概率事件，贝叶斯可信区间的中心就会被拉离真参数，转而朝先验下概率最大的那些参数值靠拢。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 11.1　常用模型的一种分类</span>
+<p>正文描述的是形如 <code>E[Y|X] = θX ≡ Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub></code> 的线性条件均值模型，其中 <code>X</code> 是协变量向量 <code>X<sub>0</sub>, X<sub>1</sub>, …, X<sub>p</sub></code>，且对全部 n 个个体都有 <code>X<sub>0</sub> = 1</code>。这类模型是一个更大的条件均值模型类的子集（McCullagh and Nelder, 1989；McCulloch, Searle, and Neuhaus, 2008），后者有两个组成部分：一个线性函数形式，即预测子 <code>Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub></code>；以及一个连接函数 <code>g{·}</code>，使得 <code>g{E[Y|X]} = Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub></code>。</p>
+<p>正文所述的线性条件均值模型用的是<strong>恒等连接</strong>（identity link）。针对取严格正值结局（例如计数、发病率的分子）的条件均值模型，常用<strong>对数连接</strong>（log link）以保证所有预测值都大于零，即 <code>log{E[Y|X]} = Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub></code>，于是 <code>E[Y|X] = exp{Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub>}</code>。针对二值结局（即只取 0 和 1）的条件均值模型常用 <strong>logit 连接</strong>，即 <code>log{E[Y|X] / (1 − E[Y|X])} = Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub></code>，于是 <code>E[Y|X] = expit{Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub>}</code>。这条连接保证了所有预测值都大于 0 且小于 1。使用 logit 函数的条件均值模型称为 logistic 回归模型，本书广泛使用它们。对于这些连接（称为<strong>正则连接</strong>，canonical links），我们可以在恒等连接下用正态工作模型、在对数连接下用 Poisson 工作模型、在 logit 连接下用 logistic 回归模型，通过极大似然来估计 <code>θ</code>。只要关于 <code>E[Y|X]</code> 的条件均值模型是正确的，这些估计对 <code>θ</code> 就是一致的。广义估计方程（GEE）模型常用于处理重复测量，它也是条件均值模型的一个例子（Liang and Zeger, 1986）。</p>
+<p>条件均值模型只对 <code>E[Y|X]</code> 指定一个参数形式，此外并不限制 <code>Y|X</code> 的分布，也不限制 <code>X</code> 的边际分布。因此，当 <code>X</code> 或 <code>Y</code> 为连续变量时，一个参数条件均值模型对数据的联合分布 <code>(X, Y)</code> 而言是<strong>半参数模型</strong>（semiparametric model）：分布的一部分被参数化地建模，另一部分则不作限制。之所以叫半参数，是因为联合分布中所有未被限制的分量集合无法用有限多个参数表示。</p>
+<p>条件均值模型本身还可以进一步推广，做法是放松“<code>E[Y|X]</code> 取某个参数形式”这一假设。例如，核回归模型（kernel regression）不对 <code>E[Y|X]</code> 施加任何特定函数形式，而是对任意 <code>x</code> 用 <code>Σ<sub>i=1</sub><sup>n</sup> w<sub>h</sub>(x − X<sub>i</sub>)Y<sub>i</sub> / Σ<sub>i=1</sub><sup>n</sup> w<sub>h</sub>(x − X<sub>i</sub>)</code> 来估计 <code>E[Y|X = x]</code>，其中 <code>w<sub>h</sub>(z)</code> 是一个取正值的函数，称为<strong>核函数</strong>（kernel function），它在 <code>z = 0</code> 处取最大值，并随着 <code>|z|</code> 增大而下降至 0，下降的速度取决于下标参数 <code>h</code>。另一个例子是<strong>广义加性模型</strong>（GAM），它把条件均值模型中的线性组合 <code>Σ<sub>i=0</sub><sup>p</sup> θ<sub>i</sub>X<sub>i</sub></code> 换成一族光滑函数之和 <code>Σ<sub>i=0</sub><sup>p</sup> f<sub>i</sub>(X<sub>i</sub>)</code>。该模型可以用回溯拟合（backfitting）算法估计，例如在第 k 次迭代用核回归来估计 <code>f<sub>i</sub>(·)</code>（Hastie and Tibshirani 1990）。</p>
+<p>正文讨论平滑时用的是参数模型，它们为 <code>E[Y|X = x]</code> 指定了事前函数形式，比如一条抛物线。在估计 <code>E[Y|X = x]</code> 时，这类模型可以借用那些与 <code>x</code> 相距很远的 <code>X</code> 取值上的信息。相比之下，核回归模型不指定任何事前函数形式，估计 <code>E[Y|X = x]</code> 时只借用 <code>X</code> 取值靠近 <code>x</code> 的那些个体。核回归是“非参数”回归模型的一个例子，这里的“非参数”与我们之前的用法不同。我们先前所说的 <code>E[Y|X = x]</code> 的非参数估计量，只用了那些 <code>X</code> 恰好等于 <code>x</code> 的个体，连近邻的信息都不借。而这里所说的“非参数”估计量，用的是 <code>X</code> 取值靠近 <code>x</code> 的个体；究竟靠得多近，由一个称作<strong>带宽</strong>（bandwidth）<code>h</code> 的平滑参数来控制。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（为什么这一章要用 HIV 数据的真实例子）</strong>：前面几章的人口都是想象中的人物，本章换成 16 名 HIV 感染者、结局是 CD4 计数、处理是抗逆转录病毒治疗剂量。这是作者的一贯做法——一旦进入第二部分，就必须面对真实数据的三个麻烦：协变量与结局的关系往往不是直线（对应 11.4 节的抛物线拟合）、剂量取值远比样本量密（对应图 11.3 中 <code>A = 90</code> 处没人的困境）、以及样本量小到无法分层。这三个麻烦恰好把本章的三个主角——参数估计量、平滑、偏差-方差权衡——依次逼了出来。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（“模型”这个词在国内教材里的两种用法）</strong>：Robins 与 Greenland（1986）给出的定义是“对自然可能状态的事前数学限制”，这是流行病学与因果推断的口径：模型是用来<em>借用信息</em>补数据之缺的装置，参数（如 <code>θ<sub>1</sub></code>）对应总体中的真实量。国内许多统计教材（以及第一部分之前的统计学训练）习惯的是另一种口径：模型是待检验的假设来源，比如“服从正态分布”“方差齐性”，参数是待估的总体特征。前一种口径把模型当成桥梁，后一种把模型当成赌注。读后面几章时请留意这个差别：作者一旦说“我们假定模型被正确设定”，说的是这座桥的地基稳当，而不是说这个假设已经被检验通过了。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（偏差-方差权衡的中文讲法）</strong>：这一节的内容在中文教材里通常以“欠拟合与过拟合”的名义出现——参数太少则模型 inflexible（拟合不足），参数太多则曲线扭曲、抓住噪声（过拟合）。多数《统计学习方法》《回归分析》教材还会给出与本章等价的操作化指标：训练误差与测试误差的分离、交叉验证（留一法、<code>k</code> 折）、AIC/BIC 等信息准则、以及“1-SE 规则”（选择交叉验证误差最小值 <code>√k</code> 个标准误之内的最简模型）。可以把这看作给本章那句“实践中许多研究者靠传统惯例、参数可解释性、软件可得性来选模型”提供一个更体面的替代方案：交叉验证正是其中最容易做的一个。需要提醒的是，交叉验证只能评估预测性能，无法判断模型是否误设——若真实关系是抛物线，两参数模型的交叉验证误差确实会更大，但它仍然有偏。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（核平滑与样条在 R 里的对应实现）</strong>：技术要点 11.1 提到的两类非参数方法，在 R 里有现成的实现。核回归对应 <code>stats::ksmooth()</code>、<code>locfit::locfit()</code>（或 <code>np::npreg()</code>），带宽 <code>h</code> 由 <code>bw</code> 参数控制；广义加性模型对应 <code>mgcv::gam()</code>，其光滑程度由惩罚项中的 <code>k</code>（基函数个数）控制。教科书里最常见的局部回归 <code>stats::lowess()</code>（或 <code>loess()</code>）其实是一个局部的二次拟合，<code>span</code> 参数就相当于带宽 <code>h</code>，它正是“只从 <code>A = 90</code> 附近一个 10 单位宽的窗口借用信息”这种做法最便捷的写法。样条（spline）平滑则由 <code>stats::smooth.spline()</code> 提供，用惩罚残差平方和自动选取光滑参数 df。注意：<code>lowess()</code>、<code>smooth.spline()</code> 在中文统计文献里常被归入“非参数回归”甚至“非参数方法”，而在本章的语境下它们仍属于“<strong>半</strong>参数”——连接函数（logit 等）和误差分布仍然是参数化的。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（饱和模型与“可识别性/建模”这组区分）</strong>：11.3 节那个“<code>E[Y|A = a] = θ<sub>0</sub> + θ<sub>1</sub>A</code> 在二值 <code>A</code> 下不是模型”的结论，对应的是计量经济学里一个很实际的说法：等号两边未知数个数相同时，回归只是在做恒等变换，拿不到任何额外信息。11.3 节的边注还区分了两类假设——<strong>可识别性假设</strong>（即便数据无限也必须成立，例如可交换性与可阳性性）与<strong>建模假设</strong>（因数据有限才被迫追加的）。这个区分在国内教材里少有系统表述，但它正是后面几章反复使用的论证骨架：先证明目标量在给定可识别性假设下可被唯一确定，再讨论用哪一个模型去把它估出来。技术上要点 11.1 里“参数个数与所估量个数之比”决定模型是否<strong>可识别</strong>的说法，也可以与本节末的 <code>θ<sub>0</sub></code>、<code>θ<sub>1</sub></code> 对 101 个均值的例子对照阅读。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（一个临床上的对照例子）</strong>：本章刻意回避了“剂量-反应”这个词，理由写在 11.2 节的边注里——在有混杂的观察性数据里，说“剂量越高结局越好”很容易被读成因果。而临床上恰好相反的例子比比皆是：降压药、β 受体阻滞剂、镇痛药的剂量-效应关系常呈平台型（E<sub>max</sub> 模型），再加量疗效不再增加而不良反应上升；抗精神病药（氯氮平）则常需要跨两个“剂量阈值”才能起效。换句话说，真实剂量-反应曲线既可能是向上凹的，也可能是 S 形的，正因为如此，2 参数直线模型几乎总在某个剂量段出错。本章的三参数抛物线只是最简单的补救，真正的问题是：偏差-方差权衡在每个剂量段上的最优解都不同，而这需要多任务平滑方法而非单一多项式来处理——这已是第 18 章（高维变量选择）与第 21 章（时变处理的 g 方法）的主题。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

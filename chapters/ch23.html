@@ -3,31 +3,249 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 23 章 · 因果中介 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 23 章 · 因果中介 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 23 章 · 因果中介</h1>
-<p class="muted">第三部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第三部分 · 时变处理的因果推断 · Part III — Causal inference for time-varying treatments</p>
+  <h1>第 23 章 · 因果中介</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 23. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p>在第三部分，我们介绍了估计时变处理对结局之因果效应的各种方法。我们的目标是量化：在持续一段时间的不同处理策略下，结局分布会如何变化。我们的目标并不是弄清楚处理究竟通过什么方式对结局发生作用。现在我们把注意力转向<strong>因果中介</strong>（causal mediation）：研究处理影响结局所经由的那些因果通路。</p>
+
+<p>因果中介研究可以看作时变处理因果推断的一个特例。在中介分析里，与其说是一个处理随时间取不同的值，我们实际上有两个不同的变量——感兴趣的处理和中介变量——处在不同的时间点上。本章描述的因果中介理论框架，和本书其余部分一样，建立在可以映射到目标试验的假想干预之上。与其他基于纯直接效应和总间接效应的中介方法不同，一个干预主义的中介框架为因果估计的<em>经验验证</em>打开了大门——而可经验验证，是任何科学工作都应当追求的性质。</p>
+
+<h2 id="s-23-1">23.1 受到质疑的中介分析</h2>
+
+<p>设想一项随机化试验：随机抽取一批吸烟者，把他们分配到戒烟（<code>A = 0</code>）或继续吸烟（<code>A = 1</code>）。假若完全依从：所有分到 <code>A = 0</code> 的人都戒了烟，所有分到 <code>A = 1</code> 的人都继续吸烟。研究者发现，戒烟对 1 年时心肌梗死风险 <code>Y</code> 有益，即 <code>E[Y|A = 1] &gt; E[Y|A = 0]</code>。</p>
+
+<p>在确定了戒烟 <code>A</code> 对心脏病风险 <code>Y</code> 的有益效应之后，研究者开始琢磨：这份好处是不是 <code>A</code> 降低高血压 <code>M</code> 所带来的结果。除了基线时的处理 <code>A</code> 数据和 1 年时的结局 <code>Y</code> 数据，他们手上还有 6 个月时测量的高血压 <code>M</code> 有无的数据。（为简单起见，假定头 6 个月里没有任何人发生结局 <code>Y</code>。）图 23.1 的因果图在「对 <code>M</code> 的干预有足够明确的定义」这一假定下描绘了这些变量。</p>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_1.png" alt="图 23.1">
+<figcaption><strong>图 23.1</strong>　戒烟试验的因果图。处理 <code>A</code> 经由中介变量 <code>M</code>（高血压）影响结局 <code>Y</code>（心脏病），同时另有一条由 <code>A</code> 直接指向 <code>Y</code> 的通路。此图以「对 <code>M</code> 的干预有明确定义」为前提。</figcaption></figure>
+
+<p>研究者感兴趣的是把 <code>A</code> 对 <code>Y</code> 的总效应，拆成由 <code>M</code> 中介的间接因果通路，以及不由 <code>M</code> 中介的直接通路。这时我们说，研究者感兴趣的是一个因果中介分析。</p>
+
+<p>上一章我们介绍了几种把<em>直接效应</em>概念形式化的方法（技术要点 22.1 和 22.2），却没有介绍<em>间接效应</em>。要把总处理效应形式化地分解为直接效应和间接效应，我们可以定义 <code>A</code> 对 <code>Y</code> 的<strong>纯直接效应</strong>（pure direct effect）和<strong>总间接效应</strong>（total indirect effect）。</p>
+
+<p><strong>边注</strong>　Robins 和 Greenland（1992）最早提出了纯直接效应和总间接效应。</p>
+
+<p><code>A</code> 对 <code>Y</code> 不经由 <code>M</code> 的纯直接效应，指的是这样一个平均因果效应：如果对每一个人，<code>M</code> 的取值都被设定为「假如 <code>A</code> 被设为 0，<code>M</code> 将会取的那个值」，也就是把 <code>M</code> 设为 <code>M<sup>a=0</sup></code>（对某些人是 1，对另一些人是 0），那么 <code>A</code> 对 <code>Y</code> 的平均因果效应。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 23.1　中介公式的证明</span>
+<p>在图 23.1 的因果图所描绘的设定下——处理是 <code>A</code>，中介变量是 <code>M</code>，结局是 <code>Y</code>——反事实均值 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 等于</p>
+<p style="text-align:center"><code>∑<sub>m</sub> E[Y<sup>a=1,m</sup>|M<sup>a=0</sup>] = ∑<sub>m</sub> E[Y<sup>a=1,m</sup>] Pr[M<sup>a=0</sup> = m]</code>　（由概率法则）<br>
+<code>∑<sub>m</sub> E[Y<sup>a=1,m</sup>] Pr[M<sup>a=0</sup> = m]</code>　（由跨世界条件独立 <code>Y<sup>a=1,m</sup> ⊥⊥ M<sup>a=0</sup></code>）<br>
+<code>∑<sub>m</sub> E[Y|A = 1, M = m] Pr[M = m|A = 0]</code>　（由可交换性与一致性）。</p>
+<p>上面用到的跨世界条件独立，在因果图表示的是一个 NPSEM-IE 时被假定；在它表示一个 FFRCISTG 模型时则不被假定。</p>
+</aside>
+
+<p>于是纯直接效应就是下面这个对比：<code>E[Y<sup>a=1,M<sup>a=0</sup></sup>] − E[Y<sup>a=0,M<sup>a=0</sup></sup>]</code>。</p>
+
+<p>在我们的例子里，纯直接效应说的是这么一件事：如果我们能把每个人的高血压 <code>M</code>（1 或 0）指定为「假如她戒了烟，她本会有的高血压取值」，那么戒烟 <code>A</code> 的效应会是什么。对于真的戒了烟的人，这个高血压 <code>M</code> 的取值是已知的；对于继续吸烟的人，它仍然是未知的。因此我们说，<code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code>——因而纯直接效应——是一个<strong>跨世界量</strong>（cross-world quantity），因为它涉及一个由两个处理值 <code>a = 1</code> 和 <code>a = 0</code> 标号的反事实结局，而这两个值在同一个世界里不可能对同一个人同时发生。Pearl（2001）分别把纯直接效应和总间接效应称作<strong>自然直接效应</strong>和<strong>自然间接效应</strong>。</p>
+
+<p>总间接效应同样是跨世界量，定义为 <code>E[Y<sup>a=1,M<sup>a=1</sup></sup>] − E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code>。</p>
+
+<p>纯直接效应与总间接效应之和 <code>E[Y<sup>a=1,M<sup>a=1</sup></sup>] − E[Y<sup>a=0,M<sup>a=0</sup></sup>]</code>，由一致性（consistency）就是总效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=0</sup>]</code>。</p>
+
+<p>在图 23.1 中，中介变量 <code>M</code> 与结局 <code>Y</code> 之间不存在未测量的共同原因。若存在共同原因，任何直接效应都无法被识别，包括控制直接效应（controlled direct effects）以及中介效应，也就是纯直接效应和总间接效应。要识别中介效应，就需要在图 23.1 的因果图下识别出跨世界量 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code>。所谓的<strong>中介公式</strong>（mediation formula）正是干这件事的：</p>
+
+<p style="text-align:center"><code>E[Y<sup>a=1,M<sup>a=0</sup></sup>] = ∑<sub>m</sub> E[Y|A = 1, M = m] · Pr[M = m|A = 0]</code></p>
+
+<p>证明见技术要点 23.1。</p>
+
+<p>中介公式之所以让人吃惊，是因为它识别出了一个跨世界反事实量，而这个量的取值无法被任何针对 <code>A</code> 和 <code>M</code> 的实验性干预所证实，原则上都不能。要做到这一点，就必须假定图 23.1 的因果图表示的是一个 NPSEM-IE，而不是 FFRCISTG；后者才是全书一直使用的那个反事实模型（见技术要点 6.2）。</p>
+
+<p><strong>边注</strong>　在一些非常不寻常的情形下，我们可以用交叉设计试验来识别这个跨世界反事实量的取值（见精细辨析 2.1 和 3.2）。</p>
+
+<p>中介公式的证明依赖一个无法验证的假定：在彼此分开的世界里定义的某些反事实变量是相互独立的。具体地说，证明要求「在一个我们联合干预、把处理值设为 1、把中介值设为 <code>m</code> 的世界里，结局 <code>Y<sup>a=1,m</sup></code> 的取值」独立于「在一个我们干预把处理值设为 0 的世界里，中介变量 <code>M<sup>a=0</sup></code> 的取值」。因此，<code>Y<sup>a=1,m</sup></code> 和 <code>M<sup>a=0</sup></code> 不可能在同一个世界里被同时观察到（就同一个人而言），它们的独立性也就无法在任何单独或联合随机分配 <code>A</code> 与 <code>M</code> 的实验中加以经验验证（见技术要点 7.1）。</p>
+
+<p><strong>边注</strong>　在 FFRCISTG 模型下，纯直接效应和总间接效应不是点识别的，但可以得到精确界（sharp bounds）（Robins 和 Richardson 2010）。</p>
+
+<p>这些跨世界独立性在 NPSEM-IE 下被假定，在 FFRCISTG 模型下则不被假定。这也是我们宁取 FFRCISTG 模型而不取 NPSEM-IE 的理由之一：既然跨世界独立性无法被任何随机化实验验证，我们就希望使用那些结果原则上可以被验证的因果推断方法。</p>
+
+<p>基于上面的讨论，一些政策制定者并不为研究者能识别纯直接效应而感到鼓舞。作为一个跨世界参数，他们认为纯直接效应没有政策上的、也没有公共卫生上的意义，因为它不对应任何干预。要说服这些怀疑者，NPSEM-IE 的拥护者还得再下些功夫。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（"中介分析"与"机制分析"常被混用）</strong>：中文文献里"机制分析""机制"多指生物学或物理层面的作用机理（比如"他汀通过抑制 HMG-CoA 还原酶发挥作用"），而"中介分析"（mediation analysis）指统计上把总效应拆成经由某个变量的间接部分与不经由它的直接部分。两者在中文里经常混着说，但它们回答的不是同一个问题：机制分析问的是"药怎么起作用"，中介分析问的是"效应有多少是通过这个变量传递的"。本章讲的因果中介只做后者，而且会告诉你，在什么条件下后者才算被识别。</p>
+</aside>
+
+<h2 id="s-23-2">23.2 为中介分析辩护</h2>
+
+<p>戒烟试验的研究者作为 NPSEM-IE 的拥护者，准备了下面这套说辞，想让怀疑者相信纯直接效应在实务上是有用的。</p>
+
+<blockquote>
+<p>"假设从现在起一年之后，无尼古丁香烟将会上市，而你的政策目标是尽快弄清无尼古丁香烟的益处。为此，我们利用上述戒烟试验中已经收集到的数据，来估计在『要求所有吸烟者改吸无尼古丁香烟（在它上市之后）』这一干预下心脏病 <code>Y</code> 的两年风险。假设有很强的实验性证据表明：(i) 尼古丁对结局 <code>Y</code>（心脏病）的全部因果效应，都是通过它对中介变量 <code>M</code>（高血压）的效应产生的；(ii) 香烟中的非尼古丁成分对中介变量 <code>M</code>（高血压）没有直接因果效应。在假设 (i) 和 (ii) 下，一名吸无尼古丁香烟者的高血压状态 <code>M</code> 将等于她在不接触香烟情形下的高血压状态，因此 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 就是『假如所有吸烟者都在一年后改吸无尼古丁香烟』情形下的心脏病风险。那正是你感兴趣的公共卫生效应，而这就是把我们研究的这套数据代入中介公式所算出来的东西。"</p>
+</blockquote>
+
+<p><strong>边注</strong>　Pearl（2001）给出过一套类似的论证，用来为使用纯直接效应辩护。</p>
+
+<p><code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 这个量是有意思的。为了论证参数 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 在实质上的重要性，NPSEM-IE 的拥护者会讲一个关于"对香烟中尼古丁含量施加干预"的故事——这个干预根本不提中介变量 <code>M</code>。此外，他们还做出了"无直接效应"的假设 (i) 和 (ii)，而这些假设涉及的变量，连图 23.1 的因果图里都没画。</p>
+
+<p>研究者讲的故事是这样的：变量 <code>A</code> 可以分解成两个<strong>可分离成分</strong>（separable components）<code>N</code> 和 <code>O</code>。可分离成分 <code>N</code>直接影响 <code>M</code>，但不影响 <code>Y</code>；可分离成分 <code>O</code> 直接影响 <code>Y</code>，但不影响 <code>M</code>。而且按照这个故事，每个可分离成分原则上都可以被单独干预。比如，<code>Y<sup>n=0,o=1</sup></code> 表示的是在"只把香烟里的尼古丁成分拿掉"这一干预下的反事实结局。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 23.2　中介公式就是 g 算法</span>
+<p>按照图 23.3 的因果图，可分离成分 <code>N</code> 和 <code>O</code> 满足可交换性，因此均值 <code>E[Y<sup>n=0,o=1</sup>]</code> 可以由 g 算法识别。然而在正文所描述的戒烟试验中，没有任何人有 <code>(N = 0, O = 1)</code> 的数据。于是可阳性性（positivity）不成立，看上去 g 算法无法识别 <code>E[Y<sup>n=0,o=1</sup>]</code>。但在可交换性和一致性之下，可阳性性是 g 算法识别的充分条件，而不是必要条件；识别只要求 g 算法是观测数据分布的一个函数。现在我们说明：图 23.2 中的加粗箭头（确定性关系）连同"无直接效应"假设 (i) 和 (ii)，一起蕴含 g 算法确实是 <code>(A, M, Y)</code> 观测数据分布的函数——这个函数就是中介公式。</p>
+<p>在图 23.2 所表示的 FFRCISTG 下，若 <code>N</code> 和 <code>O</code> 的数据可得，均值 <code>E[Y<sup>n=0,o=1</sup>]</code> 将由 g 算法识别：</p>
+<p style="text-align:center"><code>∑<sub>m</sub> E[Y|O = 1, M = m] Pr(M = m|N = 0)</code></p>
+<p>这里 <code>N = 0</code> 无需出现在第一个条件事件里、<code>O = 1</code> 也无需出现在第二个条件事件里，因为在图 23.2 中 <code>N</code> 不是 <code>Y</code> 的父节点、<code>O</code> 不是 <code>M</code> 的父节点。而且，尽管可阳性性不成立，g 算法之所以是观测数据分布的函数，只是因为 <code>O = 1</code> 当且仅当 <code>A = 1</code>、<code>N = 0</code> 当且仅当 <code>A = 0</code>。于是我们可以把 <code>E[Y<sup>n=0,o=1</sup>]</code> 的 g 算法改写成</p>
+<p style="text-align:center"><code>∑<sub>m</sub> E[Y|A = 1, M = m] Pr(M = m|A = 0)</code></p>
+<p>这恰好就是中介公式。这个基于 g 算法的推导略显启发式，因为 <code>N</code>、<code>O</code> 与 <code>L</code> 之间的确定性关系会产生零测集。Robins 等（2022）给出了另一个严格的证明，用的是技术要点 21.12 中描述的 SWIG Markov 性质。</p>
+<p>不仅在扩展后的因果图 23.2 下 g 算法等于中介公式，在扩展后的因果图 23.7 下 g 算法还等于前门公式（front door formula），见技术要点 23.3。</p>
+</aside>
+
+<p>这个因果故事最直接的呈现方式，是图 23.2 的因果 DAG 所表示的一个 FFRCISTG 模型：<code>N</code> 是代表尼古丁暴露的二值变量，<code>O</code> 是代表香烟中其他非尼古丁成分暴露的二值变量。从 <code>A</code> 指向 <code>N</code> 和 <code>O</code> 的加粗箭头表示确定性关系。这是因为在试验的实际数据中，一个人要么继续吸普通香烟，此时 <code>A = N = O = 1</code>；要么把烟戒掉，此时 <code>A = N = O = 0</code>。</p>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_2.png" alt="图 23.2">
+<figcaption><strong>图 23.2</strong>　图 23.1 的扩展图：把处理 <code>A</code> 拆成可分离成分 <code>N</code>（尼古丁）与 <code>O</code>（其他非尼古丁成分）。加粗的 <code>A → N</code> 与 <code>A → O</code> 表示确定性关系；没有 <code>N → Y</code> 与 <code>O → M</code> 两条边，对应假设 (i) 与假设 (ii)。</figcaption></figure>
+
+<p><strong>边注</strong>　这些是"无控制直接效应"的假设。假设 (i) 说的是：在控制（设定）<code>M</code> 的取值之后，<code>N</code> 对 <code>Y</code> 没有直接效应。</p>
+
+<p><code>N</code> 到 <code>Y</code> 没有箭头，编码了假设 (i)：<code>N</code> 对 <code>Y</code> 没有直接效应。<code>O</code> 到 <code>M</code> 没有箭头，编码了假设 (ii)：<code>O</code> 对 <code>M</code> 没有效应。图 23.3 展示了相应的 SWIG。如果 <code>O</code> 并非对每一个人都是 <code>M</code> 的原因，我们还可以把随机变量 <code>M<sup>n,o</sup></code> 简写成 <code>M<sup>n</sup></code>。</p>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_3.png" alt="图 23.3">
+<figcaption><strong>图 23.3</strong>　图 23.2 对应的 SWIG（单世界干预图）：把 <code>N</code>、<code>O</code> 换成被干预的节点 <code>N|n</code>、<code>O|o</code>，下游变量 <code>M</code>、<code>Y</code> 带上相应的反事实上标。</figcaption></figure>
+
+<p>在这个问题刻画之下，识别 <code>E[Y<sup>n=0,o=1</sup>]</code> 的 g 算法恰好就是中介公式（证明见技术要点 23.2）。让我们回顾一下学到的教训。</p>
+
+<p>对一位一开始就接受"与图 23.1 的 DAG 相关联的 NPSEM-IE"的研究者来说，均值 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 已经由中介公式识别出来，所以关于 <code>N</code> 和 <code>O</code> 可分离效应的故事并没有为识别工作贡献什么。它只是用来说明：参数 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code>——因而纯直接效应和总间接效应——所编码的，是另一个具有公共卫生意义的参数 <code>E[Y<sup>n=0,o=1</sup>]</code>。而对一位采取 FFRCISTG 立场的研究者来说，这个故事不只是给均值 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 提供了一个干预主义的解释——把它解释成均值 <code>E[Y<sup>n=0,o=1</sup>]</code>——还额外让这两个均值都能被 g 算法、或等价地被中介公式识别。事实上，当我们把"没有箭头"解释为"对所有人都不存在直接因果效应"时，<code>Y<sup>a=1,M<sup>a=0</sup></sup></code> 与 <code>Y<sup>n=0,o=1</sup></code> 对每一个人都是相等的。</p>
+
+<p>这样的问题刻画还让我们能够定义并识别成分 <code>N</code> 对结局 <code>Y</code> 的<strong>可分离直接效应</strong>（separable direct effect）<code>E[Y<sup>n=1,o=1</sup>] − E[Y<sup>n=0,o=1</sup>]</code>，它是可分离成分 <code>N</code> 的控制直接效应。这个效应同时也等于总间接效应 <code>E[Y<sup>a=1</sup>] − E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code>。类似地，<code>E[Y<sup>n=1,o=1</sup>] − E[Y<sup>n=1,o=0</sup>]</code> 就是纯直接效应 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>] − E[Y<sup>a=0,M<sup>a=0</sup></sup>]</code>。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（"直接 / 间接 / 总效应"在国内教材里的说法）</strong>：国内流行病学与临床研究教科书里的对应表述基本是"总效应 = 直接效应 + 间接效应"，间接效应通常写成各中介路径系数之积（如 <code>a×b</code>）再求和，或用 Baron–Kenny 四步法配 Sobel 检验、SPSS 的 PROCESS 宏来报告"中介效应占比"。这套做法的目标函数与本章的<em>中介公式</em> <code>∑<sub>m</sub> E[Y|A=1,M=m]Pr[M=m|A=0]</code> 并不是一回事：在异质性很强、或 <code>M</code> 与 <code>Y</code> 的关联本身受 <code>A</code> 影响时，"各路径系数之积的和"与上面的求和式可以差得很远。想稳妥引用中文实证研究里的"间接效应"数字时，值得回头看看它到底是哪一个定义下的。</p>
+</aside>
+
+<h2 id="s-23-3">23.3 可经验验证的中介</h2>
+
+<p>对 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 的干预主义解释，只有在关于 <code>N</code> 和 <code>O</code> 可分离效应的故事正确、并且图 23.3 表示的是一个 FFRCISTG 时才成立。干预主义解释的好处在于：这个故事是否成立，原则上可以通过一项随机化试验来经验证伪。下面我们描述这样一项试验。</p>
+
+<p>一年之后无尼古丁香烟上市时，我们做一项新的随机化试验，把随机抽取的吸烟者样本随机分配到三组之一：戒烟（<code>A = N = O = 0</code>）、继续吸普通香烟（<code>A = N = O = 1</code>），或者改吸无尼古丁香烟（<code>N = 0, O = 1</code>）。也就是说，新试验有和原试验相同的两个组，外加一个无尼古丁香烟组。在不存在时间趋势的情况下，前两组的结局均值在两项试验中应当相同。我们假定两项试验的样本量都足够大，大到可以忽略抽样变异。</p>
+
+<p>由于随机化，新试验中的结局均值 <code>E[Y|N = 0, O = 1]</code> 预期等于 <code>E[Y<sup>n=0,o=1</sup>]</code>。因此，如果我们的故事正确，我们就预期 <code>E[Y|N = 0, O = 1]</code> 会等于早先那项试验算出的中介公式。否则，关于 <code>N</code> 和 <code>O</code> 的故事就被经验证伪了，这意味着下列假设中有一条或多条不成立：(i) 尼古丁对结局没有直接效应；(ii) 其他非尼古丁成分对中介变量没有直接效应；(iii) 图 23.2 的因果图上 <code>M</code> 与 <code>Y</code> 之间没有未测量的共同原因 <code>U</code>。</p>
+
+<p>如果 <code>E[Y|N = 0, O = 1]</code> 与中介公式不同，我们就可以用这项新试验的数据去查清假设 (i)–(iii) 中究竟哪些是假的。为此，我们先检查在 <code>N = 0</code> 的人当中，<code>O</code> 与 <code>M</code> 是否有关联，即</p>
+
+<p style="text-align:center"><code>E[M|N = 0, O = 1] − E[M|N = 0, O = 0] ≠ 0</code></p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 23.1　可分离效应假设的经验证伪</span>
+<p>可分离效应假设的经验证伪。假设我们做了那个对 <code>N</code> 和 <code>O</code> 施加干预的三组试验，并发现：在 <code>M</code> 与 <code>O</code> 的联合水平之内，<code>N</code> 与 <code>Y</code> 有关联。那么如正文所述，我们断定假设 (i) 或假设 (iii)，或两者同时为假。</p>
+<p>要判断这两个假设中哪一个为假，我们需要另一项随机化试验，比如设 8 个组，其中对 <code>M</code> 以及 <code>N</code>、<code>O</code> 都施加干预。如果 <code>N</code> 除了通过 <code>M</code> 之外对 <code>Y</code> 没有直接效应，那么在这项 8 组试验里，给定 <code>M</code> 和 <code>O</code>，<code>N</code> 将与 <code>Y</code> 独立。如果 <code>M</code> 与 <code>Y</code> 不共享未测量的共同原因，那么在 <code>N</code> 与 <code>O</code> 的各个水平内、给定 <code>M</code> 的 <code>Y</code> 条件分布，在三组试验与 8 组试验中应当是相同的。</p>
+<p>有人也许会纳闷：既然我们已经正确地假定图 23.1 表示的是一个 <code>M</code> 与 <code>Y</code> 之间没有共同原因的 FFRCISTG 模型，图 23.2 怎么会漏掉一个 <code>M</code> 与 <code>Y</code> 的未测量共同原因呢？解释是：共同原因可能只在那些给每个人分派不同 <code>N</code>、<code>O</code> 取值的干预下才存在（即才是"活跃"的）。与图 23.2 相关联的 FFRCISTG 模型不同，图 23.1 相关联的 FFRCISTG 模型只考虑 <code>A = N = O = 1</code> 和 <code>A = N = O = 0</code> 这两种给每个人分派相同取值的干预。有意思的是，如果 <code>Y</code> 与 <code>M</code> 的共同原因 <code>U</code> 是新试验的 <code>E[Y|N = 0, O = 1]</code> 不同于中介公式的唯一原因，那么 <code>Y<sup>a=1,M<sup>a=0</sup></sup> = Y<sup>n=0,o=1</sup></code> 对每个人仍然成立。然而，<code>E[Y<sup>n=0,o=1</sup>] ≠ E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 却不能由中介公式识别。Robins 等（2022）描述了一项假想但相当真实的河盲病治疗研究：其中图 23.1 是 FFRCISTG 而图 23.2 不是，因为后一张图里漏掉了 <code>Y</code> 与 <code>M</code> 的共同原因 <code>U</code>。</p>
+</aside>
+
+<p>如果确实如此，那么假设 (ii) 就被证伪了，图 23.2 中应当补上一条 <code>O → M</code> 的箭头（图 23.3 中相应的那条也要补上）。</p>
+
+<p>接下来我们检查在 <code>M</code> 与 <code>O</code> 的联合水平之内，<code>N</code> 与 <code>Y</code> 是否有关联，即对某些 <code>m</code> 取值是否有</p>
+
+<p style="text-align:center"><code>E[Y|N = 1, O = 1, M = m] − E[Y|N = 0, O = 1, M = m] ≠ 0</code></p>
+
+<p>如果确实如此，那么假设 (i) 被证伪（这意味着因果图中应当补上一条 <code>N → Y</code> 的箭头），或者存在 <code>M</code> 与 <code>Y</code> 的未测量共同原因 <code>U</code>（它也应当被补进因果图）。见精细辨析 23.1。</p>
+
+<p>现在设想两年之后，新试验的结果出来了：两项试验中对应同一干预的各组，其结局均值估计彼此相等，但新试验第三个组的结局均值估计 <code>E[Y|N = 0, O = 1]</code> 与第一项试验的中介公式不同。不同的人会作何反应？</p>
+
+<p>一位原本假定图 23.1 是 NPSEM-IE 的人，和一位只假定它是 FFRCISTG 的人，会同意同一件事：关于 <code>O</code> 和 <code>N</code> 可分离效应的故事是错的，而且 <code>E[Y<sup>n=0,o=1</sup>]</code> 应当由新试验第三个组的结局均值来正确估计，而不是由早先那项试验的中介公式来估计。</p>
+
+<p>那些原先假定 NPSEM-IE 的人仍可以相信，均值 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 等于中介公式；但他们再也无法把纯直接效应的策略意义辩护成"改吸无尼古丁香烟的效应"。那些假定 FFRCISTG 的人可能对原先的中介公式兴趣不大。他们更感兴趣的是：从这项三组随机化试验里，他们究竟学到了无尼古丁香烟对结局的什么效应。他们同样还会感兴趣于发现下列假设中有一条或多条是假的：(i) 尼古丁对结局没有直接效应；(ii) 其他非尼古丁成分对中介变量没有直接效应；(iii) <code>M</code> 与 <code>Y</code> 之间没有未测量的共同原因 <code>U</code>。</p>
+
+<p>继续假定图 23.1 表示一个 FFRCISTG 模型，并且未来的无尼古丁香烟试验中 <code>E[Y<sup>n=0,o=1</sup>]</code> 与中介公式不同。有意思的问题是：处理 <code>A</code> 能否<em>总是</em>被分解成另外一些（可能并不知道的）可干预成分 <code>N′</code> 和 <code>O′</code>，使得图 23.2 是一个 FFRCISTG，且"无直接效应"假设 (i) 与 (ii) 都成立——那样的话 <code>E[Y<sup>n′=0,o′=1</sup>]</code> 就等于 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code>，而且两者都等于中介公式？答案是否；否则 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 就会总是被中介公式点识别，而事实并非如此。</p>
+
+<p><strong>边注</strong>　如果 <code>E[Y<sup>a=1,M<sup>a=0</sup></sup>]</code> 总是能被中介公式点识别，那么 Robins 和 Richardson（2010）给出的那些精确界就会被违反。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（两个模型：NPSEM-IE 与 FFRCISTG）</strong>：这两个缩写指什么，原书并没有给出全称，本译本沿用原书写法。它们的区别是本章论证的枢纽，可以这样理解：<strong>FFRCISTG</strong> 是一棵"如果这样干预、结局就会这样展开"的完整反事实树，你允许自己设想对每个变量的每一种干预组合，包括那些现实中没人会去做、伦理上也不允许的组合；<strong>NPSEM-IE</strong> 则是一层嵌套的反事实结构，它只把"处理"这一层显式写出来，中介变量那一层的反事实要靠额外的跨世界独立性假定才能和观测联系起来。代价就是本章反复强调的那笔账：跨世界独立性无法被任何随机化实验验证。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（"中介分析是观察性分析"这句话的现实含义）</strong>：正文最后那句"因果中介分析是观察性分析，所依赖的假定比非中介分析更加勇敢（more heroic）"值得反复读两遍。在中国的真实世界研究与医保数据库研究里，做中介分析往往只需要从现成数据里取出 <code>A</code>、<code>M</code>、<code>Y</code> 三个变量跑个模型，成本很低。但按本章的标准，光有这三个变量远远不够：还要有"处理—结局"和"中介—结局"两套混杂因素的可交换性（<strong>中介分析的调整集必须是两套混杂因素的并集</strong>），还要有干预定义良好、测量误差可忽略等一堆前提。只调整了其中一套混杂因素的中介分析，报告出来的"间接效应"可能同时被未测混杂和过度调整污染。本书接下来并没有专门教怎么落地这些分析，但这一节至少告诉你该警惕什么。</p>
+</aside>
+
+<h2 id="s-23-4">23.4 中介的干预主义理论</h2>
+
+<p>本章介绍了一种因果中介的干预主义理论，它不同于那种基于纯直接效应和总间接效应的标准做法。由于干预主义理论是为了回应标准理论中被察觉到的缺陷而发展出来的，我们先描述了标准理论，以及它倚赖跨世界（嵌套）反事实所带来的麻烦。不过，干预主义理论也可以被看作自成一体的：它为讨论中介问题提供了一套自足的框架，无需援引跨世界的嵌套反事实。</p>
+
+<p><strong>边注</strong>　这套干预主义中介理论由 Robins 和 Richardson（2010）提出，Robins、Richardson 和 Shpitser（2022）作了推广。该理论已被推广到生存分析（Didelez 2019；Aalen 等 2020）、竞争风险（Stensrud 等 2020，2021）以及存在干扰（interference）的情形（Shpitser 等 2021）。</p>
+
+<p>为了做到这一点，我们用的是一项（简化的）随机化试验，干预是一个时间固定的处理。核心的思路是把中介问题重新表述成这样一个问题：对处理 <code>A</code> 在结局 <code>Y</code> 上那些具有实质意义的可分离成分（<code>N</code> 和 <code>O</code>）施加干预，会产生什么效应。如果 <code>N</code> 和 <code>O</code> 是 <code>A</code> 的可分离效应，那么在一项设有如下 6 个组的未来随机化试验里：</p>
+
+<ol>
+<li>按 <code>a = 1</code> 处理；</li>
+<li>按 <code>a = 0</code> 处理；</li>
+<li>按 <code>n = 1, o = 1</code> 处理；</li>
+<li>按 <code>n = 0, o = 0</code> 处理；</li>
+<li>按 <code>n = 0, o = 1</code> 处理；</li>
+<li>按 <code>n = 1, o = 0</code> 处理。</li>
+</ol>
+
+<p>下面两条陈述成立。第一，第一组的结局 <code>Y</code> 均值等于第三组的均值，第二组的结局均值等于第四组的均值。第二，<code>E[Y<sup>n=0,o=1</sup>]</code> 被识别为该未来试验第五组的结局均值，<code>E[Y<sup>n=1,o=0</sup>]</code> 被识别为第六组的结局均值——无论 <code>E[Y<sup>n=0,o=1</sup>]</code> 能否从观测数据中被识别。</p>
+
+<p>我们可以利用目前已有的关于 <code>A</code>、<code>M</code>、<code>Y</code> 的数据，在以下假设下识别 <code>N</code> 和 <code>O</code> 的可分离效应：(i) 中介变量 <code>M</code> 与结局 <code>Y</code> 之间没有未测量的共同原因；(ii) 成分 <code>O</code> 对中介变量 <code>M</code>、成分 <code>N</code> 对结局 <code>Y</code> 没有直接效应。特别地，<code>E[Y<sup>n=0,o=1</sup>]</code> 就等于中介公式。</p>
+
+<p><strong>边注</strong>　Stensrud 等（2021）强调了上述 6 组试验中、各组之间那些结局均值等式是必要的。</p>
+
+<p>现在我们讨论偏好干预主义方法、而非更早那些中介方法的又一条理由。具体地说，<em>针对假定中介变量 <code>M</code> 的干预</em>常常没有明确定义，这时像 <code>Y<sup>a,m</sup></code> 这样的反事实就没有意义。既然如此，基于 <code>M</code> 的纯直接效应和基于 <code>M</code> 的控制直接效应（见技术要点 22.1）就都不存在。相比之下，干预主义理论关心的是那些确实存在的效应——只要存在具有实质意义的可分离成分 <code>N</code> 和 <code>O</code>，并且如上所述可以对它们施加干预，至于对 <code>M</code> 的干预是否定义良好，无关紧要。</p>
+
+<p>概括一下，一个干预主义的中介方法包含下面这几个要素。</p>
+
 <ul>
-<li>阅读<a href="chch22.html">上一章</a>与<a href="chindex.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li>假定处理 <code>A</code> 可以分解为多个具有实质意义的可分离成分，每个成分都对处理的总体效应有所贡献，并且原则上可以被独立地干预；</li>
+<li>识别这些可分离成分效应所需的假定，原则上可以在未来的随机化试验中得到经验验证——在这些试验里，这些成分会被真正地干预；</li>
+<li>对"中介变量"施加明确干预并非必要条件；</li>
+<li>由于可分离成分在实质上足够具体，与领域专家的沟通会因此得到改善；</li>
+<li>当识别假定成立时，识别用的 g 算法与中介公式完全相同；不过，被识别出来的因果效应指的是对那些可分离成分的干预。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>23.1 Mediation analysis under attack</li>
-    <li>2.1 and 3.2).                            Technical Point 6.2).</li>
-    <li>23.2 A defense of mediation analysis</li>
-    <li>23.3 Empirically verifiable mediation</li>
-    <li>23.4 An interventionist theory of mediation</li></ul>
-</div>
+
+<p>为简单起见，我们只考虑了一个只有两个可分离成分的例子，但干预主义框架可以容纳处理的多个可分离成分，包括那些随时间变化的成分。</p>
+
+<p>本章回顾了中介的理论概念，却没有着重讲估计纯直接效应和可分离直接效应的数据分析在实务层面的问题。在上一章引入控制直接效应和主层直接效应（principal stratum direct effects）时，我们采取了类似的做法。希望我们这样的呈现，能说清在识别直接效应时干预主义方法在科学上的优势。</p>
+
+<p><strong>边注</strong>　对于可分离效应，如果 <code>M</code> 与 <code>Y</code> 存在某个已测量的原因，而它是 <code>N</code> 和 <code>O</code> 的子节点，还会冒出别的问题（Robins 和 Richardson 2010；Robins 等 2022）。</p>
+
+<p>在没有针对中介（针对控制直接效应而言）或针对处理的成分（针对可分离直接效应而言）真正施加干预的随机化试验的情况下，所有这些方法都依赖观察性数据，因而依赖全书一路讨论过来的那些可交换性假定。因此，有效的中介分析，除了本章讨论过的其他假定之外，还需要为"处理对结局的效应"和"中介变量对结局的效应"两者的混杂因素做调整。图 23.1 那张因果图，是当作一个教学装置来设计的，目的是在一个简化的设定里探讨与中介有关的理论问题，而不是要它真实地代表大多数因果中介研究。在实务中，因果中介分析是观察性分析，所依赖的假定比非中介分析更加"勇敢"（more heroic）。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 23.2　带代理中介变量的可分离效应</span>
+<p>下面我们采用 9.5 节引入的因果图理论。由于从 <code>M</code> 到 <code>Y</code> 的箭头只有在"对 <code>M</code> 影响 <code>Y</code> 的干预有明确定义"时才能被解释为因果的，当那些干预并不存在时，图 23.1 的 DAG 就不是因果的。也就是说，<code>M</code> 并不是中介变量，而是某个未知变量 <code>H</code> 的代理（surrogate）；<code>H</code> 才是那个存在明确干预的、真正的中介变量。图 23.4 的因果 DAG 描绘的就是这种情形。</p>
+<p>考虑图 23.5 的因果图，它是图 23.4 加上可分离成分 <code>N</code> 和 <code>O</code> 之后的扩展。与图 23.2 不同，在图 23.5 中，给定 <code>M</code> 和 <code>O</code>，<code>N</code> 与 <code>Y</code> 并非 d-分离的。假设我们出人意料地发现，在三组试验的数据中，给定 <code>M</code> 和 <code>O</code>，<code>N</code> 与 <code>Y</code> 是独立的。这个观察该怎么解释？有四种可能：a) 我们搞错了——真正的因果图是图 23.1 而不是 23.4，<code>M</code> 才是真正的因果中介；b) <code>M</code> 是真正的因果中介 <code>H</code> 的一一确定性函数；c) 图 23.4 中存在非确定性的忠实性违背（faithfulness violation）；d) <code>N</code> 与 <code>O</code> 并非条件独立，只是三组试验太小，检测不出它们的依赖关系。如果三组试验的样本量很大，因果发现（causal discovery）的拥护者会倾向于采纳解释 a)（见技术要点 10.7）。</p>
+</aside>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_4.png" alt="图 23.4">
+<figcaption><strong>图 23.4</strong>　代理中介的情形：真正的中介是 <code>H</code>，箭头 <code>H → M</code> 表示 <code>M</code> 只是 <code>H</code> 的代理；<code>A → H → Y</code> 之外另有一条 <code>A → Y</code> 的直接通路。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_5.png" alt="图 23.5">
+<figcaption><strong>图 23.5</strong>　图 23.4 的扩展：加入可分离成分 <code>N</code>（尼古丁）与 <code>O</code>（其他非尼古丁成分），真正的中介是 <code>H</code>，<code>M</code> 是它的代理。给定 <code>M</code> 与 <code>O</code> 时，<code>N</code> 与 <code>Y</code> 之间存在后门路径。</figcaption></figure>
+
+<aside class="techpoint"><span class="box-label">技术要点 23.3　路径特异效应与前门公式</span>
+<p>在图 23.6（也就是图 9.14 的修改版）下，<code>L</code> 对 <code>Y</code> 的总效应没有被识别。这是因为路径 <code>L → Y</code> 对总效应的贡献无法与 <code>H</code> 的混杂效应分离开来。相比之下，在缺少 <code>L → Y</code> 这条边的、未加修改的图 9.14 的因果图下，我们在精细辨析 9.5 中说明过 <code>L</code> 对 <code>Y</code> 的总效应可由前门公式识别，因为 <code>L → A → Y</code> 是唯一的因果路径。</p>
+<p>现在我们要问：当 <code>L → Y</code> 这条边存在时，<code>L</code> 沿着 <code>L → A → Y</code> 这条路径的效应是否也能被识别，是否仍由同一个前门公式识别。本着本章的精神，我们将用精细辨析 9.5 中的那个实质性故事，为这个问题给出一个干预主义的表述。图 23.7 是一张扩展图，其中 <code>N</code> 记录的是报告给负责开具药物 <code>A</code> 处方的医生的那份 BMI 值 <code>L</code>，而 <code>O</code> 记录的是用来决定是否转介物理治疗与膳食辅导的那份 <code>L</code> 值。加粗箭头表示确定性关系，因为在观测数据中我们总是有 <code>L = N = O</code>。图 23.8 是一张 SWIG，表示一次（不道德的）干预：向医生报告一个与真实值 <code>L = N</code> 不同的 BMI 值 <code>n</code>，而转介时使用的仍是真实值 <code>L = O</code>。与本章前面不同，这里只对 <code>N</code> 做了干预。此外，正如我们的目标，对 <code>n</code> 的干预对 <code>Y</code> 的效应被限制在经过 <code>A</code> 的那条路径上。由于即便在被干预的世界里也有 <code>L ≡ O</code>，我们并不需要 <code>O</code>。于是我们把 <code>O</code> 从图 23.7 和 23.8 中去掉，又得到 <code>Y</code> 是 <code>L</code> 的子节点。接着注意到图 23.8 上 <code>Y<sup>n</sup> ⊥ N | L</code> 显然成立，<code>E[Y<sup>n</sup>]</code> 应当由基于图 23.7 的 g 算法给出，也就是</p>
+<p style="text-align:center"><code>∑<sub>l,a</sub> E[Y|A = a, L = l] Pr[L = l] Pr[A = a|N = n] = ∑<sub>a</sub> ∑<sub>l</sub> E[Y|A = a, L = l] Pr[L = l] Pr[A = a|L = n]</code></p>
+<p>其中最后一个等号来自数据中 <code>L ≡ N</code> 的确定性。右边确实是前门公式。</p>
+<p>不过，由于确定性带来了零测集，这个推导略显启发式。把确定性与技术要点 21.12 中用来证明前门公式的方法结合起来，就能得到一个严格的证明。另需注意，从实质上说，人们一般不会把 <code>N</code> 和 <code>O</code> 当作 <code>L</code> 的可分离成分。但这并不要紧。要紧的是：我们的实质性因果故事蕴含一张扩展图 23.7，其中含有一个新的干预变量 <code>N</code>，它在实际世界里与 <code>L</code> 是确定性相关的（Stensrud 等，2023）。Wen 等（2023）独立且并行地得到了与本技术要点实质等价的结果。Fulcher 等（2020）更早就证明过：上述前门公式识别了与图 23.6 相关联的 NPSEM-IE 模型下的跨世界反事实量 <code>E[Y<sup>L=l=n,A</sup>]</code>。Wen 等人的结果和本技术要点，都可以看作是对 Fulcher 等人结果的一种干预主义改写。</p>
+</aside>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_6.png" alt="图 23.6">
+<figcaption><strong>图 23.6</strong>　图 9.14 的修改版：多出一条 <code>L → Y</code> 的边，因此 <code>L</code> 对 <code>Y</code> 的总效应不再被识别。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_7.png" alt="图 23.7">
+<figcaption><strong>图 23.7</strong>　扩展图：<code>N</code> 是报告给开药医生的 BMI 值 <code>L</code>，<code>O</code> 是用于决定是否转介物理治疗与膳食辅导的 BMI 值。加粗箭头 <code>L → N</code> 与 <code>L → O</code> 表示观测数据中恒有的 <code>L = N = O</code>。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch23--figure-23_8.png" alt="图 23.8">
+<figcaption><strong>图 23.8</strong>　图 23.7 的 SWIG：只把 <code>N</code> 换成被干预的 <code>N|n</code>，下游为 <code>A<sup>n</sup></code> 与 <code>Y<sup>n</sup></code>。<code>O</code> 仍留在图中，因为在被干预的世界里依旧有 <code>L ≡ O</code>。</figcaption></figure>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（"可分离成分"这个思路在中文语境里并不陌生）</strong>：把一个处理拆成若干可分离的、都能各自干预的成分，这个做法在中文的政策评估与临床研究里一直有人在做，只是换了名字：控烟研究里的"戒烟"与"改吸低危害烟"、慢病管理里的"降压药"与"生活方式干预"、疫苗研究里的"接种"与"加强针"，都是把 <code>A</code> 拆成 <code>N</code> 和 <code>O</code> 式的操作。本章的贡献在于说清了三件事：一是这种拆分本身是一个<em>可以证伪的科学假定</em>，而不是理所当然；二是拆分的收益是"你终于能说出这个量对应哪个真实干预"，而这是政策制定者唯一在乎的东西；三是这套干预主义机制已被推广到生存分析、竞争风险和存在干扰的情形（见 23.4 节的边注）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（"代理中介"与替代终点）</strong>：精细辨析 23.2 说的事情，在中文临床研究里通常叫"替代终点"（surrogate endpoint）。血压、血脂、HbA1c、影像学上的肿瘤直径，都常被当成"真正的疾病结局 <code>H</code>"的代理 <code>M</code>。但要小心：代理之所以能当代理，靠的往往是一堆经验性的相关关系，而不是"对 <code>M</code> 的干预有明确定义、并且能顺着传导到 <code>H</code>"。当这种传导关系不成立时，图 23.4 里 <code>H → M</code> 那条箭头在因果上就站不住，整张图随之退化成一张纯粹的关联图——中介公式再漂亮，估出来的也只是"血压变化"与"死亡"之间的关联，被包装成了中介效应的样子。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

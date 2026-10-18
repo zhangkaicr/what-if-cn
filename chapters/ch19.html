@@ -3,32 +3,267 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 19 章 · 时变处理 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 19 章 · 时变处理 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 19 章 · 时变处理</h1>
-<p class="muted">第三部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第三部分 · 时变处理的因果推断 · Part III — Causal inference for time-varying treatments</p>
+  <h1>第 19 章 · 时变处理</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 19. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">到目前为止，本书讨论的都是不随时间变化的固定处理。然而，许多因果问题涉及随时间变化的处理。举例来说，我们可能感兴趣于估计药物治疗、生活习惯、就业状况、婚姻状况、职业暴露等的因果效应。由于这些处理对同一个人来说在不同时刻可能取不同的值，我们把它们称为<strong>时变处理</strong>（time-varying treatments）。在第一部分和第二部分把注意力限制在时固定处理上，帮助我们引入了基本概念和方法。现在是时候考虑更贴近现实的因果问题了：它们比较的是一段时间里逐步展开的假想干预。第三部分就是把前两部分的材料扩展到时变处理。本章介绍时变处理因果推断中的一些关键术语和概念。我们已经尽力把这些概念化简（要是不信，去翻翻因果推断的文献就知道了），但这仍然是全书最技术性的一章之一。遗憾的是，再简化就会损失太多严谨性。不过既然你已经读到了这里，你就有资格读懂这一章。</p>
+
+<h2 id="s-19-1">19.1 时变处理的因果效应</h2>
+
+<p>考虑一个时固定的处理变量 <i>A</i>（1：接受治疗，0：不接受治疗），在随访的零点确定；结局变量 <i>Y</i> 在 60 个月后测量。我们此前把 <i>A</i> 对结局 <i>Y</i> 的平均因果效应定义为治疗 <i>a</i> = 1 下的反事实均值 <i>E</i>[<i>Y</i><sup><i>a</i>=1</sup>] 与不治疗 <i>a</i> = 0 下的反事实均值 <i>E</i>[<i>Y</i><sup><i>a</i>=0</sup>] 之差，即 <i>E</i>[<i>Y</i><sup><i>a</i>=1</sup>] − <i>E</i>[<i>Y</i><sup><i>a</i>=0</sup>]。由于处理状态是对每个人都在同一个时刻（零点）确定的，这个平均因果效应不需要指明处理发生的时间。相比之下，涉及时变处理的因果对比必须把时间显式地写进去。</p>
+
+<p>为简单起见，我们暂且假定这段时期内没有个体失访或死亡，并且所有变量都被完美测量。</p>
+
+<p>要看出这一点，考虑一个时变二值处理 <i>A<sub>k</sub></i>，它在随访的每个月 <i>k</i> 都可能改变，其中 <i>k</i> = 0, 1, 2 … <i>K</i>，<i>K</i> = 59。例如，在一项针对人类免疫缺陷病毒（HIV）感染者的 5 年随访研究中，若个体在第 <i>k</i> 个月接受抗逆转录病毒治疗（antiretroviral therapy），<i>A<sub>k</sub></i> 取值 1，否则取 0。研究在时间 0 开始之前，没有任何个体接受过治疗，即对所有个体都有 <i>A</i><sub>−1</sub> = 0。</p>
+
+<p>请记住，我们用小写字母表示随机变量的某个具体实现：<i>a<sub>k</sub></i> 是处理 <i>A<sub>k</sub></i> 的一个实现。</p>
+
+<p>为了与许多已发表的论文保持一致，我们采用从 0 开始的时间下标。也就是说，第一个可能有治疗的时刻是 <i>k</i> = 0，而不是 <i>k</i> = 1。</p>
+
+<p>我们用上划线表示治疗史，即 <i>Ā<sub>k</sub></i> = (<i>A</i><sub>0</sub>, <i>A</i><sub>1</sub>, …<i>A<sub>k</sub></i>) 是从时间 0 到时间 <i>k</i> 的治疗史。当我们指到 <i>K</i> 为止的整个治疗史时，常把 <i>Ā<sub>K</sub></i> 写成不带下标的 <i>Ā</i>。在 HIV 研究中，整个随访期都持续接受治疗的个体，其治疗史是 <i>Ā</i> = (<i>A</i><sub>0</sub> = 1, <i>A</i><sub>1</sub> = 1, …<i>A</i><sub>59</sub> = 1) = (1, 1, …1)，也就是 <i>Ā</i> = 1̄。同理，整个随访期都从未接受治疗的个体，其治疗史是 <i>Ā</i> = (0, 0, …0) = 0̄。多数个体只在随访期的一部分时间里接受治疗，因此具有居中的治疗史，其中既有一些 1 也有一些 0——这种治疗史没法像 1̄ 和 0̄ 那样紧凑地表示。</p>
+
+<p>为简化问题，我们的例子考虑在固定时间测量的结局。不过本章讨论的概念同样适用于时变结局和失效时间结局（failure time outcomes，见技术要点 21.8）。</p>
+
+<p>假设 <i>Y</i> 衡量随访结束时（时间 <i>K</i> + 1 = 60）的健康状况，<i>Y</i> 值越高表示健康越好。我们希望估计时变处理 <i>Ā</i> 对结局 <i>Y</i> 的平均因果效应。但我们再也不能把时变处理的平均因果效应定义为某个单一时刻 <i>k</i> 上的对比，因为 <i>E</i>[<i>Y</i><sup><i>a<sub>k</sub></i>=1</sup>] − <i>E</i>[<i>Y</i><sup><i>a<sub>k</sub></i>=0</sup>] 刻画的是处理 <i>A<sub>k</sub></i> 在单一时刻 <i>k</i> 的效应，而不是时变处理 <i>A<sub>k</sub></i> 在 0 到 59 各个时刻上的效应。</p>
+
+<p>因此我们不得不把平均因果效应定义为两种处理策略下的反事实均值之差，这两种策略都涉及从随访开始（<i>k</i> = 0）到随访结束（<i>k</i> = <i>K</i>）所有时刻上的处理。其结果是，时变处理的平均因果效应并没有唯一的定义。下一节将描述时变处理平均因果效应的多种可能定义。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（时间下标为什么从 0 开始）</strong>：这一处看似技术性的约定其实很关键。<i>A</i><sub>−1</sub> ≡ 0 表示"研究开始之前没人接受过治疗"，于是 <i>Ā</i><sub>0</sub> 也隐含了 <i>A</i><sub>0</sub> 的定义。两代或两代以上的观察研究里，基线时刻之前的处理史必须写成已知常数，序贯可交换性的条件化才写得出来。此外，"以月为单位"这个刻度也是作者选定的：他们假定受试者最多每月看一次医生，因此按月离散是稳妥的。真实研究中若随访是季度或按就诊日记录，就要相应调整刻度——但结构不变，见精细辨析 20.1 关于时间离散化的讨论。</p>
+</aside>
+
+<h2 id="s-19-2">19.2 治疗策略</h2>
+
+<p><strong>处理策略</strong>（treatment strategy，也叫 plan、policy、protocol 或 regime）是一条规则，用来在随访的每个时刻 <i>k</i> 分配处理。例如，两种处理策略是"始终治疗"和"从不治疗"。"始终治疗"策略写作 <i>ā</i> = (1, 1, …1) = 1̄，"从不治疗"策略写作 <i>ā</i> = (0, 0, …0) = 0̄。现在我们就可以把 <i>Ā</i> 对结局 <i>Y</i> 的平均因果效应定义为"始终治疗"策略下的反事实均值 <i>E</i>[<i>Y</i><sup><i>ā</i>=1̄</sup>] 与"从不治疗"策略下的反事实均值 <i>E</i>[<i>Y</i><sup><i>ā</i>=0̄</sup>] 之差，即 <i>E</i>[<i>Y</i><sup><i>ā</i>=1̄</sup>] − <i>E</i>[<i>Y</i><sup><i>ā</i>=0̄</sup>]。</p>
+
+<p>比较处理策略的一般反事实理论最早由 Robins（1986, 1987, 1997a）提出。</p>
+
+<p>但时变处理 <i>Ā</i> 的可能因果效应还有很多，每一个都由两个特定处理策略下的结局对比来定义。例如，我们可能对 <i>E</i>[<i>Y</i><sup><i>ā</i></sup>] − <i>E</i>[<i>Y</i><sup><i>ā′</i></sup>] 定义的平均因果效应感兴趣，它比较的是策略"隔月治疗" <i>ā</i> = (1, 0, 1, 0…) 与策略"除第一个月外每个月都治疗" <i>ā′</i> = (0, 1, 1, 1…)。可能的对比数量非常大：由于二值的 <i>a<sub>k</sub></i> 有 2<sup><i>K</i></sup> 种取值组合 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>, …<i>a<sub>K</sub></i>)，我们至少可以定义 2<sup><i>K</i></sup> 个处理策略。事实上，正如接下来要解释的，这 2<sup><i>K</i></sup> 个策略还并未穷尽所有可能的处理策略。</p>
+
+<p>要在 HIV 例子中定义更多策略，考虑时变协变量 <i>L<sub>k</sub></i>，表示所有个体在第 <i>k</i> 个月测量的 CD4 细胞计数（单位：个/µL）。当 CD4 细胞计数偏低（提示预后不良）时，<i>L<sub>k</sub></i> 取值 1，否则取 0。在时间零点，所有个体的 CD4 细胞计数都高，即 <i>L</i><sub>0</sub> = 0。于是我们可以考虑这样一条策略：<strong>"<i>L<sub>k</sub></i> = 0 期间不治疗，<i>L<sub>k</sub></i> = 1 时开始治疗，此后再持续治疗"</strong>。这条处理策略与上一段讨论的那些不同，因为我们无法用规则 <i>ā</i> = (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>, …<i>a<sub>K</sub></i>) 来表示它——那种规则让所有个体在 <i>k</i> = 0 时都接受 <i>a</i><sub>0</sub>，在 <i>k</i> = 1 时都接受 <i>a</i><sub>1</sub>，依此类推。现在，在每个时刻，一部分个体接受治疗，另一部分不接受，取决于他们不断变化的 <i>L<sub>k</sub></i> 的取值。这就是<strong>动态处理策略</strong>（dynamic treatment strategy）的一个例子：一条规则，其中时刻 <i>k</i> 的处理 <i>a<sub>k</sub></i> 依赖于个体的时变协变量 <i>L̄<sub>k</sub></i> 的演化。处理不依赖于协变量的策略 <i>ā</i> 则称为<strong>非动态</strong>或<strong>静态处理策略</strong>（static treatment strategy）。它们的形式定义见精细辨析 19.1。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 19.1　确定性与随机处理策略</span>
+<p><strong>确定性动态处理策略</strong>是一条规则 <i>g</i> = [<i>g</i><sub>0</sub>(<i>Ā</i><sub>−1</sub>, <i>l</i><sub>0</sub>), …<i>g<sub>K</sub></i>(<i>Ā</i><sub><i>K</i>−1</sub>, <i>L̄<sub>K</sub></i>)]，其中 <i>g<sub>k</sub></i>(<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>) 规定了治疗史为 <i>Ā</i><sub><i>k</i>−1</sub>、协变量史为 <i>L̄<sub>k</sub></i> 的个体在 <i>k</i> 时刻接受什么处理。在我们的 HIV 研究中，一个例子是：若某个体的 CD4 细胞计数（<i>L̄<sub>k</sub></i> 的一个函数）在 <i>k</i> 或之前偏低，则 <i>g<sub>k</sub></i>(<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>) = 1；否则为 0。<strong>确定性静态处理策略</strong>是一条规则 <i>g</i> = [<i>g</i><sub>0</sub>(<i>Ā</i><sub>−1</sub>), …<i>g<sub>K</sub></i>(<i>Ā</i><sub><i>K</i>−1</sub>)]，其中 <i>g<sub>k</sub></i>(<i>Ā</i><sub><i>k</i>−1</sub>) 不依赖于 <i>L̄<sub>k</sub></i>。我们常把 <i>g<sub>k</sub></i>(<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>) 简写为 <i>g</i>(<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>)。</p>
+<p>我们有意比较的绝大多数静态和动态策略都是确定性处理策略，它们给每个个体在每个时刻指定一个特定的处理值（0 或 1）。更一般地，我们也可以考虑<strong>随机处理策略</strong>（random treatment strategies）：它们不指定特定的处理值，而是给出接受某个处理值的概率。随机策略可以是静态的（例如"每个月独立地以 0.3 的概率治疗、以 0.7 的概率不治疗"），也可以是动态的（例如"每个月独立地，对 CD4 细胞计数低的个体以 0.3 的概率治疗，而对 CD4 细胞计数高的个体不治疗"）。</p>
+<p>我们把使反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 最大的策略 <i>g</i>（在结局值越高越好的情形下）称为<strong>最优处理策略</strong>（optimal treatment strategy）。对药物治疗来说，最优策略几乎总是动态的，因为一旦出现毒性反应就需要停药。而且，没有任何随机策略会优于最优的确定性策略。不过，随机策略（即随机化试验）在科学上仍然是必需的，因为在试验开始之前，还不知道哪个确定性策略是最优的。处理策略的分类学可参见 Young 等（2014）。在正文中，除非另有说明，字母 <i>g</i> 只指确定性处理策略。</p>
+</aside>
+
+<p>涉及时变处理的因果推断，比较的是两个或更多处理策略下的反事实结局。<strong>只有在指定了我们感兴趣的处理策略之后</strong>，时变处理的平均因果效应才是良好定义的。在 HIV 例子中，我们可以基于 <i>E</i>[<i>Y</i><sup><i>ā</i></sup>] − <i>E</i>[<i>Y</i><sup><i>ā′</i></sup>] 来定义一个平均因果效应，让策略 <i>ā</i>（比如"始终治疗"）对比策略 <i>ā′</i>（比如"从不治疗"）；也可以基于 <i>E</i>[<i>Y</i><sup><i>ā</i></sup>] − <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 来定义一个，让策略 <i>ā</i>（"始终治疗"）对比策略 <i>g</i>（比如"只在 CD4 细胞计数偏低后才治疗"）。注意我们经常用 <i>g</i> 代表任何策略——静态的或动态的。当用它代表静态策略时，我们有时写成 <i>Y<sup><i>g</i>=ā</sup></i> 而不是只写 <i>Y<sup><i>g</i></sup></i> 或 <i>Y<sup>ā</sup></i>。</p>
+
+<p>也就是说，时变处理并不存在单一的因果效应定义。即便每个时刻 <i>k</i> 只有"治疗"与"不治疗"两个选项，我们仍然能定义与处理策略对数一样多的因果效应。下一节将描述一种研究设计，在这种设计下所有这些因果效应都能被有效地估计：序贯随机试验。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（中文语境里为什么总把处理策略说成"是否用药"，以及这么做的后果）</strong>：19.2 整节的核心是——时变处理的平均因果效应<strong>不唯一</strong>，你必须先说清比较的是哪两条策略，才谈得上"效应"。可中文文献和临床语境里，"抗逆转录病毒治疗的因果效应"这类说法极其常见，几乎默认被理解成"全程用药 vs 全程不用药"。这种简化的代价很实在：<strong>问题被悄悄换掉了。</strong></p>
+<p>设想一个 60 个月、每月一次的 HIV 队列。全程用药 vs 全程不用药是两条<em>静态</em>策略，比较起来在数学上完全合法（19.5 节的图 19.5 就能识别）。可它在临床上几乎没有意义——没人会终身不服药，那个反事实世界既不存在也无法想象。而真正被决策者追问的问题全是<em>动态</em>的：CD4 掉到多少才启动治疗？启动之后要不要间歇停药？疗效不佳时是换药还是加药？这些问题的答案对应的是另一批策略，需要图 19.9 那样的结构。</p>
+<p>更麻烦的是，把两者混为一谈会连带影响估计的有效性：如果你实际想回答的是动态策略的问题，却套用了针对静态策略识别出的假设（比如误以为不需要那些随时间变化的协变量），得到的估计在数学上无偏，在实质上却答非所问。国内做 HIV 治疗时机、慢病随访方案（降压药起始阈值、达标后是否减量）、疫苗加强针时机的因果研究时，值得先花五分钟把"我到底在比较哪两条策略"写进方案里——这一步几乎不花时间，却决定了后面所有分析是否成立。</p>
+</aside>
+<h2 id="s-19-3">19.3 序贯随机试验</h2>
+
+<p>图 19.1、19.2 和 19.3 的因果图概括了时变处理研究中可能出现的三种情形。在这三张图中，<i>A<sub>k</sub></i> 表示时变处理，<i>L<sub>k</sub></i> 表示测量到的变量，<i>Y</i> 表示结局，<i>U<sub>k</sub></i> 表示 <i>k</i> 时刻未测量到的变量，它们是因果图上至少另外两个变量的共同原因。由于协变量 <i>U<sub>k</sub></i> 没有被测量，它们的取值是未知的，因此无法用于分析。在我们的 HIV 研究中，时变的 CD4 细胞计数 <i>L<sub>k</sub></i> 是真实的、但未被测量的慢性免疫系统损伤 <i>U<sub>k</sub></i> 的结果。个体的免疫损伤 <i>U<sub>k</sub></i> 越重，其 CD4 细胞计数 <i>L<sub>k</sub></i> 和健康状况 <i>Y</i> 就越差。为简化，这些因果图只画出了随访的前两个时刻 <i>k</i> = 0 和 <i>k</i> = 1，并且我们假定所有参与者都遵守了所分配的处理。</p>
+
+<p>图 19.1 缺少从测量协变量 <i>L̄<sub>k</sub></i> 或未测量协变量 <i>Ū<sub>k</sub></i> 指向处理 <i>A<sub>k</sub></i> 的箭头。图 19.2 有从测量协变量 <i>L̄<sub>k</sub></i> 指向处理 <i>A<sub>k</sub></i> 的箭头，但没有从未测量协变量 <i>Ū<sub>k</sub></i> 指向它的箭头。图 19.3 则两者都有。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_1.png" alt="图 19.1：没有任何箭头从测量协变量或未测量协变量指向处理的因果图">
+<figcaption><strong>图 19.1</strong>　两个时间点（<i>k</i> = 0, 1）的因果图，其中没有任何箭头从测量协变量 <i>L̄<sub>k</sub></i> 或未测量协变量 <i>Ū<sub>k</sub></i> 指向处理 <i>A<sub>k</sub></i>。它可以代表一项随机化试验：每个时刻 <i>k</i> 的处理 <i>A<sub>k</sub></i> 被随机分配，其概率只依赖于既往治疗史。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_2.png" alt="图 19.2：有从测量协变量指向处理的箭头，但没有从未测量协变量指向处理的箭头">
+<figcaption><strong>图 19.2</strong>　与图 19.1 相同，但有从测量协变量 <i>L̄<sub>k</sub></i> 指向处理 <i>A<sub>k</sub></i> 的箭头；未测量协变量 <i>Ū<sub>k</sub></i> 仍没有箭头指向处理。它可以代表一项随机化试验：分配概率依赖于既往治疗史和已测协变量史。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_3.png" alt="图 19.3：测量协变量与未测量协变量都有箭头指向处理的因果图">
+<figcaption><strong>图 19.3</strong>　与图 19.2 相同，但未测量协变量 <i>Ū<sub>k</sub></i> 也有箭头指向处理 <i>A<sub>k</sub></i>。它无法代表随机化试验，因为研究者不可能用未测量变量来分配处理。它代表的是存在未测量混杂的观察性研究。</figcaption></figure>
+
+<p>图 19.1 可以代表这样一项随机化试验：每个时刻 <i>k</i> 的处理 <i>A<sub>k</sub></i> 被随机分配，其概率只依赖于既往治疗史（为简化，我们假定全程完全依从）。例如，若某个体上个月未接受治疗（<i>A</i><sub><i>k</i>−1</sub> = 0）就以概率 0.5、上个月接受了治疗（<i>A</i><sub><i>k</i>−1</sub> = 1）就以概率 1，为其分配第 <i>k</i> 个月的处理，那么我们的 HIV 研究就由图 19.1 表示。当我们关注静态处理策略之间的对比时，图 19.1 正是"时变处理下不存在由测量变量或未测量变量造成的混杂"这一无混杂情形的恰当推广。在这种因果图下，如果每个人都遵循静态策略 <i>ā</i>，反事实均值 <i>E</i>[<i>Y<sup>ā</sup></i>] 就只是那些遵循了策略 <i>ā</i> 者的结局均值 <i>E</i>[<i>Y</i> | <i>Ā</i> = <i>ā</i>]。（有意思的是，对动态策略来说并非如此。在一个依赖于变量 <i>L</i> 的动态策略 <i>g</i> 下，反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 只有在所有处理 <i>A<sub>k</sub></i> = 1 依赖于 <i>L<sub>k</sub></i> 的时刻 <i>k</i> 上，接受治疗 <i>A<sub>k</sub></i> = 1 的概率恰好等于 0.5 时，才等于遵循了策略 <i>g</i> 者的结局均值。否则，要识别 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 就需要在 <i>L</i>、<i>A</i> 和 <i>Y</i> 的数据上运用 g 方法，且依据的是图 19.1 或图 19.2。）</p>
+
+<p>图 19.2 可以代表这样一项随机化试验：每个时刻 <i>k</i> 的处理 <i>A<sub>k</sub></i> 由研究者随机分配，其概率依赖于既往治疗史和已测协变量史。例如，若某个体在每个月 <i>k</i> 的处理取值这样随机分配：上个月未治疗且 CD4 细胞计数高者（<i>A</i><sub><i>k</i>−1</sub> = 0, <i>L<sub>k</sub></i> = 1）以概率 0.4，上个月未治疗但 CD4 细胞计数低者（<i>A</i><sub><i>k</i>−1</sub> = 0, <i>L<sub>k</sub></i> = 0）以概率 0.8，此前已接受治疗者（<i>A</i><sub><i>k</i>−1</sub> = 1）以概率 0.5，无论其 CD4 细胞计数如何，那么我们的这项研究就由图 19.2 表示。在图 19.2 中，时变处理存在由测量变量造成的混杂，但没有由未测量变量造成的混杂。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（原书此处有一处标注出入）</strong>：本节开头的定义写得很明确——CD4 细胞计数偏低（提示预后不良）时 <i>L<sub>k</sub></i> 取值 1，否则取 0。但上面这段关于图 19.2 的举例却写成"CD4 细胞计数高（<i>A</i><sub><i>k</i>−1</sub> = 0, <i>L<sub>k</sub></i> = 1）"、"CD4 细胞计数低（<i>A</i><sub><i>k</i>−1</sub> = 0, <i>L<sub>k</sub></i> = 0）"，方向与定义正好相反。这是原书自身的疏漏，并非本译文的处理。本译文一律按开头的定义来，即 <i>L<sub>k</sub></i> = 1 对应 CD4 计数偏低（免疫损害较重、预后较差）。读者对照英文原书时若发现前后不一致，即为此处。</p>
+</aside>
+
+<p>在观察性研究中，治疗决策往往依赖于结局的预测因子，比如预后因素。因此，观察性研究通常由图 19.2 或图 19.3 而不是图 19.1 来表示。例如，假设我们的 HIV 随访研究是一项观察性研究（而非实验），其中 CD4 细胞计数 <i>L<sub>k</sub></i> 越低，患者接受治疗的可能性就越大。那么，若在每个月 <i>k</i>，真实世界中的治疗决策都基于既往治疗史和 CD4 细胞计数史（<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>）的取值，而不基于任何未测量变量 <i>Ū<sub>k</sub></i> 的取值，我们的研究就由图 19.2 表示。于是，图 19.2 所表示的观察性研究与序贯随机试验的差别，只在于分配概率是未知的（但可以从数据中估计）。遗憾的是，我们无法从经验上判断一项观察性研究究竟由图 19.2 还是图 19.3 的因果图表示。由图 19.3 表示的观察性研究存在未测量混杂，后面会讲到。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_4.png" alt="图 19.4：多了一个未测量变量 W0，它同时指向 A0 和 L1">
+<figcaption><strong>图 19.4</strong>　与图 19.2 相同，但多了一个未测量变量 <i>W</i><sub>0</sub>，箭头从 <i>W</i><sub>0</sub> 指向 <i>A</i><sub>0</sub> 与 <i>L</i><sub>1</sub>。在 HIV 例子中，<i>W</i><sub>0</sub> 可以是"时间 0 时有一次已安排好的门诊"这一指示变量，而这次门诊没有被记录进我们的数据库。</figcaption></figure>
+
+<p>把处理在每个时刻 <i>k</i> 都随机分配给每个个体的实验，称为<strong>序贯随机试验</strong>（sequentially randomized experiment）。因此图 19.1 和图 19.2 都可以代表序贯随机试验。另一方面，图 19.3 不能代表随机化试验：每个时刻 <i>k</i> 的处理 <i>A<sub>k</sub></i> 的取值部分依赖于未测量变量 <i>U</i>，而 <i>U</i> 是 <i>L<sub>k</sub></i> 和 <i>Y</i> 的原因，但未测量变量显然不能被研究者用来分配处理。也就是说，一个序贯随机试验可以用这样的因果图来表示：图中有许多时间点 <i>k</i> = 0, 1…<i>K</i>，并且在任何时刻 <i>k</i> 都没有从未测量预后因素 <i>U</i> 指向处理 <i>A<sub>k</sub></i> 的直接箭头。</p>
+
+<p>序贯随机试验在实践中并不常用。然而，序贯随机试验这个概念有助于理解有效估计时变处理因果效应的一些关键条件。下一节将正式给出这些条件。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 19.1　动态策略定义的补记</span>
+<p>每个依赖既往治疗史和协变量史的动态策略 <i>g</i> = [<i>g</i><sub>0</sub>(<i>Ā</i><sub>−1</sub>, <i>l</i><sub>0</sub>), …<i>g</i><sub><i>K</i></sub>(<i>Ā</i><sub><i>K</i>−1</sub>, <i>L̄<sub>K</sub></i>)]，都对应一个只依赖既往协变量史的动态策略 <i>g′</i> = [<i>g′</i><sub>0</sub>(<i>l</i><sub>0</sub>), …<i>g′</i><sub><i>K</i></sub>(<i>L̄<sub>K</sub></i>)]。由一致性（见技术要点 19.2），一个个体从时间零开始遵循策略 <i>g</i>，与遵循策略 <i>g′</i>，其治疗史、协变量史和结局史是相同的。特别地，<i>Y<sup><i>g</i></sup></i> = <i>Y<sup><i>g′</i></sup></i>，且 <i>L̄</i><sup><i>g</i></sup>(<i>K</i>) = <i>L̄</i><sup><i>g′</i></sup>(<i>K</i>)。具体而言，<i>g′</i> 是<em>递归地</em>由 <i>g</i> 定义的：<i>g′</i><sub>0</sub>(<i>l</i><sub>0</sub>) = <i>g</i><sub>0</sub>(<i>Ā</i><sub>−1</sub> = 0, <i>l</i><sub>0</sub>)（按约定，<i>Ā</i><sub>−1</sub> 只能取零），且 <i>g′</i><sub><i>k</i></sub>(<i>l̄<sub>k</sub></i>) = <i>g<sub>k</sub></i>(<i>g′</i><sub><i>k</i>−1</sub>(<i>l̄</i><sub><i>k</i>−1</sub>), <i>l<sub>k</sub></i>)。对任何策略 <i>g</i>，如果它在每个 <i>k</i> 的处理已经不依赖于既往治疗史，那么 <i>g</i> 与 <i>g′</i> 就是同一组函数。上面这种由 <i>g</i> 定义 <i>g′</i> 的做法保证了这样一件事：在观测数据中，某个体截至时刻 <i>t</i> 一直遵循了策略 <i>g</i>，即对 <i>k</i> ≤ <i>t</i> 有 <i>A<sub>k</sub></i> = <i>g<sub>k</sub></i>(<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>)，当且仅当该个体截至 <i>t</i> 一直遵循了策略 <i>g′</i>，即对 <i>k</i> ≤ <i>t</i> 有 <i>A<sub>k</sub></i> = <i>g′</i><sub><i>k</i></sub>(<i>L̄<sub>k</sub></i>)。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（序贯随机试验：一个几乎不存在的思想实验，为什么撑起了整章）</strong>：先说结论——如果你只读本章一节，就读 19.3。它解释了后面所有的技术内容为何必要。</p>
+<p>现实中几乎没人做序贯随机试验。所谓"在每个时点按概率掷硬币决定治不治"，在伦理和可行性上都有硬伤。所以它在本书里完全是一个<strong>理想参照系</strong>：它假装我们能让世界的随机硬币落得毫无偏倚，于是"所有策略下的 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 都能被估计"就成为金标准。接下来每一节都在问同一个问题——真实的观察性数据离这个金标准差多少？</p>
+<p>差多少，用三张图就能说清：图 19.1 是满分（图里没有任何箭头从协变量指向处理），图 19.2 是"扣了一点分"（已测协变量指向处理，存在测量混杂，但仍可识别），图 19.3 是"不及格"（连未测变量都指向处理，任何策略都识别不了）。19.5 节的工作，则是把"及格与不及格"之间那一大片灰色地带用 SWIG 一格一格画出来：图 19.5 能识别所有策略，图 19.6 只能识别静态策略，图 19.11 连静态策略也识别不了。</p>
+<p>所以读本章的正确姿势不是"记住每个结论"，而是"认得这三张图"。第 20、21、21.12 节还会反复回到它们身上。</p>
+</aside>
+
+<h2 id="s-19-4">19.4 顺序可交换性</h2>
+
+<p>如第一、二部分所述，关于时固定处理的有效因果推断通常要求条件可交换性 <i>Y<sup>a</sup></i> ⊥⊥ <i>A</i> | <i>L</i>。当可交换性 <i>Y<sup>a</sup></i> ⊥⊥ <i>A</i> | <i>L</i> 成立时，只要通过标准化、逆概率加权、g 估计或其他方法适当地调整 <i>L</i> 中的变量，就能得到处理 <i>A</i> 对结局 <i>Y</i> 因果效应的无偏估计。我们预期条件可交换性在<strong>条件随机化试验</strong>中成立——即个体被分配处理的概率依赖于协变量 <i>L</i> 取值的试验。在观察性研究中，如果接受处理的概率依赖于已测协变量 <i>L</i>，且在给定 <i>L</i> 后不再依赖于任何未测量的、处理与结局的共同原因，那么条件可交换性就成立。</p>
+
+<p>同样地，时变处理的因果推断要求调整时变协变量 <i>L̄<sub>k</sub></i>，以便在每个时间点都达到条件可交换性，也就是<strong>顺序条件可交换性</strong>（sequential conditional exchangeability）。例如，在一个只有两个时间点的研究中，顺序条件可交换性就是第一个时刻和第二个时刻的条件可交换性合在一起，即 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>0</sub> | <i>L</i><sub>0</sub> 且 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub> | <i>A</i><sub>0</sub> = <i>g</i>(<i>L</i><sub>0</sub>), <i>L</i><sub>0</sub>, <i>L</i><sub>1</sub>。（为简洁，本书省略"条件"二字，直接说<strong>顺序可交换性</strong>。）我们把这一组条件独立关系称为：在任何——静态的或动态的——策略 <i>g</i> 下，只要它同时干预时变处理的两个分量 (<i>A</i><sub>0</sub>, <i>A</i><sub>1</sub>)，<i>Y<sup><i>g</i></sup></i> 就满足顺序可交换性。</p>
+
+<p>对于那些治疗史 [<i>A</i><sub>0</sub> = <i>g</i>(<i>L</i><sub>0</sub>), <i>A</i><sub>1</sub> = <i>g</i>(<i>A</i><sub>0</sub>, <i>L</i><sub>0</sub>, <i>L</i><sub>1</sub>)] 等于（即符合于）他们跟随策略 <i>g</i> 走到随访结束时本会接受的治疗的个体，反事实结局 <i>Y<sup><i>g</i></sup></i> 根据一致性就等于观测到的结局 <i>Y</i>，因而也等于静态策略 (<i>a</i><sub>0</sub> = <i>A</i><sub>0</sub>, <i>a</i><sub>1</sub> = <i>A</i><sub>1</sub>) 下的反事实结局。</p>
+
+<p>一个序贯随机试验——即每个时刻 <i>k</i> 的处理 <i>A<sub>k</sub></i> 被随机分配，其概率只依赖于个体的既往协变量史 <i>L̄<sub>k</sub></i> 和治疗史 <i>Ā</i><sub><i>k</i>−1</sub> 的试验——意味着对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性。也就是说，对任何策略 <i>g</i>，在每个时刻 <i>k</i>，给定既往协变量史 <i>L̄<sub>k</sub></i> 和任一与策略 <i>g</i> 相容的已观测治疗史 <i>Ā</i><sub><i>k</i>−1</sub> = <i>g</i>(<i>Ā</i><sub><i>k</i>−2</sub>, <i>L̄</i><sub><i>k</i>−1</sub>)，在时刻 <i>k</i> 接受治疗者与不接受治疗者对 <i>Y<sup><i>g</i></sup></i> 是可交换的。形式上，对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性定义为</p>
+
+<p style="text-align:center"><i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>g</i>(<i>Ā</i><sub><i>k</i>−2</sub>, <i>L̄</i><sub><i>k</i>−1</sub>), <i>L̄<sub>k</sub></i>　对所有策略 <i>g</i> 和 <i>k</i> = 0, 1…<i>K</i></p>
+
+<p>这种形式的顺序可交换性（后面我们还会看到其他形式）在任何因果图中都成立，只要该图像图 19.2 那样，没有从未测量变量 <i>U</i> 指向处理变量 <i>A</i> 的箭头。因此，在序贯随机试验中，以及在这样的观察性研究中——每个时刻接受处理的概率依赖于其治疗史和已测协变量史 <i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>，且在给定这一历史后不再依赖于任何未测量的结局原因——对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性成立。也就是说，在图 19.2 所表示的观察性研究中，所有策略 <i>g</i> 下的反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 都是可识别的；而在图 19.3 所表示的观察性研究中，没有任何反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 是可识别的。在由其他因果图表示的观察性研究中，某些策略（但并非全部策略）<i>g</i> 下的反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 是可识别的。</p>
+
+<p>举例来说，考虑由因果图 19.4 表示的观察性研究，其中包含一个未测量变量 <i>W</i><sub>0</sub>。在我们的 HIV 例子中，<i>W</i><sub>0</sub> 可以是时间 0 时一次已安排好的门诊的指示变量，而这次门诊没有被记录进我们的数据库。在这种情况下，<i>W</i><sub>0</sub> 是处理 <i>A</i><sub>0</sub> 与被测量（带有一定误差）的 CD4 细胞计数 <i>L</i><sub>1</sub> 的共同原因，而 <i>U</i><sub>1</sub> 表示 CD4 细胞计数背后那个未知但真实的取值。尽管 <i>W</i><sub>0</sub> 未被测量，反事实均值在任何静态策略 <i>g</i> = <i>ā</i> 下仍然是可识别的；然而在任何处理分配依赖于 <i>L</i><sub>1</sub> 的动态策略 <i>g</i> 下，反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>] 就不可识别。为了说明为什么在某些策略下可识别、在另一些策略下不可识别，下一节我们将会使用 SWIG。</p>
+
+<p>每当我们谈论因果效应的可识别性时，可识别公式都是 g 算法（g-formula，见第 21 章）。在与本章讨论无关的少数情形中，效应可以由与 g 算法相关但并不相等的公式识别（例如技术要点 7.3）。</p>
+
+<p>除了某种形式的顺序可交换性，涉及时变处理的因果推断还要求可阳性性（positivity）和一致性（consistency）的顺序版本。在序贯随机试验中，我们预期顺序可阳性性与一致性都成立（见技术要点 19.2）。下文我们将假定顺序可阳性性与一致性成立。在这三个可识别性条件之下，只要我们使用适当调整了治疗史与协变量史 <i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i> 的方法，例如 g 算法（标准化）、IP 加权和 g 估计，就能识别我们感兴趣的策略 <i>g</i> 下的反事实均值 <i>E</i>[<i>Y<sup><i>g</i></sup></i>]。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（顺序可交换性与可交换性到底差在哪）</strong>：新术语容易让人以为只是把旧术语写长了。差别有三层，都很实在。</p>
+<p><strong>一是条件化对象变了。</strong>可交换性条件于 <i>L</i>；顺序可交换性条件于<em>全部历史</em>：<i>Ā</i><sub><i>k</i>−1</sub> = <i>g</i>(<i>Ā</i><sub><i>k</i>−2</sub>, <i>L̄</i><sub><i>k</i>−1</sub>), <i>L̄<sub>k</sub></i>。混杂因素不再是一组并列的调整变量，而是一条不断增长的历史。这正是第 21 章里 IP 权重变成各期条件概率之乘积、而不是单期概率的根源。</p>
+<p><strong>二是反事实那一侧变了。</strong>可交换性说的是 <i>Y<sup>a</sup></i> ⊥⊥ <i>A</i>，两侧都是"单时点"的东西；顺序可交换性说的是 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A<sub>k</sub></i>——右侧是观测到的处理，左侧却是"如果按策略 <i>g</i> 走完整个随访"的反事实结局。这两侧信息量并不对等，19.5 节的 SWIG 分析大半在处理这个不对称。</p>
+<p><strong>三是它只在与你所问的策略相容的分支上成立。</strong>若分配概率依赖于既往治疗史，那些实际没走到的分支就不在条件化范围内，也就不需要满足可交换性。这就是本章反复强调"可识别性取决于你问的是哪条策略"的根源。</p>
+<p>中文语境里还有一个常见错位值得点出：把"时变混杂"当成一个静态的协变量集合来处理。真正的区别在于<em>时点</em>——混杂因素是随时间被反复测量的，它的取值同时决定了后续处理和后续结局。少了"随时间"这三个字，后面所有 g 方法的必要性都无从谈起。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 19.2　时变处理的可阳性性与一致性</span>
+<p>可阳性性条件需要从固定版本"<em>若 <i>f<sub>L</sub></i>(<i>l</i>) ≠ 0，则对所有 <i>a</i> 和 <i>l</i> 都有 <i>f<sub>A|L</sub></i>(<i>a</i>|<i>l</i>) &gt; 0</em>"推广为顺序版本</p>
+<p style="text-align:center">若 <i>f</i><sub><i>Ā</i><sub><i>k</i>−1</sub>,<i>L̄</i><sub><i>k</i></sub></sub>(<i>ā</i><sub><i>k</i>−1</sub>, <i>l̄<sub>k</sub></i>) ≠ 0，则对所有 <i>ā<sub>k</sub></i>, <i>l̄<sub>k</sub></i> 都有 <i>f</i><sub><i>A</i><sub><i>k</i></sub>|<i>Ā</i><sub><i>k</i>−1</sub>,<i>L̄</i><sub><i>k</i></sub></sub>(<i>a<sub>k</sub></i> | <i>ā</i><sub><i>k</i>−1</sub>, <i>l̄<sub>k</sub></i>) &gt; 0</p>
+<p>在序贯随机试验中，只要各个时刻 <i>k</i> 的随机化概率不论既往治疗史和协变量史如何都不为 0 也不为 1，可阳性性就成立。如果我们只对某个特定策略 <i>g</i> 感兴趣，那么上面的可阳性性条件只需要在与 <i>g</i> 相容的治疗史上成立，也就是说，对每个 <i>k</i>，只需 <i>a<sub>k</sub></i> = <i>g</i>(<i>ā</i><sub><i>k</i>−1</sub>, <i>l<sub>k</sub></i>) 时成立。</p>
+<p>一致性条件也需要从固定版本"<em>若某个个体 <i>A</i> = <i>a</i>，则该个体 <i>Y<sup>a</sup></i> = <i>Y</i></em>"推广为顺序版本</p>
+<p style="text-align:center"><i>Y</i><sup><i>ā</i>*</sup> = <i>Y</i><sup><i>ā</i>*</sup> 若 <i>a</i>* = <i>ā</i>；　<i>Y</i><sup><i>ā</i>*</sup> = <i>Y</i> 若 <i>A</i> = <i>ā</i>；　<i>L̄</i><sub><i>k</i></sub><sup><i>ā</i>*</sup> = <i>L̄</i><sub><i>k</i></sub><sup><i>ā</i></sup> 若 <i>a</i>*<sub><i>k</i>−1</sub> = <i>a</i><sub><i>k</i>−1</sub>；　<i>L̄</i><sub><i>k</i></sub><sup><i>ā</i>*</sup> = <i>L</i><sub><i>k</i></sub> 若 <i>A</i><sub><i>k</i>−1</sub> = <i>a</i>*<sub><i>k</i>−1</sub></p>
+<p>其中 <i>L̄</i><sub><i>k</i></sub><sup><i>ā</i></sup> 是策略 <i>a</i> 下直到时间 <i>k</i> 的反事实 <i>L</i> 历史。严格地说，识别时变处理对 <i>Y</i> 的效应只需要更弱的一致性条件：对静态策略来说，"若某个个体 <i>A</i> = <i>a</i>，则该个体 <i>Y<sup>ā</sup></i> = <i>Y</i>"就足够了；对动态策略来说，"对任何策略 <i>g</i>，若某个个体在每个时刻 <i>k</i> 都有 <i>A<sub>k</sub></i> = <i>g<sub>k</sub></i>(<i>A</i><sub><i>k</i>−1</sub>, <i>L<sub>k</sub></i>)，则 <i>Y<sup><i>g</i></sup></i> = <i>Y</i>"就足够了。不过，更强的顺序一致性是一个自然的条件，我们将始终接受它。</p>
+<p>请注意，如果我们预期对应 <i>A<sub>k</sub></i> = 1 的"在第 <i>k</i> 个月治疗"和对应 <i>A<sub>k</sub></i> = 0 的"在第 <i>k</i> 个月不治疗"这两个干预在所有时刻 <i>k</i> 都被良好定义，那么涉及 <i>A<sub>k</sub></i> 的所有静态和动态策略也同样被良好定义。</p>
+</aside>
+
+<h2 id="s-19-5">19.5 某些（但非全部）治疗策略下的可识别性</h2>
+
+<p>在第 7 章中，我们介绍过一条图示规则——<strong>后门准则</strong>（backdoor criterion）——用来评估在某个特定因果图下，对时固定处理的可交换性是否成立。后门准则可以推广到时变处理。例如，对于静态策略，处理策略的因果效应可识别的一个充分条件是：在每个时刻 <i>k</i>，所有不经过任何未来处理的后门路径都被阻断。</p>
+
+<p>不过，推广后的后门准则并没有直接显示出阻断后门路径与顺序可交换性之间的联系，因为这套程序基于不含反事实结局的有向无环图。评估因果效应可识别性的另一种图示检验基于 <strong>SWIG</strong>（第 7 章也已讨论）。SWIG 对时变处理尤其有帮助。</p>
+
+<p>考虑图 19.5 和图 19.6 的因果图，它们是图 19.2 和图 19.4 的简化版本。我们去掉了节点 <i>U</i><sub>0</sub> 和 <i>L</i><sub>0</sub>，以及从 <i>A</i><sub>0</sub> 指向 <i>U</i><sub>1</sub> 的箭头。此外，从 <i>L</i><sub>1</sub> 指向 <i>Y</i> 的箭头也不存在，因此 <i>L</i><sub>1</sub> 不再是 <i>Y</i> 的直接原因。图 19.5 和图 19.6（就像图 19.2 和图 19.4 一样）的差别在于：处理 <i>A<sub>k</sub></i> 与其后的协变量 <i>L<sub>t</sub></i>（<i>t</i> &gt; <i>k</i>）是否共享原因 <i>W<sub>k</sub></i>。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_5.png" alt="图 19.5：A0 → L1 → A1 → Y，外加 U1 → L1 与 U1 → Y，没有箭头从 L1 指向 Y">
+<figcaption><strong>图 19.5</strong>　图 19.2 的简化版：去掉了 <i>U</i><sub>0</sub>、<i>L</i><sub>0</sub> 节点和 <i>A</i><sub>0</sub> → <i>U</i><sub>1</sub> 的箭头，也去掉了 <i>L</i><sub>1</sub> → <i>Y</i> 的箭头，因此 <i>L</i><sub>1</sub> 不再是 <i>Y</i> 的直接原因。<i>U</i><sub>1</sub> 是 <i>A</i><sub>1</sub> 与 <i>Y</i> 的共同原因。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_6.png" alt="图 19.6：在图 19.5 的基础上多了一个未测量变量 W0，W0 同时指向 A0 和 L1">
+<figcaption><strong>图 19.6</strong>　图 19.4 的简化版。与图 19.5 相比，处理与其后的协变量 <i>L</i><sub>1</sub> 共享了一个未测量原因 <i>W</i><sub>0</sub>。</figcaption></figure>
+
+<p>正如本书第一部分所讨论的，一个 SWIG 代表某个特定干预下的反事实世界。图 19.7 中的 SWIG 代表了图 19.5 的世界，如果所有人都接受了静态策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>)，其中 <i>a</i><sub>0</sub> 和 <i>a</i><sub>1</sub> 可取 0 或 1。例如，图 19.7 可以用来代表"始终治疗"策略下的世界（<i>a</i><sub>0</sub> = 1, <i>a</i><sub>1</sub> = 1），也可以代表"从不治疗"策略下的世界（<i>a</i><sub>0</sub> = 0, <i>a</i><sub>1</sub> = 0）。构造这个 SWIG 的方法是，先把处理节点 <i>A</i><sub>0</sub> 和 <i>A</i><sub>1</sub> 一分为二。分裂开的处理节点的右边代表干预下的处理值。左边代表在此前所有处理上施加干预的情况下本会观测到的处理值。因此，<i>A</i><sub>0</sub> 的左边正是 <i>A</i><sub>0</sub>，因为没有此前的处理可以施加干预；而 <i>A</i><sub>1</sub> 的左边是反事实处理 <i>A</i><sub>0</sub><sup><i>a</i>1</sup>，即在把 <i>A</i><sub>0</sub> 设为 <i>a</i><sub>0</sub> 之后会观测到的处理值。原因果图中指向某个处理的所有箭头，现在都指向左边；从某个处理出发的所有箭头，现在都从右边发出。结局变量变成了反事实结局 <i>Y<sup>a0,a1</sup></i>，协变量 <i>L</i> 也被替换为相应的反事实变量。注意我们把策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>) 下与 <i>L</i><sub>1</sub> 对应的反事实变量写作 <i>L</i><sub>1</sub><sup><i>a</i>0</sup> 而非 <i>L</i><sub>1</sub><sup><i>a</i>0,<i>a</i>1</sup>，因为对 <i>A</i><sub>1</sub> 的干预不可能影响更早的 <i>L</i><sub>1</sub> 的取值。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_7.png" alt="图 19.7：图 19.5 在静态策略 (a0, a1) 下的 SWIG">
+<figcaption><strong>图 19.7</strong>　图 19.5 在静态策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>) 下的 SWIG。每个处理节点被分成左右两半，右半是干预值 <i>a</i><sub>0</sub> 或 <i>a</i><sub>1</sub>，左半是事实值 <i>A</i><sub>0</sub> 或 <i>A</i><sub>0</sub><sup><i>a</i>1</sup>。</figcaption></figure>
+
+<p>与图 19.5 的有向无环图不同，图 19.7 的 SWIG 确实包含了反事实结局，这意味着我们可以用 d-分离在图上直接检验可交换性。</p>
+
+<p>在图 19.7 中，通过 d-分离可知，对任何静态策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>)，<i>Y<sup>a0,a1</sup></i> ⊥⊥ <i>A</i><sub>0</sub> 和 <i>Y<sup>a0,a1</sup></i> ⊥⊥ <i>A</i><sub>0</sub><sup><i>a</i>1</sup> | <i>A</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>a</i>0</sup> 都成立。这第二个条件独立式看似存在一条开放路径 <i>A</i><sub>0</sub><sup><i>a</i>1</sup> ← <i>a</i><sub>0</sub> → <i>L</i><sub>1</sub><sup><i>a</i>0</sup> ← <i>U</i><sub>1</sub> → <i>Y<sup>a0,a1</sup></i>，但这条路径实际上被阻断了，原因如下：在反事实世界中，<i>a</i><sub>0</sub> 是一个常数，而在概率陈述中常数总是被隐含地条件化，尽管按惯例它们不出现在条件事件里。细节见精细辨析 19.2。</p>
+
+<p>第二个条件独立式 <i>Y<sup>a0,a1</sup></i> ⊥⊥ <i>A</i><sub>0</sub><sup><i>a</i>1</sup> | <i>A</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>a</i>0</sup> 按定义意味着，在接受了处理 <i>A</i><sub>0</sub> = <i>a</i><sub>0</sub> 的个体子集中，<i>Y<sup>a0,a1</sup></i> ⊥⊥ <i>A</i><sub>0</sub><sup><i>a</i>1</sup> | <i>A</i><sub>0</sub> = <i>a</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>a</i>0</sup>。因此，由一致性可得 <i>Y<sup>a0,a1</sup></i> ⊥⊥ <i>A</i><sub>1</sub> | <i>A</i><sub>0</sub> = <i>a</i><sub>0</sub>, <i>L</i><sub>1</sub>，因为由一致性 <i>L</i><sub>1</sub><sup><i>a</i>0</sup> = <i>L</i><sub>1</sub> 且 <i>A</i><sub>1</sub><sup><i>a</i>0</sup> = <i>A</i><sub>1</sub>。</p>
+
+<p>我们把上述条件称为<strong>静态顺序可交换性</strong>（static sequential exchangeability）：<i>Y<sup>ā</sup></i> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>，<i>k</i> = 0, 1…<i>K</i>。它比对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性要弱，因为它只要求以静态策略 <i>g</i> = <i>ā</i> 为下标的反事实结局 <i>Y<sup>ā</sup></i> 与处理 <i>A<sub>k</sub></i> 之间的条件独立。静态顺序可交换性足以识别任何静态策略 <i>g</i> = <i>ā</i> 下的反事实均值。另见技术要点 19.3。</p>
+
+<p>在图 19.6 的因果图下，静态顺序可交换性同样成立，这一点可以通过对它对应的图 19.8 中的 SWIG 施加 d-分离来检验。于是，在图 19.6 所表示的观察性研究中，我们可以识别任何静态策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>) 下的反事实均值。回到图 19.5。现在假定从 <i>L</i><sub>1</sub> 指向 <i>A</i><sub>1</sub> 的箭头不见了。那样的话，图 19.7 的 SWIG 中从 <i>L</i><sub>1</sub><sup><i>a</i>0</sup> 指向 <i>A</i><sub>0</sub><sup><i>a</i>1</sup> 的箭头也会随之不见。于是由 d-分离可知，顺序无条件可交换性成立，因而任何静态策略下的反事实均值都可以在没有 <i>L</i><sub>1</sub> 数据的情况下被识别。现在再假定图 19.5 中存在从 <i>U</i><sub>1</sub> 指向 <i>A</i><sub>1</sub> 的箭头。那么图 19.7 的 SWIG 中就会出现从 <i>U</i><sub>1</sub> 指向 <i>A</i><sub>0</sub><sup><i>a</i>1</sup> 的箭头，于是任何形式的顺序可交换性都不成立，反事实均值在任何策略下都不可识别。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_8.png" alt="图 19.8：图 19.6 在静态策略 (a0, a1) 下的 SWIG，W0 同时指向 A0 和 L1">
+<figcaption><strong>图 19.8</strong>　图 19.6 在静态策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>) 下的 SWIG。静态顺序可交换性依然成立，因此静态策略的反事实均值可识别。</figcaption></figure>
+
+<p>现在我们来讨论动态处理策略下的 SWIG。图 19.9 表示图 19.5 的世界在动态策略 <i>g</i> = [<i>g</i><sub>0</sub>, <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub>)] 下的情形，其中处理 <i>A</i><sub>0</sub> 被赋一个固定值 <i>g</i><sub>0</sub>（0 或 1），而 <i>k</i> = 1 时刻的处理 <i>A</i><sub>1</sub> 被赋予依赖于 <i>L</i><sub>1</sub><sup><i>g</i></sup> 取值的 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>)，其中 <i>L</i><sub>1</sub><sup><i>g</i></sup> 是在 <i>k</i> = 0 时刻赋予处理值 <i>g</i><sub>0</sub> 之后观测到的 <i>L</i><sub>1</sub> 的取值。例如，<i>g</i> 可以是策略"<i>k</i> = 0 时不治疗，<i>k</i> = 1 时只在 CD4 细胞计数偏低（即 <i>L</i><sub>1</sub><sup><i>g</i></sup> = 1）时才治疗"。在该策略下，<i>g</i><sub>0</sub> = 0 对每个人成立；当 <i>L</i><sub>1</sub><sup><i>g</i></sup> = 1 时 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) = 1，当 <i>L</i><sub>1</sub><sup><i>g</i></sup> = 0 时 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) = 0。因此 SWIG 中包含一条从 <i>L</i><sub>1</sub><sup><i>g</i></sup> 指向 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) 的箭头。这条箭头并不在原来的因果图中，它只存在于与该动态策略相联系的反事实世界里。因此我们把它画成与其他箭头都不同的形式，尽管在评估 d-分离时仍须把它当作其他任何箭头来对待。SWIG 中的结局是动态策略 <i>g</i> 下的反事实结局 <i>Y<sup><i>g</i></sup></i>，该策略使用 <i>L</i><sub>1</sub> 来分配处理 <i>A</i><sub>1</sub>。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_9.png" alt="图 19.9：图 19.5 在动态策略 g = [g0, g1(L1)] 下的 SWIG，新增一条从 L1^g 指向 g1(L1^g) 的箭头">
+<figcaption><strong>图 19.9</strong>　图 19.5 在动态策略 <i>g</i> = [<i>g</i><sub>0</sub>, <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub>)] 下的 SWIG。注意那条从 <i>L</i><sub>1</sub><sup><i>g</i></sup> 指向 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) 的箭头（图中以虚线画出），它只存在于这个反事实世界中。</figcaption></figure>
+
+<p>对图 19.9 的 SWIG 施加 d-分离，我们发现对任何策略 <i>g</i>，<i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>0</sub> 和 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub><sup><i>g</i></sup> | <i>A</i><sub>0</sub> = <i>g</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>g</i></sup> 都成立。也就是说，对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性成立，这意味着我们可以识别所有策略 <i>g</i> 下的反事实均值（另见精细辨析 19.2）。然而，这个结果对图 19.6 的因果图并不成立。</p>
+
+<p>从图 19.9 的 SWIG 中读到的是 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub><sup><i>g</i></sup> | <i>A</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>g</i></sup>，由一致性即得 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub> | <i>A</i><sub>0</sub> = <i>g</i><sub>0</sub>, <i>L</i><sub>1</sub>。而图 19.10 的 SWIG 代表图 19.6 的世界在动态策略 <i>g</i> = [<i>g</i><sub>0</sub>, <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub>)] 下的情形，对它施加 d-分离，我们发现 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>0</sub> 不成立，因为存在一条开放路径 <i>A</i><sub>0</sub> ← <i>W</i><sub>0</sub> → <i>L</i><sub>1</sub><sup><i>g</i></sup> → <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) → <i>Y<sup><i>g</i></sup></i>。也就是说，对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性不成立，这意味着任何策略 <i>g</i> 下的反事实均值都无法识别。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_10.png" alt="图 19.10：图 19.6 在动态策略 g = [g0, g1(L1)] 下的 SWIG，路径 A0 ← W0 → L1^g → g1(L1^g) → Y^g 被打开">
+<figcaption><strong>图 19.10</strong>　图 19.6 在同一动态策略 <i>g</i> = [<i>g</i><sub>0</sub>, <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub>)] 下的 SWIG。由于 <i>W</i><sub>0</sub> 同时指向 <i>A</i><sub>0</sub> 和 <i>L</i><sub>1</sub><sup><i>g</i></sup>，路径 <i>A</i><sub>0</sub> ← <i>W</i><sub>0</sub> → <i>L</i><sub>1</sub><sup><i>g</i></sup> 被打开，动态策略下的顺序可交换性不再成立。</figcaption></figure>
+
+<p>总而言之，在由图 19.5 表示的观察性研究（或序贯随机试验）中，对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性成立，因此数据可以被用来有效地估计涉及静态策略和动态策略的因果效应。另一方面，在由图 19.6 表示的观察性研究中，只有对静态策略而言较弱的那个条件成立，因此数据可以被用来有效地估计涉及静态策略的因果效应，却不能估计涉及动态策略的因果效应。换个角度理解：在图 19.10 的 SWIG 所代表的那个反事实世界里，<i>Y<sup><i>g</i></sup></i> 的分布依赖于 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) 的分布，因而依赖于 <i>L</i><sub>1</sub><sup><i>g</i></sup> 的分布。然而，由于路径 <i>A</i><sub>0</sub> ← <i>W</i><sub>0</sub> → <i>L</i><sub>1</sub> 的存在，<i>L</i><sub>1</sub><sup><i>g</i></sup> 的分布是不可识别的。</p>
+
+<p>最后一个例子。图 19.11 与图 19.6 相同，只是多了一条从 <i>L</i><sub>1</sub> 指向 <i>Y</i> 的箭头，图 19.12 是它在静态策略下对应的 SWIG。我们可以用 d-分离证明，对 <i>Y<sup><i>g</i></sup></i> 的顺序可交换性和对 <i>Y<sup>ā</sup></i> 的静态顺序可交换性都不成立。因此，在由图 19.11 表示的观察性研究中，我们不能用数据来有效地估计涉及任何策略的因果效应。</p>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_11.png" alt="图 19.11：与图 19.6 相同，但多了一条从 L1 指向 Y 的箭头">
+<figcaption><strong>图 19.11</strong>　与图 19.6 相同，但多了一条从 <i>L</i><sub>1</sub> 指向 <i>Y</i> 的箭头。仅这一条箭头，就足以让顺序可交换性和静态顺序可交换性同时失效。</figcaption></figure>
+
+<figure class="fig"><img src="../figures/ch19--figure-19_12.png" alt="图 19.12：图 19.11 在静态策略 (a0, a1) 下的 SWIG">
+<figcaption><strong>图 19.12</strong>　图 19.11 在静态策略 (<i>a</i><sub>0</sub>, <i>a</i><sub>1</sub>) 下的 SWIG。注意 <i>W</i><sub>0</sub> 指向 <i>L</i><sub>1</sub><sup><i>a</i>0</sup> 的那条箭头，它把反事实协变量也拖进了混杂。</figcaption></figure>
+
+<aside class="finepoint"><span class="box-label">精细辨析 19.2　SWIG 中来自干预节点的箭头</span>
+<p>画 SWIG 时，我们从节点 <i>a</i> 出发画出指向未来变量的箭头，尽管在单一干预世界中 <i>a</i> 是一个常数、因此不可能影响其他变量。我们这样做的一个原因是：这是一个方便的手段，可以帮助我们记住原 DAG 中被 <i>A</i> 直接影响的那些变量。第二个原因在技术要点 21.10 中讨论。</p>
+<p>来说明这一点为什么重要，考虑两个因果图：1) 图 7.14 的因果 DAG；2) 与图 7.14 相同、只是额外多了一条从 <i>A</i> 指向 <i>Y</i> 的直接箭头的因果 DAG。如果我们不从 <i>a</i> 出发画箭头，那么这两个 DAG 对应的 SWIG 将是相同的。其后果是，我们将无法借助 SWIG 推断出"<i>A</i> 对 <i>Y</i> 的因果效应在 DAG 1 中可识别（用前门公式），在 DAG 2 中不可识别"。因此，在 SWIG 上使用 d-分离时，我们必须记住：所有包含干预节点 <i>a</i> 的路径都是被阻断的，即便我们在记号中没有显式地对 <i>a</i> 做条件化。</p>
+<p>同样的逻辑适用于确定性策略下的任何干预节点。假设我们在图 19.9 中加入一个基线混杂因素 <i>L</i><sub>0</sub>，并考虑一个把 <i>g</i><sub>0</sub> 替换为 <i>g</i><sub>0</sub>(<i>L</i><sub>0</sub>) 的确定性动态策略。那么在检验 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub><sup><i>g</i></sup> | <i>A</i><sub>0</sub>, <i>L</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>g</i></sup> 时，我们不需要显式地对 <i>g</i><sub>0</sub>(<i>L</i><sub>0</sub>) 也做条件化，因为在给定 <i>L</i><sub>0</sub> 后 <i>g</i><sub>0</sub>(<i>L</i><sub>0</sub>) 已成为常数。不过我们必须记住，在对 <i>L</i><sub>0</sub> 做条件化时，经过 <i>g</i><sub>0</sub>(<i>L</i><sub>0</sub>) 的路径都被阻断。当我们把 <i>A</i><sub>0</sub> 实例化为 <i>g</i>(<i>L</i><sub>0</sub>) 并使用一致性时，统计独立性 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub><sup><i>g</i></sup> | <i>A</i><sub>0</sub>, <i>L</i><sub>0</sub>, <i>L</i><sub>1</sub><sup><i>g</i></sup> 就变成了上面所描述的可交换性条件 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub> | <i>A</i><sub>0</sub> = <i>g</i>(<i>L</i><sub>0</sub>), <i>L</i><sub>0</sub>, <i>L</i><sub>1</sub>。</p>
+<p>另一方面，在一种随机策略 <i>g</i> 下——它从一个可能依赖于 <i>L</i><sub>0</sub> 的分布中给每个个体指派一个随机处理值 <i>A</i><sub>0</sub><sup>+,<i>g</i></sup>——我们就必须在 SWIG 上显式地画出 <i>A</i><sub>0</sub><sup>+,<i>g</i></sup>（取代 <i>g</i><sub>0</sub>(<i>L</i><sub>0</sub>)），并且在检验 d-分离时也把它写进条件事件中，因为 <i>A</i><sub>0</sub><sup>+,<i>g</i></sup> 不再由 <i>L</i><sub>0</sub> 完全决定。Richardson 与 Robins（2013）证明，对于这类随机策略，可由 g 算法识别的必要条件是 <i>Y<sup><i>g</i></sup></i> ⊥⊥ <i>A</i><sub>1</sub><sup><i>g</i></sup> | <i>A</i><sub>0</sub>, <i>A</i><sub>0</sub><sup>+,<i>g</i></sup>, <i>L</i><sub>0</sub>, <i>L</i><sub>1</sub> 成立。他们还考察了那些依赖处理的自然取值的策略（Robins 等 2004），即依据 <i>A<sub>t</sub></i> 的取值为时刻 <i>t</i> 指派处理 <i>A</i><sub><i>t</sub></sub><sup>+,<i>g</i></sup> 的策略，并为它们给出了允许用扩展 g 算法识别的可交换性条件。依赖处理自然取值的策略近来被称为"修正处理策略"（modified treatment policies，Diaz 等 2021）。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 19.3　顺序可交换性的多种形式</span>
+<p>考虑一项针对时变处理 <i>A<sub>k</sub></i>、含多个时间点 <i>k</i> = 0, 1, …<i>K</i> 的序贯随机试验。代表这项试验的 SWIG 就是图 19.7 的一个更长的版本。下面的条件独立式可以直接从 SWIG 中读出：</p>
+<p style="text-align:center"><i>Y<sup>a</sup></i>, <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub><sup><i>a</i><sub><i>k</i>−2</sub></sup>, <i>L̄</i><sub><i>k</i>−1</sub><sup><i>a</i></sup></p>
+<p>其中 <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> 是从时刻 <i>k</i> + 1 到随访结束的反事实协变量史。上面的条件独立式意味着 <i>Y<sup>a</sup></i>, <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub><sup><i>a</i><sub><i>k</i>−2</sub></sup> = <i>a</i><sub><i>k</i>−1</sub><sup><i>a</i><sub><i>k</i>−2</sub></sup>, <i>L̄</i><sub><i>k</i></sub><sup><i>a</i></sup>，这里代入的是特定的一个实例 <i>Ā</i><sub><i>k</i>−1</sub><sup><i>a</i><sub><i>k</i>−2</sub></sup> = <i>a</i><sub><i>k</i>−1</sub><sup><i>a</i><sub><i>k</i>−2</sub></sup>，而 <i>a</i><sub><i>k</i>−1</sub> 是策略 <i>a</i> 的一个分量。由于一致性，最后这个条件独立式等于</p>
+<p style="text-align:center"><i>Y<sup>a</sup></i>, <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>a</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i></p>
+<p>当这个陈述对所有 <i>a</i> 都成立时，我们就说存在<strong>顺序可交换性</strong>。有意思的是，尽管这个顺序可交换性条件只涉及静态策略 <i>g</i> = <i>a</i>，它却等价于下面这个看起来更强的条件</p>
+<p style="text-align:center"><i>Y<sup><i>g</i></sup></i>, <i>L</i><sub><i>k</i>+1</sub><sup><i>g</i></sup> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>g</i>(<i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>), <i>L̄<sub>k</sub></i>　对所有 <i>g</i></p>
+<p>并且，如果可阳性性成立，它因此足以识别任何静态策略和动态策略 <i>g</i> 下的结局与协变量分布（Robins 1986）。这一识别结果来自 <i>Y<sup>a</sup></i>, <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> 与 <i>A<sub>k</sub></i> 之间的联合条件独立。注意，对于动态策略，顺序可交换性并不能从 <i>Y<sup>a</sup></i> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>a</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i> 与 <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>a</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i> 这两条独立的分开放置中推出。</p>
+<p>在序贯随机试验中，预期会成立更强的条件独立性，但它们（i）无法从 SWIG 中读出，（ii）对于识别人群中处理策略的因果效应也不是必要的。例如，一项序贯随机试验意味着更强的联合独立性 <i>Y<sup>a</sup></i>, <i>L</i><sub><i>k</i>+1</sub><sup><i>a</i></sup> 对所有 <i>a</i> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>。</p>
+<p>在序贯随机试验中预期成立的、还要更强的条件是（<i>Y</i><sup><i>Ā</i></sup>, <i>L̄</i><sup><i>Ā</i></sup>）⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub>, <i>L̄<sub>k</sub></i>，其中对二值处理 <i>A<sub>k</sub></i>，<i>Ā</i> 表示全部 2<sup><i>K</i></sup> 个静态策略 <i>ā</i> 的集合，<i>Y</i><sup><i>Ā</i></sup> 表示全部反事实结局 <i>Y<sup>ā</sup></i> 的集合，<i>L̄</i><sup><i>Ā</i></sup> 表示全部反事实协变量史的集合。借用与技术要点 2.1 类似的术语，我们把这个联合独立性条件称为<strong>完全顺序可交换性</strong>（full sequential exchangeability）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（SWIG：一个中文教材里几乎见不到、但一学就再也回不去的工具）</strong>：SWIG 是 Shpitser、Glymour、Richardson 与 Robins（2010，JMLR）提出的，缩写来自 single-world intervention graph，直译是"单一世界干预图"。</p>
+<p>一句话说明它干什么：<strong>把"假如所有人都这样做会怎样"这个反事实世界画成一张可以照常做 d-分离的图。</strong>做法是把每个处理节点劈成两半——右半是被干预设定的值，左半是事实值（"没干预时会是多少"）；下游变量全部换成反事实版本。你在图 19.7、19.8、19.12 里看到的 <i>A</i><sub>0</sub>|<i>a</i><sub>0</sub>、<i>A</i><sub>0</sub><sup><i>a</i>1</sup> 这类写法，就是这么来的。</p>
+<p>它比后门准则强在哪？后门准则是<em>否定式</em>判据：只要图上找不到某条开放路径，就宣称可识别。这在有未测量混杂时常常给不出令人安心的答案，只能说"不满足"。SWIG 换了个角度：既然我们真正想知道的是<em>某一条特定策略</em>下的反事实世界，那就把它显式画出来，然后直接问"在这个世界里，结局和处理还独立吗"。19.5 节的全部结论都是这样一句一句读出来的。</p>
+<p>顺带提一个常被忽略的读图细节：19.9 和 19.10 里那条从 <i>L</i><sub>1</sub><sup><i>g</i></sup> 指向 <i>g</i><sub>1</sub>(<i>L</i><sub>1</sub><sup><i>g</i></sup>) 的箭头用虚线画出，因为它<em>只存在于反事实世界</em>——策略本身依赖协变量，这在原因果图里没有对应物。但评估 d-分离时，它和其他箭头一视同仁。</p>
+<p>本书的技术要点 21.12 还用 SWIG 的 d-分离给出了前门公式的一个漂亮证明，可见这东西的用处不止于本章。</p>
+</aside>
+
+<h2 id="s-19-6">19.6 时变混杂与时变混杂因子</h2>
+
+<p>在观察性研究中，没有任何形式的顺序可交换性有保证成立。要达到近似的可交换性，需要专家知识来指导研究者设计研究，尽可能多地测量相关的变量 <i>L̄<sub>k</sub></i>。例如，在 HIV 研究中，专家们会一致认为 CD4 细胞计数、病毒载量、症状等时变变量需要被恰当地测量并加以调整。</p>
+
+<p>但"已测协变量是否足以保证顺序可交换性？"这个问题永远无法确定地回答。不过我们可以借助专家知识来组织我们对可交换性的信念，并把它们表示在一张因果图里。图 19.1 到图 19.4 就是些例子，它们概括了不同的情形。请注意，我们是在不存在选择（例如失访造成的删失）的前提下画出这些因果图的，以便把注意力集中在混杂上。</p>
+
+<p>考虑图 19.5。和本书第一部分一样，假设我们关心的是时固定处理 <i>A</i><sub>1</sub> 对结局 <i>Y</i> 的效应。我们说 <i>A</i><sub>1</sub> 对 <i>Y</i> 存在混杂，是因为 <i>A</i><sub>1</sub> 和 <i>Y</i> 共享原因 <i>U</i>，也就是因为两者之间存在一条经过 <i>U</i> 的开放后门路径。要无偏地估计这个效应，我们就需要调整 <i>A</i><sub>1</sub> 对结局 <i>Y</i> 的效应的混杂因素，正如第 7 章所解释的。换句话说，我们需要能够阻断 <i>A</i><sub>1</sub> 与 <i>Y</i> 之间所有开放的后门路径。这条后门路径 <i>A</i><sub>1</sub> ← <i>L</i><sub>1</sub> ← <i>U</i> → <i>Y</i> 无法通过对共同原因 <i>U</i> 做条件化来阻断，因为 <i>U</i> 未被测量，研究者拿不到它。但这条后门路径可以通过对已测量的 <i>L</i><sub>1</sub> 做条件化来阻断。于是，如果研究者为所有个体都采集了 <i>L</i><sub>1</sub> 的数据，那么 <i>A</i><sub>1</sub> 的效应就不存在未测量混杂。我们便说 <i>L</i><sub>1</sub> 是 <i>A</i><sub>1</sub> 效应的混杂因素，尽管 <i>A</i><sub>1</sub> 和 <i>Y</i> 真正的共同原因是未测量的 <i>U</i>（若需要重温混杂与因果图，请重读第 7.3 节）。</p>
+
+<p>在对碰撞因子 <i>L</i><sub>1</sub> 做条件化之后，第二条后门路径被打开：<i>A</i><sub>1</sub> ← <i>A</i><sub>0</sub> → <i>L</i><sub>1</sub> ← <i>U</i> → <i>Y</i>。这条后门路径可以通过对既往处理 <i>A</i><sub>0</sub> 做条件化来安全地阻断——只要研究者拿得到 <i>A</i><sub>0</sub>。</p>
+
+<p>现在想象一张很长的因果图，它包含所有时间点 <i>k</i> = 0, 1, 2…，其中 <i>L<sub>k</sub></i> 影响着随后的处理 <i>A<sub>k</sub></i>, <i>A<sub>k+1</sub></i>…，并与结局 <i>Y</i> 共享未测量原因 <i>U<sub>k</sub></i>。假设我们想估计由对 <i>A</i><sub>0</sub>, <i>A</i><sub>1</sub>, <i>A</i><sub>2</sub> 的干预所定义的处理策略对结局 <i>Y</i> 的因果效应。那么在每个时刻 <i>k</i>，我们需要协变量史 <i>L̄<sub>k</sub></i> 与处理史 <i>Ā</i><sub><i>k</i>−1</sub> 一起来阻断处理 <i>A<sub>k</sub></i> 与结局 <i>Y</i> 之间的后门路径。因此，要使 <i>Ā</i> 的效应不存在未测量混杂，就要求研究者为所有个体采集 <i>L̄<sub>k</sub></i> 的数据。于是我们说，<i>L̄<sub>k</sub></i> 中的时变协变量是时变处理 <i>Ā</i> 对 <i>Y</i> 的效应的<strong>时变混杂因子</strong>，它们在研究的若干个（或在我们的例子中，所有的）时刻 <i>k</i> 上都是混杂因子。关于时变混杂更精确的定义，见精细辨析 19.3。</p>
+
+<p>时变混杂因子有时也被称为<strong>时变依赖的混杂因子</strong>（time-dependent confounders）。</p>
+
+<p>遗憾的是，我们无法从经验上确认所有混杂因素——无论是时固定的还是时变的——都被测量了。也就是说，我们无法从经验上区分图 19.2（无未测量混杂）和图 19.3（有未测量混杂）。有意思的是，即便所有混杂因素都被正确测量并正确建模了，在比较处理策略时，多数调整方法仍然可能给出有偏的估计。下一章将解释为什么 g 方法是调整时变混杂因子的恰当手段。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 19.3　时变混杂的一个定义</span>
+<p>在不存在选择偏倚的前提下，我们说：若 <i>E</i>[<i>Y<sup>ā</sup></i>] ≠ <i>E</i>[<i>Y</i> | <i>A</i> = <i>ā</i>]，则涉及 <i>E</i>[<i>Y<sup>ā</sup></i>] 的因果效应存在混杂。也就是说，假如与事实相反地让研究中的所有人都遵循策略 <i>ā</i>，其平均结局不同于实际研究中遵循了策略 <i>ā</i> 的那个子集的平均结局。</p>
+<p>如果 <i>E</i>[<i>Y<sup>ā</sup></i> | <i>L</i><sub>0</sub>] = <i>E</i>[<i>Y</i> | <i>A</i> = <i>ā</i>, <i>L</i><sub>0</sub>]，我们就说这种混杂纯粹是时固定的（即完全归因于基线协变量）；比如当图 19.2 中指向 <i>A</i><sub>1</sub> 的箭头只有来自 <i>A</i><sub>0</sub> 和 <i>L</i><sub>0</sub> 的两条时，就是这种情况。相反，如果可识别性条件成立，但 <i>E</i>[<i>Y<sup>ā</sup></i> | <i>L</i><sub>0</sub>] ≠ <i>E</i>[<i>Y</i> | <i>A</i> = <i>ā</i>, <i>L</i><sub>0</sub>]，我们就说存在<strong>时变混杂</strong>。如果可识别性条件不成立（如图 19.3），我们就说存在未测量混杂。</p>
+<p>没有时变混杂的一个充分条件，是对 <i>Y<sup>ā</sup></i> 的无条件顺序可交换性，即 <i>Y<sup>ā</sup></i> ⊥⊥ <i>A<sub>k</sub></i> | <i>Ā</i><sub><i>k</i>−1</sub> = <i>ā</i><sub><i>k</i>−1</sub>。这个条件在序贯随机试验中成立，比如图 19.1 所代表的那一个：其中每个时刻 <i>k</i> 的处理 <i>A<sub>k</sub></i> 被随机分配，其概率只依赖于既往治疗史 <i>Ā</i><sub><i>k</i>−1</sub> 的取值。事实上，图 19.1 的因果图还可以被大幅简化。做法是：首先注意到 <i>L</i><sub>1</sub> 不是图中任何两个节点的共同原因，因此可以把它从图里去掉；<i>L</i><sub>1</sub> 一去，<i>L</i><sub>0</sub> 和 <i>U</i><sub>1</sub> 也不再是任何两个节点的共同原因，可以一并去掉。在没有 <i>L</i><sub>0</sub>、<i>L</i><sub>1</sub> 和 <i>U</i><sub>1</sub> 的图里，节点 <i>U</i><sub>0</sub> 也可以去掉。也就是说，图 19.1 的因果图可以被简化到只剩 <i>A</i><sub>0</sub>, <i>A</i><sub>1</sub> 和 <i>Y</i> 三个节点。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（"时变混杂因子"其实是个结构判定，不是统计判定）</strong>：精细辨析 19.3 给的是一个统计定义（两个均值是否相等），实践中却很难直接算。真正好用的判法是画图：把时间展开，<strong>凡是存在 <i>L<sub>k</sub></i> → <i>A<sub>k</sub></i> 的箭头，同时又存在 <i>A<sub>k</sub></i> → <i>L</i><sub><i>k</i>+1</sub> 的箭头，<i>L<sub>k</sub></i> 就是时变混杂因子，而且处理与混杂之间构成了反馈。</strong>后者正是下一章的主题。</p>
+<p>几个中国研究里常见的例子，供对照：</p>
 <ul>
-<li>阅读<a href="chch18.html">上一章</a>与<a href="chch20.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li><strong>慢病随访中的降压药。</strong>血压水平影响下一阶段是否加药，而加药又改变下一阶段的血压。用协变量校正的方法去估计"持续用药 vs 停药"，几乎必然偏倚——这是第 20 章整章要讲的失败模式。</li>
+<li><strong>医保数据库里的续方决策。</strong>是否续方取决于住院史等粗测或未测的预后因素，于是"续方人群"和"断方人群"在基线上并不可比。国内大量基于医保结算数据的"用药依从性与健康结局"研究，问题多半出在这里。</li>
+<li><strong>疫苗加强针。</strong>既往接种史影响下一针的接种意愿，既往接种又通过抗体滴度这个时变协变量影响下一针的效果。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>19.1 The causal effect of time-varying treatments</li>
-    <li>19.2 Treatment strategies</li>
-    <li>19.3 Sequentially randomized experiments</li>
-    <li>19.4 Sequential exchangeability</li>
-    <li>19.5 Identifiability under some but not all treatment strategies</li>
-    <li>19.6 Time-varying confounding and time-varying confounders</li></ul>
-</div>
+<p>判断准则很简单：如果你的数据里有"每期重复测量"的协变量，而这个协变量又同时（a）在上一期被处理影响过、（b）影响下一期的处理，那就别再纠结了，直接上 g 方法。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

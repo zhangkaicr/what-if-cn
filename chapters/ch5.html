@@ -3,32 +3,263 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 5 章 · 交互作用 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 5 章 · 交互作用 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 5 章 · 交互作用</h1>
-<p class="muted">第一部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第一部分 · 无模型的因果推断 · Part I — Causal inference without models</p>
+  <h1>第 5 章 · 交互作用</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 5. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
-<ul>
-<li>阅读<a href="chch4.html">上一章</a>与<a href="chch6.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
-</ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>5.1 Interaction requires a joint intervention</li>
-    <li>5.2 Identifying interaction</li>
-    <li>5.3 Counterfactual response types and interaction</li>
-    <li>5.4 Sufficient causes</li>
-    <li>5.5 Sufficient cause interaction</li>
-    <li>5.6 Counterfactuals or sufficient-component causes?</li></ul>
-</div>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">还是那个随机化试验，它要回答的因果问题是："一个人抬头看天，会不会带动路人也跟着抬头？"到目前为止，我们关心的始终是单项处理（抬头看）在整个人群、或其中某个子群中的因果效应。然而，许多因果问题其实问的是两项或更多项同时施加的处理的效应。举例来说，假设除了随机决定你抬不抬头之外，研究者还随机决定你站在街上时是穿着衣服还是光着身子。这样我们就能问出这样的问题：如果你穿着衣服，你抬头的因果效应是多少？如果你光着身子呢？如果这两个因果效应不同，我们就说这两项处理（抬头看与穿衣服）在导致结局的过程中存在交互作用。当对两项或更多处理的联合干预变得可行时，识别出交互作用就让我们得以实施那些最有效的干预。因此，理解交互作用这个概念，是因果推断绕不开的一步。本章在我们已经很熟悉的反事实框架内、以及在充分成分病因框架内，给出两项处理之间交互作用的形式化定义。</p>
+
+<h2 id="s-5-1">5.1 交互需要联合干预</h2>
+
+<p>假设在我们的心脏移植例子里，个体在被分配去接受心脏移植（<code>A = 1</code>）或者不移植（<code>A = 0</code>）之前，先被分配去接受复合维生素（<code>E = 1</code>）或者不服维生素（<code>E = 0</code>）。现在我们可以把所有个体分进 4 个处理组：服维生素并移植（<code>E = 1, A = 1</code>）、服维生素不移植（<code>E = 1, A = 0</code>）、不服维生素但移植（<code>E = 0, A = 1</code>）、不服维生素也不移植（<code>E = 0, A = 0</code>）。对每个个体，我们现在可以设想 4 个潜在结局（或反事实结局），在这 4 种处理组合下各有一个：<code>Y<sup>a=1,e=1</sup></code>、<code>Y<sup>a=1,e=0</sup></code>、<code>Y<sup>a=0,e=1</sup></code> 和 <code>Y<sup>a=0,e=0</sup></code>。一般而言，个体的反事实结局 <code>Y<sup>a,e</sup></code> 是这么回事：如果我们干预把该个体的 <code>A</code> 与 <code>E</code> 的取值分别设为 <code>a</code> 与 <code>e</code>，本会观测到的结局。我们把对两项或更多处理的干预称为<strong>联合干预</strong>（joint intervention）。</p>
+
+<p><span class="box-label">边注</span>　只干预处理 <code>A</code> 所对应的反事实 <code>Y<sup>a</sup></code>，在观测到的 <code>E</code> 取值为 <code>e</code> 时就是联合反事实 <code>Y<sup>a,e</sup></code>，即 <code>Y<sup>a</sup> = Y<sup>a,E</sup></code>。事实上，一致性（consistency）是这一递归代入的一个特例。具体来说，观测到的 <code>Y = Y<sup>A</sup> = Y<sup>A,E</sup></code>，这正是我们对一致性的定义。另见技术要点 6.2。</p>
+
+<p>现在我们可以在反事实框架内给出交互作用的定义了。如果在把 <code>E</code> 设为 1 的联合干预之后，<code>A</code> 对 <code>Y</code> 的因果效应，与在把 <code>E</code> 设为 0 的联合干预之后 <code>A</code> 对 <code>Y</code> 的因果效应不同，我们就说两项处理 <code>A</code> 与 <code>E</code> 之间存在交互作用。举个例子，如果"人人都服维生素时移植对生存的因果效应"与"没人服维生素时移植对生存的因果效应"不同，那么移植 <code>A</code> 与维生素 <code>E</code> 之间就存在交互作用。</p>
+
+<p>当因果效应以风险差为尺度度量时，我们说在人群中 <code>A</code> 与 <code>E</code> 之间在<strong>加性尺度</strong>（additive scale）上存在交互作用，如果</p>
+
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1] ≠ Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</div>
+
+<p>举个例子，假设人人都服维生素时移植 <code>A</code> 的因果风险差 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1]</code> 是 0.1，而没人服维生素时移植 <code>A</code> 的因果风险差 <code>Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code> 是 0.2。我们说 <code>A</code> 与 <code>E</code> 之间在加性尺度上存在交互作用，因为前一个风险差小于后一个风险差 <code>Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code>。用初等代数很容易证明，这个不等式蕴含：人人都接受移植时维生素 <code>E</code> 的因果风险差 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=1,e=0</sup> = 1]</code>，也小于没人接受移植 <code>A</code> 时维生素 <code>E</code> 的因果风险差 <code>Pr[Y<sup>a=0,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code>。换句话说，我们可以等价地把 <code>A</code> 与 <code>E</code> 之间在加性尺度上的交互作用定义为</p>
+
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=1,e=0</sup> = 1] ≠ Pr[Y<sup>a=0,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</div>
+
+<p><span class="box-label">边注</span>　上面并列给出的两个不等式说明：在交互作用的定义中，处理 <code>A</code> 与处理 <code>E</code> 地位相等。</p>
+
+<p>现在我们来复习一下交互作用与效应修饰之间的差别。如上一章所述，当 <code>A</code> 对 <code>Y</code> 的平均因果效应随变量 <code>V</code> 的取值而变化时，我们说 <code>V</code> 是 <code>A</code> 对 <code>Y</code> 效应的修饰因子。请注意，效应修饰这个概念指的是 <code>A</code> 的因果效应，而不是 <code>V</code> 的因果效应。举例来说，在表 4.1 中性别是心脏移植效应的效应修饰因子，但我们从来没有讨论过性别对死亡的作用。因此，当我们说 <code>V</code> 修饰了 <code>A</code> 的效应时，我们并没有把 <code>V</code> 与 <code>A</code> 当作地位相等的两个变量来看待，因为只有 <code>A</code> 被视为一个我们原则上可以干预的变量。也就是说，效应修饰的定义涉及的是反事实结局 <code>Y<sup>a</sup></code>，而不是反事实结局 <code>Y<sup>a,v</sup></code>。相比之下，<code>A</code> 与 <code>E</code> 之间交互作用的定义给了处理 <code>A</code> 与处理 <code>E</code> 相等的地位，这一点正体现在上面那两个等价的交互作用定义中。交互作用这个概念指的是两项处理 <code>A</code> 与 <code>E</code> 的<em>联合</em>因果效应，因而涉及的是联合干预下的反事实结局 <code>Y<sup>a,e</sup></code>。</p>
+
+<h2 id="s-5-2">5.2 识别交互</h2>
+
+<p>在前几章里，我们描述了识别处理 <code>A</code> 对结局 <code>Y</code> 的平均因果效应（无论是在整个人群中还是在某个子群中）所需要的条件。三项关键的识别条件是可交换性、可阳性性与一致性。由于交互作用关注的是两项（或更多项）处理 <code>A</code> 与 <code>E</code> 的联合效应，识别交互作用就要求对<em>两项</em>处理分别满足可交换性、可阳性性与一致性。</p>
+
+<p>假设维生素 <code>E</code> 由研究者随机地、无条件地分配。那么可阳性性与一致性成立，并且已处理的 <code>E = 1</code> 与未处理的 <code>E = 0</code> 期望是可交换的。也就是说，如果所有人都被分配到移植 <code>A = 1</code> 且维生素 <code>E = 1</code> 时本会观测到的风险，等于所有接受了 <code>E = 1</code> 的人本应被分配到移植 <code>A = 1</code> 时本会观测到的风险。</p>
+
+<p><span class="box-label">边注</span>　形式上，边际风险 <code>Pr[Y<sup>a=1,e=1</sup> = 1]</code> 等于条件风险 <code>Pr[Y<sup>a=1</sup> = 1|E = 1]</code>。</p>
+
+<p>因此，我们可以把 <code>A</code> 与 <code>E</code> 之间在加性尺度上的交互作用定义改写为</p>
+
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1</sup> = 1|E = 1] − Pr[Y<sup>a=0</sup> = 1|E = 1] ≠ Pr[Y<sup>a=1</sup> = 1|E = 0] − Pr[Y<sup>a=0</sup> = 1|E = 0]</div>
+
+<p>这恰恰就是"<code>E</code> 在加性尺度上修饰了 <code>A</code> 的效应"这一说法的定义。换句话说，当处理 <code>E</code> 是被随机分配的时候，交互作用与效应修饰这两个概念就重合了。第 4 章中用来识别 <code>V</code> 对 <code>A</code> 效应之修饰的方法，现在只需把效应修饰因子 <code>V</code> 换成处理 <code>E</code>，就可以用来识别 <code>A</code> 与 <code>E</code> 之间的交互作用。</p>
+
+<p>现在假设处理 <code>E</code> 并不是由研究者分配的。要判断 <code>A</code> 与 <code>E</code> 之间是否存在交互作用，我们仍然需要算出四个边际风险 <code>Pr[Y<sup>a,e</sup> = 1]</code>。在没有边际随机化的情况下，在通常的可识别性假设下，可以通过对测量的协变量作条件标准化或条件 IP 加权，算出处理 <code>A</code> 与处理 <code>E</code> 的这些风险。对这个问题还有一种等价的概念化方式：与其把 <code>A</code> 与 <code>E</code> 看作各自取 2 个可能水平（1 或 0）的两项独立处理，不如把 <code>AE</code> 看作一项有 4 个可能水平（11、01、10、00）的<strong>合并处理</strong>。在这样的概念化之下，识别两项处理之间的交互作用，与识别我们在前几章中讨论过的一项处理的因果效应并无不同。相同的方法、在相同的可识别性条件下都可以使用。唯一的区别在于，现在我们关心的处理有更长的取值列表，因而反事实结局的数量也更多。</p>
+
+<p>有时人们可能愿意只对处理 <code>A</code> 假定（条件）可交换性，而不对处理 <code>E</code> 作此假定，例如在一项随机化试验中按 <code>E</code> 定义的亚组来估计 <code>A</code> 的因果效应时。在这种情况下，一般无法判断 <code>A</code> 与 <code>E</code> 之间是否存在交互作用，但仍然可以判断 <code>E</code> 是否存在效应修饰。原因在于：计算 <code>A</code> 在 <code>E</code> 所定义的各个层内的效应，并不需要任何涉及 <code>E</code> 的可识别性假设。在上一章中，对于我们不愿为其可交换性、可阳性性与一致性作假设的变量，我们用的是记号 <code>V</code>（而非 <code>E</code>）。例如，我们曾得出结论说移植 <code>A</code> 的效应被国籍 <code>V</code> 修饰了，但我们从未为 <code>V</code> 的效应要求任何可识别性假设，因为我们对用数据算出 <code>V</code> 对 <code>Y</code> 的因果效应并不感兴趣。在 4.2 节中我们从实质角度论证过，<code>V</code> 是一个替代效应修饰因子（surrogate effect modifier）：也就是说，<code>V</code> 并不作用于结局，因此不与 <code>A</code> 交互——没有作用，就没有交互。但 <code>V</code> 确实是 <code>A</code> 对 <code>Y</code> 效应的修饰因子，因为 <code>V</code> 与某个真正对 <code>Y</code> 有作用、并且与 <code>A</code> 交互的、却未能识别的变量相关（它是这个变量的代理）。因此，"另一个变量修饰了 <code>A</code> 的效应"与"<code>A</code> 与该变量之间存在交互作用"这两件事可以同时成立，也可以不同时成立。</p>
+
+<p><span class="box-label">边注</span>　<code>A</code> 与 <code>E</code> 之间存在交互作用、却没有 <code>E</code> 对 <code>A</code> 效应的修饰，这在逻辑上也是可能的，尽管大概很少见，因为它要求 <code>A</code> 有双向效应、并且出现精确的抵消（VanderWeele 2009b）。</p>
+
+<p>在上面的段落里我们论证过：识别 <code>A</code> 与 <code>E</code> 之间交互作用的一个充分条件是，对联合处理 <code>(A, E)</code>（它有四个可能取值 <code>(0, 0)</code>、<code>(0, 1)</code>、<code>(1, 0)</code>、<code>(1, 1)</code>）而言，可交换性、可阳性性与一致性全部成立。此时就可以用标准化或 IP 加权来估计这两项处理的联合效应，进而评估它们之间的交互作用。在第三部分我们会说明，当两项处理发生在不同时点时，这个条件并非必要。在第一部分的余下章节（本章除外）以及第二部分的大部分内容中，我们将专注于单项处理 <code>A</code> 的因果效应。</p>
+
+<p>在第 1 章中我们描述过决定性与非决定性的反事实结局。到目前为止，为了简明我们都使用决定性反事实。然而，我们迄今讨论过的关于人群因果效应与交互作用的结果，没有一条要求反事实结局是决定性的。与之相反，本章下一节的内容只在反事实是决定性的情形下才适用。此外，我们还假定处理与结局都是二值的。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 5.1　加性尺度与乘性尺度上的交互作用</span>
+<p>因果风险差相等这一条件，<code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1] = Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code>，可以改写为</p>
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1,e=1</sup> = 1] = Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1] + Pr[Y<sup>a=0,e=1</sup> = 1]</div>
+<p>把方程两边的 <code>Pr[Y<sup>a=0,e=0</sup> = 1]</code> 都减掉，我们得到 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1] = [Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]] + [Pr[Y<sup>a=0,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]]</code>。这个等式是"处理 <code>A</code> 与处理 <code>E</code> 在交互作用的定义中地位相等"的又一种紧凑写法。当上述等式成立时，我们说 <code>A</code> 与 <code>E</code> 之间在加性尺度上不存在交互作用，并且我们说因果风险差 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code> 是<strong>可加的</strong>（additive），因为它可以写成"度量 <code>A</code> 在没有 <code>E</code> 时的效应"与"度量 <code>E</code> 在没有 <code>A</code> 时的效应"这两个因果风险差之和。反过来，如果 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1] ≠ [Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]] + [Pr[Y<sup>a=0,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]]</code>，那么 <code>A</code> 与 <code>E</code> 之间在加性尺度上存在交互作用。如果把不等号换成大于号，交互作用就是<strong>超可加的</strong>（superadditive）；如果换成小于号，就是<strong>次可加的</strong>（subadditive）。</p>
+<p>类似地，当效应度量是因果风险比而不是因果风险差时，可以定义乘性尺度上的交互作用。如果</p>
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1,e=1</sup> = 1] / Pr[Y<sup>a=0,e=0</sup> = 1] ≠ [Pr[Y<sup>a=1,e=0</sup> = 1] / Pr[Y<sup>a=0,e=0</sup> = 1]] × [Pr[Y<sup>a=0,e=1</sup> = 1] / Pr[Y<sup>a=0,e=0</sup> = 1]]</div>
+<p>我们说 <code>A</code> 与 <code>E</code> 之间在<strong>乘性尺度</strong>（multiplicative scale）上存在交互作用。如果把不等号换成大于号，交互作用就是<strong>超乘的</strong>（supermultiplicative）；如果换成小于号，就是<strong>次乘的</strong>（submultiplicative）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（"交互作用"与"效应修饰"在中文文献里几乎被混用）</strong>：这两个概念在中文里常被同一个词"交互作用"覆盖，而它们在数学上是不对称的：效应修饰里 <code>V</code> 不是可干预的处理，只用反事实 <code>Y<sup>a</sup></code>；交互作用里 <code>A</code> 与 <code>E</code> 都是可干预的、地位平等的处理，用的是 <code>Y<sup>a,e</sup></code>。国内综述文章写"某因素的交互作用"，读者无从判断作者说的是哪一个。<strong>判定办法</strong>：看模型里有没有两个处理变量的乘积项。有 <code>A × E</code>、且两者都是研究者能操纵的干预，才是本章的交互作用；如果乘积项里有一个是性别、年龄、基线风险这类不可干预的背景变量，那是效应修饰（见第 4 章）。第 12.5 节末尾那段教学观察正是这个意思：同一套分层或回归工具两用，正是混淆的源头。另外注意本章的定义只在<em>尺度</em>上有意义——加性尺度无交互而乘性尺度有交互，是完全正常的情形（技术要点 5.1）。中文论文里"未见交互作用"这句话如果不注明尺度，严格说是没有意义的。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（为什么不能用亚组分析证明交互作用）</strong>：中文期刊上一个反复出现的写法是：先报告总体结果不显著，再按若干亚组（如年龄、性别、联合用药、基因型）分别计算，发现某个亚组显著，就宣称"存在交互作用"。这个做法有三个独立的毛病。其一，事后亚组（post-hoc subgroup）未经预先设定，几乎总能靠随机波动造出"显著"与"不显著"的差别；要证明交互，正确做法是在模型里直接放入 <code>A × E</code> 交互项并检验交互项系数，其零假设才是"<code>A</code> 的效应在 <code>E</code> 的各水平上相同"。其二，"某亚组显著、另一些亚组不显著"绝不等价于"两亚组的效应有差别"——这是把"<code>p</code> 值是否越过 0.05"当成了效应的比较，正是 Rothman 一再警告的"用不显著代替无差异"的谬误。其三，同一份数据里亚组越多，偶然出现交互的概率越大，这一多重性问题在报告规范（例如 CONSORT 亚组扩展要求预先写明亚组定义与交互检验）下是要被质疑的。本章 5.2 节还额外给出一个常被忽略的前提：要判断交互，通常需要对<em>两项</em>处理都可交换；而很多临床试验只在 <code>A</code> 上做了随机化、<code>E</code> 侧是自然取值，此时你最多只能报告"<code>E</code> 是否修饰了 <code>A</code> 的效应"，不能声称识别出了交互作用。</p>
+</aside>
+
+<h2 id="s-5-3">5.3 反事实反应类型与交互</h2>
+
+<p>个体可以按其决定性反事实反应来分类。例如在表 4.1（与表 1.1 相同）中，有四类人：无论接受什么处理都会发病的"注定发病者"（doomed，Artemis、Athena、Persephone、Ares），无论接受什么处理都不会发病的"免疫者"（immune，Demeter、Hestia、Hera、Hades），只有不接受处理才会发病的"被帮助者"（helped，Hebe、Kronos、Poseidon、Apollo、Hermes、Dionysus），以及只有接受处理才会发病的"被伤害者"（hurt，Rheia、Leto、Aphrodite、Zeus、Hephaestus、Polyphemus）。反事实反应的每一种组合通常被称为一个<strong>反应型式</strong>或<strong>反应类型</strong>（response pattern / response type）。表 5.1 列出了四种可能的反应类型。</p>
+
+<figure class="fig"><img src="../figures/ch5--table-5_1.png" alt="表 5.1：单项处理下的四种反事实反应类型">
+<figcaption><strong>表 5.1</strong>　单项处理下的四种反事实反应类型。列为处理水平 <code>a = 0</code> 与 <code>a = 1</code> 下的反事实结局 <code>Y<sup>a</sup></code>，行为反应类型的名称：注定发病（doomed，<code>1, 1</code>）、被帮助（helped，<code>1, 0</code>）、被伤害（hurt，<code>0, 1</code>）、免疫（immune，<code>0, 0</code>）。</figcaption></figure>
+
+<p>当考虑两项二值处理 <code>A</code> 与 <code>E</code> 时，共有 16 种可能的反应类型，因为每个个体有四个反事实结局，分别对应 <code>A</code> 与 <code>E</code> 上四种可能的联合干预：<code>(1, 1)</code>、<code>(0, 1)</code>、<code>(1, 0)</code> 和 <code>(0, 0)</code>。表 5.2 给出了两项处理下的 16 种反应类型。本节要探讨的，正是当两项处理 <code>A</code>、<code>E</code> 与结局 <code>Y</code> 都是二值时，反应类型与交互作用存在与否之间的关系。</p>
+
+<figure class="fig"><img src="../figures/ch5--table-5_2.png" alt="表 5.2：两项二值处理下的 16 种反事实反应类型">
+<figcaption><strong>表 5.2</strong>　两项二值处理下的 16 种反事实反应类型。列依次为 <code>Y<sup>a,e</sup></code> 在 <code>(a, e) = (1, 1)</code>、<code>(0, 1)</code>、<code>(1, 0)</code>、<code>(0, 0)</code> 四个取值下的值。类型 1 是 <code>(1, 1, 1, 1)</code>，类型 16 是 <code>(0, 0, 0, 0)</code>；类型 8 是 <code>(1, 0, 0, 0)</code>，即只有在两项处理同时施加时才发病。</figcaption></figure>
+
+<p>表 5.2 中的第一类个体的反事实结局 <code>Y<sup>a=1,e=1</sup></code> 等于 1，这意味着这类个体若同时接受移植与维生素治疗就会死亡。另外三个反事实结局也等于 1，即 <code>Y<sup>a=1,e=1</sup> = Y<sup>a=0,e=1</sup> = Y<sup>a=1,e=0</sup> = Y<sup>a=0,e=0</sup> = 1</code>，这意味着这类个体若接受（不移植、服维生素）、（移植、不服维生素）或（不移植、不服维生素），同样会死亡。换句话说，处理 <code>A</code> 与处理 <code>E</code> 对这类个体的结局都没有任何作用。不论给他分配什么联合处理，他都会死亡。现在考虑第 16 类。所有反事实结局都是 0，即 <code>Y<sup>a=1,e=1</sup> = Y<sup>a=0,e=1</sup> = Y<sup>a=1,e=0</sup> = Y<sup>a=0,e=0</sup> = 0</code>。同样地，处理 <code>A</code> 与处理 <code>E</code> 对这类个体的结局也没有任何作用。不论给她分配什么联合处理，她都会活下来。如果人群中的所有个体都属于第 1 类和第 16 类，我们就会说 <code>A</code> 与 <code>E</code> 对 <code>Y</code> 都没有任何因果效应；针对联合处理 <code>(A, E)</code> 的尖锐因果零假设（sharp causal null hypothesis）成立。</p>
+
+<p><span class="box-label">边注</span>　Miettinen（1982）描述了两项二值处理与二值结局下的 16 种可能反应类型。</p>
+
+<p><span class="box-label">边注</span>　Greenland 与 Poole（1988）指出，Miettinen 的反应类型在重编码 <code>A</code> 与 <code>E</code>（即交换 <code>0</code> 与 <code>1</code> 两个标签）之下并非保持不变。他们把表 5.2 的 16 种反应类型划分成了下面那三个在重编码下保持不变的等价类。</p>
+
+<p>现在把注意力转向第 4、6、11、13 类。第 4 类个体只有在服用维生素时才会死亡，不论他是否接受移植，即 <code>Y<sup>a=1,e=1</sup> = Y<sup>a=0,e=1</sup> = 1</code> 且 <code>Y<sup>a=1,e=0</sup> = Y<sup>a=0,e=0</sup> = 0</code>。第 13 类个体只有在不服维生素时才会死亡，不论他是否接受移植，即 <code>Y<sup>a=1,e=1</sup> = Y<sup>a=0,e=1</sup> = 0</code> 且 <code>Y<sup>a=1,e=0</sup> = Y<sup>a=0,e=0</sup> = 1</code>。第 6 类个体只有在接受移植时才会死亡，不论他是否服用维生素，即 <code>Y<sup>a=1,e=1</sup> = Y<sup>a=1,e=0</sup> = 1</code> 且 <code>Y<sup>a=0,e=1</sup> = Y<sup>a=0,e=0</sup> = 0</code>。第 11 类个体只有在不接受移植时才会死亡，不论他是否服用维生素，即 <code>Y<sup>a=1,e=1</sup> = Y<sup>a=1,e=0</sup> = 0</code> 且 <code>Y<sup>a=0,e=1</sup> = Y<sup>a=0,e=0</sup> = 1</code>。</p>
+
+<p>在表 5.2 的 16 种可能反应类型中，我们已经识别出 6 种类型（编号 1、4、6、11、13、16）具有一个共同特征：对具有这类反应类型的个体，处理 <code>A</code> 对结局 <code>Y</code> 的因果效应不随处理 <code>E</code> 的取值而变化，处理 <code>E</code> 对结局 <code>Y</code> 的因果效应也不随处理 <code>A</code> 的取值而变化。在一个人人属于这 6 种反应类型的人群中，处理 <code>A</code> <em>在处理 <code>E</code> 存在时</em>的因果效应（以因果风险差 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1]</code> 度量），等于处理 <code>A</code> <em>在处理 <code>E</code> 不存在时</em>的因果效应（以因果风险差 <code>Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code> 度量）。也就是说，如果人群中所有个体的反应类型都是 1、4、6、11、13 和 16，那么 <code>A</code> 与 <code>E</code> 之间在加性尺度上就不存在交互作用。</p>
+
+<p><code>A</code> 与 <code>E</code> 之间加性交互作用的存在，蕴含着人群中有这样一些个体：如果不知道 <code>E</code> 的取值，就无法确定他们 <code>A = a</code> 之下那两个反事实结局的值，反之亦然。也就是说，下列三类中至少必有一类非空：</p>
+<ol>
+<li>那些只在四种处理组合中<em>一种</em>下会发病的人（表 5.2 中的第 8、12、14、15 类）；</li>
+<li>那些在两种处理组合下会发病的人，且具有这样的性质——每项处理的效应在另一项处理的各个水平下恰好<em>相反</em>（第 7 类与第 10 类）；</li>
+<li>那些在四种处理组合中<em>三种</em>下会发病的人（第 2、3、5、9 类）。</li>
+</ol>
+
+<p>另一方面，<code>A</code> 与 <code>E</code> 之间加性交互作用的<em>不存在</em>，则意味着：要么人群中没有任何个体属于上面描述的三类中的任何一类，要么偏离可加性的量恰好以相反的符号完美抵消。这样的抵消会发生，例如，如果第 7 类与第 10 类的个体比例相等，或者第 8 类与第 12 类的个体比例相等。</p>
+
+<p><span class="box-label">边注</span>　关于"即使存在交互类型却仍因抵消而得到可加性"的更多讨论，见 Greenland、Lash 与 Rothman（2008）。</p>
+
+<p>把个体按反事实反应类型分类，"交互作用"这个词的含义就清楚了（另见精细辨析 5.1）。接下来我们引入一个工具，来刻画两项处理之间交互作用所涉及的因果机制。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 5.2　因果效应的单调性</span>
+<p>考虑处理 <code>A</code> 与结局 <code>Y</code> 都是二值的情形。只有"被帮助"类型的个体，其反事实结局 <code>Y<sup>a=0</sup></code> 的值才大于 <code>Y<sup>a=1</sup></code> 的值。对另外 3 种类型，都有 <code>Y<sup>a=1</sup> ≥ Y<sup>a=0</sup></code>；等价地，个体的反事实结局在 <code>a</code> 上是单调递增的（即非递减的）。因此，当处理不能预防任何一个个体的结局时（即不存在"被帮助"个体时），所有个体的反事实反应类型在 <code>a</code> 上都是单调递增的。我们便简单地说，<code>A</code> 对 <code>Y</code> 的因果效应是<strong>单调的</strong>（monotonic）。</p>
+<p>单调性概念可以推广到两项处理 <code>A</code> 与 <code>E</code>。如果每个个体的反事实结局 <code>Y<sup>a,e</sup></code> 在 <code>a</code> 与 <code>e</code> 上都单调递增，我们就说 <code>A</code> 与 <code>E</code> 对 <code>Y</code> 的因果效应是单调的。也就是说，如果人群中不存在反事实反应为 <code>Y<sup>a=1,e=1</sup> = 0, Y<sup>a=0,e=1</sup> = 1</code>；<code>Y<sup>a=1,e=1</sup> = 0, Y<sup>a=1,e=0</sup> = 1</code>；<code>Y<sup>a=1,e=0</sup> = 0, Y<sup>a=0,e=0</sup> = 1</code>；以及 <code>Y<sup>a=0,e=1</sup> = 0, Y<sup>a=0,e=0</sup> = 1</code> 的个体。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（16 种反应类型在中文文献里的缺席）</strong>：表 5.2 这张表在英文文献里是标准配置（Miettinen 1982 提出，Greenland 与 Poole 1988 做了重编码等价类的划分），但在中文因果推断文献里几乎见不到引用它的研究。它的用处恰恰在于把"个体层面的可能性空间"与"人群层面可观测的交互"这两件事分开：如果个体只能落在 1、4、6、11、13、16 这六类，那么无论 <code>A</code> 与 <code>E</code> 各自的边际分布如何，数据都不可能出现加性交互；反之，出现交互就必须有那三类个体存在。这提供了一个不依赖模型的"可解释性上限"。中文研究在讨论交互时通常只停在"统计上显著/不显著"，很少反问"要产生这个结果，个体层面必须存在什么"，这条思路值得在写作时借用。另外提一句命名：<em>doomed / helped / hurt / immune</em> 四个词英文里押韵，作者是当成一个记忆装置在用；中文译名（本节所采用的"注定发病 / 被帮助 / 被伤害 / 免疫"）无法保留这种语音上的整齐，读者若在其他书里见到"doomed 者""hurt 型"等译法，指的都是同一批类型。希腊神名按第 2 章的处理一律不译。</p>
+</aside>
+
+<h2 id="s-5-4">5.4 充分原因</h2>
+
+<p>把个体按反事实反应类型分类，交互作用的含义就清楚了。现在我们引入一个工具，来表征两项处理之间交互作用所涉及的因果机制。再来看我们的心脏移植例子，这次只有一项处理 <code>A</code>。正如上一节所回顾的，有些个体在接受处理时死亡，有些个体在接受处理时死亡，有些个体无论如何都会死亡，还有些个体无论如何都不会死亡。这种多样的反应类型表明，处理 <code>A</code> 并不是唯一决定结局 <code>Y</code> 是否发生的变量。</p>
+
+<p>取那些实际接受了处理的个体。其中只有一部分死亡了，这意味着单靠处理不足以必然地产生结局。举一个被大大简化了的例子：假设心脏移植 <code>A = 1</code> 只在对麻醉剂过敏的个体中导致死亡。我们把这样一组最小的背景因素——它们与 <code>A = 1</code> 一起足以必然地产生结局——记作 <code>U<sub>1</sub></code>。处理（<code>A = 1</code>）与麻醉剂过敏（<code>U<sub>1</sub></code> = 1）同时存在，是结局 <code>Y</code> 的一个最小充分原因（minimal sufficient cause）。</p>
+
+<p>现在取那些实际没有接受处理的个体。同样只有其中一部分死亡了，这意味着单靠"不接受处理"也不足以产生结局。再举一个被大大简化了的例子：假设不做心脏移植 <code>A = 0</code> 只在射血分数低于 20% 的个体中导致死亡。把这样一组与 <code>A = 0</code> 一起足以产生结局的最小背景因素记作 <code>U<sub>2</sub></code>。不接受处理（<code>A = 0</code>）与射血分数低（<code>U<sub>2</sub></code> = 1）同时存在，是结局 <code>Y</code> 的另一个充分原因。</p>
+
+<p><span class="box-label">边注</span>　按照背景因素的定义，二值变量 <code>U</code> 不可被干预，也不会受到处理 <code>A</code> 的影响。</p>
+
+<p>最后，假设有些个体既没有 <code>U<sub>1</sub></code> 也没有 <code>U<sub>2</sub></code>，而且无论接受处理与否他们本来都会发病。这些"注定发病"个体的存在意味着，还存在另外一些背景因素，它们本身就足以产生结局。举一个被大大简化了的例子：假设研究开始时患有胰腺癌的所有个体都会死亡。我们把这样一组足以在不论处理状态如何的情况下产生结局的最小背景因素记作 <code>U<sub>0</sub></code>。胰腺癌的存在（<code>U<sub>0</sub></code> = 1）是结局 <code>Y</code> 的又一个充分原因。</p>
+
+<p>我们描述了结局的 3 个充分原因：在 <code>U<sub>1</sub></code> 存在下的处理 <code>A = 1</code>、在 <code>U<sub>2</sub></code> 存在下的不处理 <code>A = 0</code>，以及不论处理状态如何都存在的 <code>U<sub>0</sub></code>。每个充分原因都有一个或多个成分，比如第一个充分原因就有 <code>A = 1</code> 与 <code>U<sub>1</sub></code> = 1 两个成分。图 5.1 用一个圆表示一个充分原因，用圆内的扇形表示它的各个成分。<strong>充分成分病因</strong>（sufficient-component cause）这个说法常被用来统称充分原因及其成分。</p>
+
+<figure class="fig"><img src="../figures/ch5--figure-5_1.png" alt="图 5.1：单项处理下三个充分成分病因的图形表示">
+<figcaption><strong>图 5.1</strong>　单项处理 <code>A</code> 下三个充分成分病因的图形表示。每个圆是一个充分原因，圆内的扇形是它的成分：第一个圆是处理 <code>A = 1</code> 与麻醉剂过敏 <code>U<sub>1</sub></code> = 1；第二个圆是不处理 <code>A = 0</code> 与射血分数低 <code>U<sub>2</sub></code> = 1；第三个圆是胰腺癌 <code>U<sub>0</sub></code> = 1，它不含任何处理成分，因此单独一个成分就构成一个充分原因。</figcaption></figure>
+
+<p>充分成分病因的图形表示有助于看清效应修饰的一个关键后果：如第 4 章所讨论的，处理 <code>A</code> 的因果效应大小取决于效应修饰因子的分布。设想两个假想情形。在第一种里，人群中只有 1% 的个体 <code>U<sub>1</sub></code> = 1（即麻醉剂过敏）。在第二种里，人群中有 10% 的个体 <code>U<sub>1</sub></code> = 1。这两个人群中 <code>U<sub>2</sub></code> 与 <code>U<sub>0</sub></code> 的分布完全相同。现在，我们分别在每个人群中做一项心脏移植 <code>A</code> 的随机化试验，其中一半个体被分配到 <code>A = 1</code>。心脏移植 <code>A</code> 对死亡的平均因果效应在第二个人群中会更大，因为其中有更多个体在接受处理时易发病。3 个充分原因中的 <code>A = 1</code> 加 <code>U<sub>1</sub></code> = 1，在第二个人群中的常见程度是第一个人群的 10 倍，而另外两个充分原因在两个人群中出现的频率相同。</p>
+
+<p>充分成分病因的图形表示也有助于看清交互作用的另一个概念，下一节就要讲它。首先我们需要描述两项处理 <code>A</code> 与 <code>E</code> 的充分原因。再来看我们的维生素与心脏移植例子。我们此前已经描述了死亡的 3 个充分原因：<code>A</code>（或 <code>E</code>）的存在与否无关紧要、接受移植 <code>A</code> 而不论维生素 <code>E</code> 如何，以及不接受移植 <code>A</code> 而不论维生素 <code>E</code> 如何。在两项处理的情形下，我们还需要补上另外两种死亡方式：服用维生素 <code>E</code> 而不论移植 <code>A</code> 如何，以及不服维生素而不论移植 <code>A</code> 如何。我们还需要补上另外四个充分原因，以涵盖那些只在 <code>A</code> 与 <code>E</code> 的某种特定取值组合下才会死亡的人。于是，视哪些背景因素存在，共有 9 种可能的死亡方式：</p>
+<ol>
+<li>由处理 <code>A</code>（处理 <code>E</code> 无关紧要）；</li>
+<li>由不处理 <code>A</code>（处理 <code>E</code> 无关紧要）；</li>
+<li>由处理 <code>E</code>（处理 <code>A</code> 无关紧要）；</li>
+<li>由不处理 <code>E</code>（处理 <code>A</code> 无关紧要）；</li>
+<li>由处理 <code>A</code> 与 <code>E</code> 两者共同；</li>
+<li>由处理 <code>A</code> 与不处理 <code>E</code> 共同；</li>
+<li>由处理 <code>E</code> 与不处理 <code>A</code> 共同；</li>
+<li>由不处理 <code>A</code> 与 <code>E</code> 两者共同；</li>
+<li>由其他机制（处理 <code>A</code> 与 <code>E</code> 两者都无关紧要）。</li>
+</ol>
+
+<p><span class="box-label">边注</span>　Greenland 与 Poole（1988）最先枚举出这 9 个充分原因。</p>
+
+<p>换句话说，共有 9 种可能的充分原因，其处理成分分别是只有 <code>A = 1</code>、只有 <code>A = 0</code>、只有 <code>E = 1</code>、只有 <code>E = 0</code>、<code>A = 1</code> 与 <code>E = 1</code>、<code>A = 1</code> 与 <code>E = 0</code>、<code>A = 0</code> 与 <code>E = 1</code>、<code>A = 0</code> 与 <code>E = 0</code>，以及 <code>A</code> 与 <code>E</code> 都不构成成分。每个这样的充分原因都包含一组来自 <code>U<sub>1</sub></code>, …, <code>U<sub>8</sub></code> 与 <code>U<sub>0</sub></code> 的背景因素。图 5.2 表示了两项处理 <code>A</code> 与 <code>E</code> 的 9 个充分成分病因。</p>
+
+<figure class="fig"><img src="../figures/ch5--figure-5_2.png" alt="图 5.2：两项处理下九个充分成分病因的图形表示">
+<figcaption><strong>图 5.2</strong>　两项处理 <code>A</code> 与 <code>E</code> 的 9 个充分成分病因。每一行三个圆，从上到下依次为：单独一个成分的 <code>U<sub>0</sub></code> = 1（其他机制）；<code>A = 1</code> 与 <code>U<sub>1</sub></code> = 1、<code>A = 0</code> 与 <code>U<sub>2</sub></code> = 1、<code>E = 1</code> 与 <code>U<sub>3</sub></code> = 1、<code>E = 0</code> 与 <code>U<sub>4</sub></code> = 1（各含一个处理成分与一个背景成分）；以及 <code>A = 1, E = 1</code> 与 <code>U<sub>5</sub></code> = 1、<code>A = 1, E = 0</code> 与 <code>U<sub>6</sub></code> = 1、<code>A = 0, E = 1</code> 与 <code>U<sub>7</sub></code> = 1、<code>A = 0, E = 0</code> 与 <code>U<sub>8</sub></code> = 1（各含两个处理成分与一个背景成分）。</figcaption></figure>
+
+<p><span class="box-label">边注</span>　这种充分成分病因的图形表示常被称为"因果饼"（the causal pies）。</p>
+
+<p>对于二值结局与两项处理，9 个充分成分病因并非在所有情形下都存在。举例来说，如果服用维生素 <code>E = 1</code> 不会杀死任何一个个体（无论其处理 <code>A</code> 如何），那么含 <code>E = 1</code> 成分的那 3 个充分原因就不会出现。这 3 个充分原因的存在意味着有些个体（例如那些 <code>U<sub>3</sub></code> = 1 的人）会因服用维生素（<code>E = 1</code>）而被杀死，也就是说，不给他们服维生素（<code>E = 0</code>）就能预防他们的死亡。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 5.1　再谈反事实类型与交互作用</span>
+<p>按反事实反应类型给个体分类，使我们更容易考察交互作用的具体形式。举例来说，我们可能感兴趣的是：是否存在这样一些个体，他们在同时接受两项处理 <code>E = 1</code> 与 <code>A = 1</code> 时会发病，但在只接受其中一项时不会发病。也就是说，人群中是否存在反事实反应为 <code>Y<sup>a=1,e=1</sup> = 1</code> 且 <code>Y<sup>a=0,e=1</sup> = Y<sup>a=1,e=0</sup> = 0</code> 的个体（第 7 类与第 8 类）。VanderWeele 与 Robins（2007a, 2008）为 2 项与 3 项处理发展了一套充分原因交互作用的理论，并推导出了这里所描述的协同作用（synergism）的可识别条件。下面这个不等式是这些个体存在的充分条件：</p>
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1] − Pr[Y<sup>a=1,e=0</sup> = 1] &gt; 0</div>
+<p>或者等价地，<code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1] &gt; Pr[Y<sup>a=1,e=0</sup> = 1]</code>。也就是说，在一项 <code>A</code> 与 <code>E</code> 都被随机分配的实验中，人们可以算出上式中的三个反事实风险，并在经验上验证第 7 类与第 8 类个体的存在。</p>
+<p>因为上述不等式是充分而<em>非必要</em>条件，所以即使第 7 类与第 8 类个体确实存在，它也可能不成立。事实上这个充分条件太强了，以至于可能漏掉这些类型存在的大多数情形。如果人们知道、或愿意假定，接受处理 <code>A</code> 与 <code>E</code> 不会预防任何一个个体发病（即效应是单调的，见技术要点 5.2），那么就可以用一个更弱的协同作用充分条件。这时，不等式</p>
+<div class="eqn" style="text-align:center">Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=1</sup> = 1] &gt; Pr[Y<sup>a=1,e=0</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</div>
+<p>就是第 7 类与第 8 类个体存在的充分条件。换句话说，当 <code>A</code> 与 <code>E</code> 的效应单调时，超可加交互作用的存在蕴含着第 8 类的存在（单调性排除了第 7 类）。这个在单调效应下关于协同作用的充分条件，最早由 Greenland 与 Rothman 在他们那本书的上一版中报告，现在收录于 Greenland、Lash 与 Rothman（2008）。</p>
+<p>在遗传学研究中，有时感兴趣的是确定是否存在第 8 类个体，这种交互作用形式被称为<strong>组成型上位性</strong>（compositional epistasis）。VanderWeele（2010a）综述了组成型上位性的经验检验方法。</p>
+</aside>
+
+<aside class="finepoint"><span class="box-label">精细辨析 5.2　从反事实到充分成分病因，以及反向</span>
+<p>反事实反应类型与充分成分病因之间存在对应关系。在处理与结局都是二值的情形下，假设某个个体既没有 <code>U<sub>0</sub></code>，也没有 <code>U<sub>1</sub></code>、<code>U<sub>2</sub></code>。她将属于"免疫"反应类型，因为无论接受处理与否，她都缺少补齐所有充分原因所必需的成分。下表给出了单项处理 <code>A</code> 情形下反应类型与充分成分病因的对应关系。</p>
+<table class="data-tbl">
+<thead><tr><th>反应类型</th><th><code>Y<sup>a=0</sup></code></th><th><code>Y<sup>a=1</sup></code></th><th>成分原因</th></tr></thead>
+<tbody>
+<tr><td>注定发病（doomed）</td><td>1</td><td>1</td><td><code>U<sub>0</sub> = 1</code> 或 <code>{U<sub>1</sub> = 1 且 U<sub>2</sub> = 1}</code></td></tr>
+<tr><td>被帮助（helped）</td><td>1</td><td>0</td><td><code>U<sub>0</sub> = 0</code> 且 <code>U<sub>1</sub> = 0</code> 且 <code>U<sub>2</sub> = 1</code></td></tr>
+<tr><td>被伤害（hurt）</td><td>0</td><td>1</td><td><code>U<sub>0</sub> = 0</code> 且 <code>U<sub>1</sub> = 1</code> 且 <code>U<sub>2</sub> = 0</code></td></tr>
+<tr><td>免疫（immune）</td><td>0</td><td>0</td><td><code>U<sub>0</sub> = 0</code> 且 <code>U<sub>1</sub> = 0</code> 且 <code>U<sub>2</sub> = 0</code></td></tr>
+</tbody>
+</table>
+<p>成分原因的某个特定组合，恰好对应唯一一个反事实类型；反过来，一个特定的反应类型则可能对应若干种成分原因的组合。例如，"注定发病"类型的个体可以拥有任何包含 <code>U<sub>0</sub> = 1</code> 的成分原因组合（无论 <code>U<sub>1</sub></code> 与 <code>U<sub>2</sub></code> 的取值如何），也可以拥有任何包含 <code>{U<sub>1</sub> = 1 且 U<sub>2</sub> = 1}</code> 的组合。</p>
+<p>充分成分病因还可以用来给出可交换性 <code>Y<sup>a</sup> ⊥⊥ A</code> 的机制性描述。对二值处理与二值结局而言，可交换性意味着：在已处理的 <code>A = 1</code> 人与未处理的 <code>A = 0</code> 人中，接受处理时本会发病的人所占比例相同，不接受处理时本会发病的人所占比例也相同。也就是说，<code>Pr[Y<sup>a=1</sup> = 1|A = 1] = Pr[Y<sup>a=1</sup> = 1|A = 0]</code> 且 <code>Pr[Y<sup>a=0</sup> = 1|A = 1] = Pr[Y<sup>a=0</sup> = 1|A = 0]</code>。那么，接受处理时本会发病的个体就是"注定发病者"与"被伤害者"，即那些 <code>U<sub>0</sub> = 1</code> 或 <code>U<sub>1</sub></code> = 1 的人；不接受处理时本会发病的个体则是"注定发病者"与"被帮助者"，即那些 <code>U<sub>0</sub> = 1</code> 或 <code>U<sub>2</sub></code> = 1 的人。因此，只要"注定发病 + 被伤害"的比例与"注定发病 + 被帮助"的比例在已处理者与未处理者中分别相等，可交换性就成立。也就是说，对二值处理与二值结局而言，可交换性可以用充分成分病因的语言表达为 <code>Pr[U<sub>0</sub> = 1 或 U<sub>1</sub> = 1|A = 1] = Pr[U<sub>0</sub> = 1 或 U<sub>1</sub> = 1|A = 0]</code> 与 <code>Pr[U<sub>0</sub> = 1 或 U<sub>2</sub> = 1|A = 1] = Pr[U<sub>0</sub> = 1 或 U<sub>2</sub> = 1|A = 0]</code>。更多细节见 Greenland 与 Brumback（2002）、Flanders（2006）以及 VanderWeele 与 Hernán（2006）。上述部分结果被 VanderWeele 与 Robins（2008）推广到两项或更多项二值处理的情形。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（充分原因模型在中文文献中的译名与使用现状）</strong>：这一框架在英文文献里通常叫 <em>the sufficient cause model</em>（Rothman 1976 起，Greenland &amp; Poole 1988 扩展）或者 <em>the sufficient-component cause model</em>，其中的单个原因叫 <em>sufficient-component cause</em>。中文里译名相当混乱，本书统一用"充分成分病因"（对应 sufficient-component cause），"充分原因"（sufficient cause）指包含若干成分的那个整体。检索中文数据库时需要注意几个常见的替代译法："充分病因"（多见于 1980—1990 年代的《流行病学》教材，容易与日常所说的"病因"混为一谈）、"充分必要条件"（这个译法是错的，恰恰因为充分原因模型并不要求必要——Rothman 的整个论点就是病因既非必要也非充分，参见精细辨析 5.4 中 75% 与 50% 的超额分数相加超过 100% 的例子）、以及个别文献用的"完全病因"。使用现状上，中文里这套模型主要出现在三类文本中：(1) 方法学综述与教材的"病因学"章节，用来解释为什么危险因素之间会重叠；(2) 疾病负担研究（GBD 与中国死因监测）里谈归因分数（PAF/AF）时的方法学背景；(3) 慢性病病因的定性讨论，例如"幽门螺杆菌感染与胃癌""HPV 与宫颈癌"这类"单一充分病因"的例子。真正把它当作可操作的识别工具来用的中文研究很少，这一点本章 5.6 节自己也承认。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（"因果饼"里 <code>U</code> 不可干预这件事，是它与潜在结局框架的根本分歧）</strong>：图 5.2 的九个圆里，<code>A</code> 与 <code>E</code> 是可以干预的处理成分，<code>U<sub>1</sub></code>, …, <code>U<sub>8</sub></code> 与 <code>U<sub>0</sub></code> 按定义是不可干预、也不受处理影响的背景因素。这一点常被忽略，却正是 5.6 节争论的焦点：如果你能观测到 <code>U<sub>1</sub></code> 是不是 1，你其实就掌握了"某个个体的死亡机制"的完整信息，这在真实数据里几乎总是做不到。国内读者若想用这张图，最好记住它是一张<em>概念</em>图而不是一张待拟合的模型：它回答"要想让结局发生，最少需要哪些条件同时成立"，不回答"这些条件在人群里各占多少比例"。后者要靠反事实框架下的估计方法（第 12、13 章），或靠把 <code>U</code> 当作待测协变量代入模型——而那时它就退回到效应修饰的讨论里去了。</p>
+</aside>
+
+<h2 id="s-5-5">5.5 充分原因交互</h2>
+
+<p>"处理 <code>A</code> 与 <code>E</code> 之间存在交互作用"这个说法在日常语言中的用法，会让人联想到存在某种因果机制，两项处理通过它协同（"交互"）产生某个结局。有意思的是，反事实框架内对交互作用的定义并不要求我们了解这些机制中的任何一个，甚至也不要求两项处理真的协同作用（见精细辨析 5.3）。在我们的维生素 <code>E</code> 与心脏移植 <code>A</code> 的例子里，我们说 <code>A</code> 与 <code>E</code> 之间存在交互作用，如果 <code>A</code> 在人人都接受 <code>E</code> 时的因果效应，与 <code>A</code> 在没人接受 <code>E</code> 时的因果效应不同。也就是说，交互作用是由反事实量之间的对比定义的，因此只要在一项理想的随机化试验中、<code>A</code> 与 <code>E</code> 两项处理各自的可交换性、可阳性性与一致性都成立，就可以把它识别出来。我们完全不必去深究那些使交互作用得以出现的因果机制（物理的、化学的、生物学的、社会学的……）。</p>
+
+<p>本节描述交互作用的第二个概念，它或许能让我们更接近一步：由处理 <code>A</code> 与 <code>E</code> 产生结局的因果机制。这第二个交互作用概念不是建立在反事实对比之上，而是建立在充分成分病因之上，因此我们把它称为充分成分病因框架内的交互作用，简称<strong>充分原因交互</strong>（sufficient cause interaction）。</p>
+
+<p>如果 <code>A</code> 与 <code>E</code> 共同出现在某个充分原因之中，那么人群中就存在 <code>A</code> 与 <code>E</code> 之间的充分原因交互。举个例子，假设背景因素 <code>U<sub>5</sub></code> = 1 的个体在同时接受维生素（<code>E = 1</code>）与心脏移植（<code>A = 1</code>）时会发病，但在只接受其中一项治疗时不会发病。那么，只要存在一个 <code>U<sub>5</sub></code> = 1 的个体，<code>A</code> 与 <code>E</code> 之间就存在充分原因交互。由此可以推出：如果存在反事实反应为 <code>Y<sup>a=1,e=1</sup> = 1</code> 且 <code>Y<sup>a=0,e=1</sup> = Y<sup>a=1,e=0</sup> = 0</code> 的个体，那么 <code>A</code> 与 <code>E</code> 之间就存在充分原因交互。</p>
+
+<p>充分原因交互可以是协同的，也可以是拮抗的。当 <code>A = 1</code> 与 <code>E = 1</code> 出现在同一个充分原因中时，处理 <code>A</code> 与处理 <code>E</code> 之间存在<strong>协同作用</strong>（synergism）；当 <code>A = 1</code> 与 <code>E = 0</code>（或 <code>A = 0</code> 与 <code>E = 1</code>）出现在同一个充分原因中时，则存在<strong>拮抗作用</strong>（antagonism）。换个角度，也可以把 <code>A</code> 与 <code>E</code> 之间的拮抗作用看作 <code>A</code> 与"不处理 <code>E</code>"（或"不处理 <code>A</code>"与 <code>E</code>）之间的协同作用。</p>
+
+<p>与反事实框架下交互作用的定义不同，充分原因交互明确地指向涉及处理 <code>A</code> 与 <code>E</code> 的因果机制。人们可能会以为，识别充分原因交互的存在就需要对这些机制有详细了解。事实证明情况并非总是如此：即使我们对这些机制<em>一无所知</em>，有时也能断定充分原因交互存在。具体地说，如果精细辨析 5.1 中的不等式成立，那么 <code>A</code> 与 <code>E</code> 之间就存在协同作用。也就是说，人们完全不必考虑 <code>A</code> 与 <code>E</code> 协同产生结局的因果机制是什么，就能在经验上验证协同作用的存在。这个结果并不令人惊讶，因为反事实反应类型与充分原因之间存在对应关系（见精细辨析 5.2），而且上面那个不等式是充分而非必要条件，也就是说，即便协同作用存在，该不等式也可能不成立。</p>
+
+<p><span class="box-label">边注</span>　Rothman（1976）描述了充分成分病因框架内的协同作用与拮抗作用这两个概念。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 5.3　生物学交互作用</span>
+<p>在流行病学的讨论中，充分原因交互通常被称为<strong>生物学交互作用</strong>（biologic interaction，Rothman 等 1980）。这一术语上的选择看起来似乎暗示着：在生物医学应用中，存在生物学机制，通过这些机制两项处理 <code>A</code> 与 <code>E</code> 在产生结局的过程中彼此作用。然而情况未必如此，VanderWeele 与 Robins（2007a）提出的下面这个例子可以说明。</p>
+<p>假设 <code>A</code> 与 <code>E</code> 是某个产生必需蛋白的基因的两个等位基因。两个等位基因上都有有害突变的人（<code>A = 1</code> 且 <code>E = 1</code>）会缺乏这种必需蛋白，并在出生后一周内死亡；而两个等位基因上都没有突变的人（即 <code>A = 0</code> 且 <code>E = 0</code>），或者只有一个等位基因上有突变的人（即 <code>A = 0</code> 且 <code>E = 1</code>、<code>A = 1</code> 且 <code>E = 0</code>），则蛋白水平正常，能够存活。我们会说等位基因 <code>A</code> 与 <code>E</code> 之间存在协同作用，因为存在一个包含 <code>A = 1</code> 与 <code>E = 1</code> 的死亡充分成分病因。也就是说，两个等位基因协同工作而产生结局。然而也可以争辩说：它们在物理上并没有作用于对方，因此它们在任何生物学意义上都没有交互。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（"基因-环境交互"这个流行说法的因果推断反思）</strong>：中文语境里"基因-环境交互作用"（gene-environment interaction，G×E）是个高频词，主要出现在遗传流行病学、精神病学、肿瘤学与运动科学的文献中。它至少混着三件不同的事，读者有必要先拆开：(1) <strong>统计意义上的交互</strong>——在 logistic 或 Poisson 模型里放 <code>G × E</code> 乘积项，检验其在某个尺度上是否不为零，这完全属于本章 5.1—5.2 节的内容，且结果依赖于选的是加性尺度还是乘性尺度；(2) <strong>充分成分病因意义上的协同</strong>——基因型与环境暴露同时存在才足以致病，这是精细辨析 5.3 的等位基因例子所刻画的层次；(3) <strong>生物学机制意义上的相互作用</strong>——基因产物直接参与环境暴露的代谢，或环境直接改变了基因表达。中文读者常默认三者是一回事，本章明确指出它们不是：充分原因框架下的"协同"只要求 <code>A = 1</code> 与 <code>E = 1</code> 落在<em>同一个</em>充分原因里，完全不要求基因与环境在物理或分子层面相互作用（精细辨析 5.3 的结论正是如此）。这一点在解读 GWAS 类的"上位性"（epistasis）结果时尤其要小心：统计上的上位性常常由样本量与表型测量误差制造，而"两个等位基因必须在同一个人身上同时出现才致死"其实是一个很强的机制性断言。另外还有一个常被忽略的推论：由于基因型不可干预，把它当作处理 <code>A</code> 来估计"基因的因果效应"，在识别上会遇到根本困难——你无法随机分配基因型。本章 5.6 节的结语（充分成分病因框架在真实数据分析中的适用性尚待确定）针对的正是这种情形。</p>
+</aside>
+
+<h2 id="s-5-6">5.6 反事实还是充分成分病因？</h2>
+
+<p>充分成分病因框架与反事实（潜在结局）框架回答的是不同的问题。充分成分病因模型考虑的是这样一些行动、事件或自然状态的集合，它们<em>共同</em>、必然地产生所考察的结局。该模型给出的是对某个特定效应之病因的解释。它回答的问题是："给定某个特定的效应，哪些事件可能是它的病因？"潜在结局模型或反事实模型聚焦于某一个特定的病因或干预，给出的是该病因各种效应的解释。与充分成分病因框架不同，潜在结局框架回答的问题是："如果把某个特定因素干预成与事实不同的取值，会发生什么？"与充分成分病因框架不同，反事实框架并不要求我们详细了解该因素影响结局的机制。</p>
+
+<p><span class="box-label">边注</span>　因果的反事实框架，Hume（1748）已经有所暗示。</p>
+
+<p>反事实方法回答的是"会发生什么？"（what happens?）；充分成分病因方法回答的是"它是怎么发生的？"（how does it happen?）。对于本书的内容——估计假想干预之平均因果效应的条件与方法——反事实框架是自然的选择。充分成分病因框架则有助于思考在某个特定结局的产生过程中起作用的因果机制。充分成分病因在因果推断的教学中占有正当的位置，因为它们有助于理解若干关键概念，比如因果效应的大小对背景因素（效应修饰因子）分布的依赖，以及效应修饰、交互作用与协同作用三者之间的关系。</p>
+
+<p><span class="box-label">边注</span>　充分成分病因框架由 Mackie（1965）在哲学领域提出。他引入了 <code>Y</code> 的 INUS 条件这个概念：某个条件的一个<em>不充分但必要</em>（Insufficient but Necessary）的部分，而这个条件本身<em>对 <code>Y</code> 而言不必要但充分</em>（Unnecessary but exclusively Sufficient）。</p>
+
+<p>尽管从教学角度看充分成分病因框架很有用，但它对实际数据分析的相关性尚待确定。在其经典形式下，充分成分病因框架是确定性的，其结论依赖于结局的编码方式，并且按定义只限于二值处理与二值结局（或可以重编码为二值变量的变量）。这一限制实际上排除了对任何连续因素的考虑，并把该框架的适用范围限制在二值因素数目不多的情境中。较新的扩展工作把充分成分病因框架推广到随机（stochastic）情境以及分类与有序处理，可能会让这一方法在贴近实际的数据分析中得到更多应用。最后，即便允许这些扩展，我们也很少拥有研究它所区分的那些细微差别所需的大量数据。为了更一般地估计因果效应，反事实框架很可能仍是使用得最多的那个。另外一些表面上平行的框架——因果图、决策理论——如下一章所述，本质上与反事实框架是等价的。</p>
+
+<p><span class="box-label">边注</span>　VanderWeele（2010b）给出了向 3 水平处理的推广。VanderWeele 与 Robins（2012）探讨了随机反事实与随机充分原因之间的关系。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 5.4　再谈超额分数</span>
+<p>精细辨析 3.4 把处理 <code>A</code> 的超额分数定义为某个特定人群中可归因于处理 <code>A</code> 的病例所占比例，并描述了一个 <code>A</code> 的超额分数为 75% 的例子。也就是说，75% 的病例在所有人都接受 <code>a = 0</code> 而非他们实际的处理 <code>A</code> 的情况下就不会发生。现在考虑第二项处理 <code>E</code>。假设 <code>E</code> 的超额分数是 50%。这是否意味着对 <code>A</code> 与 <code>E</code> 的联合干预可以预防 125%（75% + 50%）的病例？当然不能。</p>
+<p>显然，单项处理（<code>A</code> 或 <code>E</code>）的超额分数不可能超过 100%。同理，对 <code>A</code> 与 <code>E</code> 的任何联合干预的超额分数也不可能超过 100%。也就是说，如果我们允许以任意方式干预某个人群（通过改变 <code>A</code>、<code>E</code> 或两者），我们所能预防的疾病比例也永远不会大于 100%。换句话说，无论单项还是联合，归因于"缺少某项干预"的病例都不会超过 100%。那么，为什么两项单独处理的超额分数之和会超过 100% 呢？充分成分病因框架能帮我们回答这个问题。</p>
+<p>举个例子，假设 Zeus 有背景因素 <code>U<sub>5</sub></code> = 1（且没有其他背景因素），并且同时接受了 <code>A = 1</code> 与 <code>E = 1</code>。只要处理 <code>A</code> 或处理 <code>E</code> 中任何一项被撤除，Zeus 就不会成为病例。因此 Zeus 被计入"由把 <code>a</code> 设为 0 的干预所预防的病例"，即 Zeus 属于可归因于 <code>A</code> 的那 75% 病例的一部分。但 Zeus 同时也被计入"由把 <code>e</code> 设为 0 的干预所预防的病例"，即 Zeus 属于可归因于 <code>E</code> 的那 50% 病例的一部分。难怪 <code>A</code> 与 <code>E</code> 的超额分数之和会超过 100%：有些像 Zeus 这样的个体被数了两次！</p>
+<p>充分成分病因框架表明，当 <code>A</code> 与 <code>E</code> 可能同时是同一个充分原因的成分时，分开谈"可归因于 <code>A</code> 的疾病比例"与"可归因于 <code>E</code> 的疾病比例"就没有多大意义。举例来说，关于"疾病可归因于基因还是归因于环境"的讨论就有误导性。考虑苯丙酮尿症导致的智力障碍，这是一种在遗传易感个体中吃了某些食物后才会出现的疾病。这些食物的超额分数是 100%，因为所有病例都可以通过把食物从饮食中去除来预防。基因的超额分数也是 100%，因为如果我们能替换掉那些易感基因，所有病例都可以被预防。于是导致智力障碍的病因既可以被看作 100% 遗传的，也可以被看作 100% 环境的。进一步的讨论见 Rothman、Greenland 与 Lash（2008）。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（超额分数为什么不能相加——以及中文语境里为什么这个问题特别要紧）</strong>：精细辨析 5.4 的这个例子在中文公共卫生语境里有直接的现实意义。国内关于吸烟、饮酒、不运动、高血压等危险因素的宣教材料，几乎总是并列给出各自的比例；把这些比例直接相加（例如"吸烟 24% + 不运动 12% = 36%"）在因果上是错的，因为同一个病例可以被同时归因于多个因素，各因素的"可归因比例"之间存在重叠。上限是 100%，这不是技术细节而是逻辑必然。实践上的正确做法有几条：(1) 若要算联合干预的可归因比例，应直接估计联合对比 <code>Pr[Y<sup>a=1,e=1</sup> = 1] − Pr[Y<sup>a=0,e=0</sup> = 1]</code> 之类的量，而不是把单项超额分数相加；(2) 在需要跨危险因素汇总时（例如 GBD 式的比较风险评估，或中国死因监测中按危险因素分解死亡数），标准做法是限制性相对风险（restrictive relative risk）汇总或 Shapley 归因，把重叠按比例分配，而不是简单求和；(3) 报告单项超额分数时，应说明它是"在这一人群、这一暴露分布、这一对照定义下"的数字，换个人群就变。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 5.3　因果效应的单调性与充分原因</span>
+<p>当处理 <code>A</code> 与 <code>E</code> 的效应是单调时，某些充分原因必定不存在。举例来说，假设吸烟（<code>A = 1</code>）永远不会预防心脏病，缺乏体力活动（<code>E = 1</code>）也永远不会预防心脏病。那么，任何包含 <code>A = 0</code> 或 <code>E = 0</code> 成分的充分原因都不能存在。道理是这样的：如果存在一个包含 <code>A = 0</code> 成分的充分原因，那么某些个体（例如那些 <code>U<sub>2</sub></code> = 1 的人）在未暴露（<code>A = 0</code>）时就会发病；等价地说，对这些个体进行处理（<code>A = 1</code>）就能预防结局。同样的道理适用于 <code>E = 0</code>。当 <code>A</code> 与 <code>E</code> 的效应单调时不可能存在的那些充分成分病因，在图 5.3 中被打了叉。</p>
+</aside>
+
+<figure class="fig"><img src="../figures/ch5--figure-5_3.png" alt="图 5.3：单调性排除了含 A=0 或 E=0 成分的五个充分成分病因">
+<figcaption><strong>图 5.3</strong>　图 5.2 的九个充分成分病因，叠加单调性约束。打了红叉的五个是：<code>A = 0</code> 与 <code>U<sub>2</sub></code> = 1、<code>E = 0</code> 与 <code>U<sub>4</sub></code> = 1、<code>A = 1, E = 0</code> 与 <code>U<sub>6</sub></code> = 1、<code>A = 0, E = 1</code> 与 <code>U<sub>7</sub></code> = 1、<code>A = 0, E = 0</code> 与 <code>U<sub>8</sub></code> = 1。这五个的共同点是都含有一个"某项处理缺席"的成分，而"处理能够预防某些人的结局"正是单调性所排除的情形。剩下的四个——<code>U<sub>0</sub></code> = 1、<code>A = 1</code> 与 <code>U<sub>1</sub></code> = 1、<code>E = 1</code> 与 <code>U<sub>3</sub></code> = 1、<code>A = 1, E = 1</code> 与 <code>U<sub>5</sub></code> = 1——都可能存在。</figcaption></figure>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 8（析因试验、交互作用检验的功效，与"事后交互分析"的现实提醒）</strong>：要真正观察到本章所说的交互作用，研究设计上有硬性要求：(1) 两项处理必须能被<em>同时</em>随机分配，最典型的就是 2×2 析因试验（factorial trial）——只在其中一项上随机、另一项按常规治疗或自然取值，是识别不出交互的；(2) 样本量要按交互作用来算，而交互检验的功效通常远低于主效应检验，因为交互项检验的是两个效应之<em>差</em>，其方差约为两个效应方差之和；(3) 分析时要事先指定交互检验，最好用预设的连续型变量形式（如风险差尺度上的一次项与一次项之积，或对数线性模型中的加性交互），而不是切成两三个亚组再比 <code>p</code> 值。国内多中心 RCT 与真实世界研究在这三点上的差距比较明显，常见的折中做法是：把交互项作为<strong>预设的</strong>次要终点写进方案与统计分析计划，在主要分析之后按固定顺序检验，并明确报告"本研究对交互作用检验的功效不足以排除小于某一幅度的交互"。最后一条尤其重要——交互作用在大多数临床试验中<em>本来就没被检出</em>，报成"未发现交互作用"而不报告检验的功效，容易被误读为"已证明无交互作用"，而这两句话的差别很大。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

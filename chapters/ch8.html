@@ -144,6 +144,119 @@
 
 <p>既然删失 C 现在被看作一种处理，接下来我们就需要：(i) 确保可交换性、可阳性性、一致性这些可识别性条件，对 C 和对 A 同样成立；(ii) 使用和分析"估计 C 的效应"时所需的那类方法完全相同的方法。在这些可识别性条件下，并运用这些方法，选择偏倚可以通过分析性调整被消除；在没有测量误差和混杂的情况下，处理 A 对结局 Y 的因果效应就可以被识别。下一节讲解具体怎么做。</p>
 
+<h2 id="s-8-5">8.5 如何校正选择偏倚</h2>
+
+<p>有时靠研究设计就能绕开选择偏倚（见精细辨析 8.1），但更多时候它躲不掉。失访、自我选择，以及一般意义上的缺失数据，不管研究者多小心都可能发生。那种情况下，就必须在分析里显式地把它校正掉。校正的办法之一是逆概率加权（IP weighting，也可以用标准化），做法是给每个入选的个体（<code>C=0</code>）一个权重 <strong>W<sup>C</sup></strong>，让她在分析中不只代表自己，还代表那些与她 <code>L</code> 和 <code>A</code> 取值相同、却没被选中（<code>C=1</code>）的人。权重 <strong>W<sup>C</sup></strong> 就是她被选中的概率 <code>Pr[C=0|L,A]</code> 的倒数。</p>
+
+<p>前面讲过用于校正混杂的 IP 权重 <strong>W<sup>A</sup></strong> = 1/<em>f</em>(<code>A|L</code>)，这里是用于校正选择偏倚的 <strong>W<sup>C</sup></strong> = 1/<code>Pr[C=0|A,L]</code>。当混杂和选择偏倚同时存在时，可以用乘积权重 <strong>W<sup>A</sup>W<sup>C</sup></strong> 同时校正两者，所需假设见第 12 章和第三部分。</p>
+
+<p>要说清楚 IP 加权怎么用来校正选择偏倚，我们再回到上一节那个芥末随机试验。图 8.10 的树状图给出了试验数据：60 人中，40 人在随机化时有心脏病（<code>L=1</code>），20 人没有（<code>L=0</code>）。不管 <code>L</code> 取什么值，每个人被分到芥末补充组（<code>A=1</code>）的概率都是五成，于是 <code>L=0</code> 组有 10 人、<code>L=1</code> 组有 20 人接受了处理 <code>A=1</code>。<code>L</code> 对 <code>A</code> 没有作用，这一点对应图 8.3 的因果图里没有从 <code>L</code> 指向 <code>A</code> 的箭头。而保持未删失的概率在各分支上并不一样：没有心脏病、又被分到芥末组的人（<code>L=0, A=1</code>）有 50% 保持未删失，有心脏病、又被分到非芥末组的人（<code>L=1, A=0</code>）则有 60% 保持未删失。<code>A</code> 和 <code>L</code> 对 <code>C</code> 的这种作用，对应图 8.3 里从 <code>A</code> 和 <code>L</code> 指向 <code>C</code> 的箭头。树状图还给出了未删失者和删失者中各有多少人会死亡（<code>Y=1</code>）。现实中，研究者永远不会知道删失者中有多少死亡，正是这份知识的缺失逼得研究者把分析限制在未删失者身上，给选择偏倚开了口子。这里把删失者的死亡数一并画出来，是为了记录下（如图 8.3 所示）处理 <code>A</code> 与 <code>Y</code> 边际独立、<code>C</code> 在 <code>L</code> 的各水平内与 <code>Y</code> 独立这两件事。还可以核对一下：全人群（研究者拿不到）里的风险比是 1，未删失者（研究者拿得到）里的风险比是 0.89。</p>
+
+<p>现在讲清楚用 IP 加权校正选择偏倚背后的直觉。看图 8.10 那棵树的底部：有 20 个有心脏病（<code>L=1</code>）的人被分到芥末补充组（<code>A=1</code>），其中 4 人保持未删失，16 人失访。也就是说，这一组里保持未删失的条件概率是 1/5，即 <code>Pr[C=0|L=1, A=1] = 4/20 = 0.2</code>。在 IP 加权分析中，那 16 个删失者拿到零权重（即不参与分析），4 个未删失者各拿 5 的权重——正是他们未删失概率（1/5）的倒数。IP 加权相当于把原来的 20 个人换成 4 个未删失者各 5 份副本。树的其他分支也照此办理，就得到图 8.11：一个规模与原研究人群相同、却没有人失访的伪人群。（各分支的 IP 权重就留给读者自己算了。）伪人群中的关联风险比是 1，与假如无人删失时在原人群中算出的风险比相同。</p>
+
+<figure class="fig">
+<img src="../figures/ch8--figure-8_11.png" alt="图 8.11">
+<figcaption><strong>图 8.11</strong> 芥末试验按 IP 权重加权后得到的伪人群。删失者（C=1）权重为 0，未删失者（C=0）权重为其未删失概率的倒数（图中圆圈内数字）；各分支人数之和仍为 60，等于原研究人群的规模，但无人失访。</figcaption>
+</figure>
+
+<p>伪人群中的关联测度要等于原人群中的效应测度，需要下面三个可识别性条件成立。</p>
+
+<p>第一，<strong>可交换性</strong>。未删失者的平均结局，必须等于 <code>A</code>、<code>L</code> 取值相同的删失者那未被观测到的平均结局。如果在计算 <code>Pr[C=0|L=1, A=1]</code> 时，既以处理 <code>A</code> 为条件，也以所有那些同时独立预测选择与结局的额外因素为条件——换句话说，如果 <code>A</code> 和 <code>L</code> 里的变量足以阻断 <code>C</code> 与 <code>Y</code> 之间的所有后门路径——那么这一条就成立。遗憾的是，你永远无法确定这些额外因素是否已被识别、已被记录进 <code>L</code>。因此，对选择偏倚所做的校正能否作因果解释，就取决于这个无法检验的可交换性假设。</p>
+
+<p>第二，<strong>可阳性性</strong>。IP 加权要求给定 <code>A</code> 和 <code>L</code> 中的变量时，所有"保持未删失"的条件概率都大于零。注意这个可阳性性条件是对"未删失"的概率（<code>C=0</code>）的要求，而不是对"被删失"的概率（<code>C=1</code>）的要求——我们并不想知道假如研究对象都被删失会发生什么，也没必要去构造一个人人被删失的伪人群。举个例子，图 8.10 的树显示 <code>Pr[C=1|L=0, A=0] = 0</code>，但这个零并不影响我们构造一个无人删失的伪人群的能力。</p>
+
+<p>第三，<strong>一致性</strong>，包括干预被定义得足够清楚。IP 加权用来看构造一个删失 <code>C</code> 已被取消、且处理 <code>A</code> 的效应与原人群相同的伪人群。于是伪人群的效应测度就等于"假如无人删失"时的效应测度。当删失来自失访或无应答时，这个效应测度可以说定义得相当清楚；但当删失被定义为某种竞争事件（competing event）发生时，就不然了。竞争事件指阻止目标结局发生的事件，典型的例子就是死亡——一个人一旦死去，其他结局就不可能再发生。</p>
+
+<p>设想一项研究要估计某种治疗对阿尔茨海默病风险的效应，其他原因导致的死亡（癌症、心脏病等等）就是一个竞争事件。把死亡定义为一种删失是有问题的：我们未必愿意把效应估计建立在一个"所有其他死因都被去掉"的伪人群上，因为从概念上说，都不清楚究竟什么样的干预能造出这样一个人群；而且任何可行的干预都不可能只去掉一种死因、同时不影响别的死因。</p>
+
+<p>最后，还可以论证：在图 8.3 那种情形下，其实未必需要用 IP 加权来校正选择偏倚。有人会转而用分层（也就是估计给定 <code>L</code> 变量下的效应测度）来消除选择偏倚，而不是用 IP 加权。由于以 <code>L</code> 为条件足以阻断 <code>C</code> 到 <code>Y</code> 的后门路径，分层有可能在 <code>L</code> 的各水平之内给出无偏的条件效应测度。也就是说，条件风险比</p>
+
+<p class="math-block">Pr [Y = 1 | A = 1, C = 0, L = l] &nbsp;/&nbsp; Pr [Y = 1 | A = 0, C = 0, L = l]</p>
+
+<p>可以解释为"在 <code>L = l</code> 的未删失者中处理的效应"。出于同样的理由，在零效应假设下，如果数据能被图 8.5 的因果结构代表，分层就是可行的（即能给出无偏的条件效应测度）。但在图 8.4 和图 8.6 描绘的结构下，分层行不通。</p>
+
+<p>以图 8.4 为例。以 <code>L</code> 为条件阻断了 <code>C</code> 到 <code>Y</code> 的后门路径，却同时打开了 <code>A</code> 到 <code>Y</code> 的路径 <code>A → L ← U → Y</code>，因为 <code>L</code> 在这条路径上是碰撞因子。于是，即便 <code>A</code> 对 <code>Y</code> 的因果效应为零，给定 <code>L</code> 的条件风险比一般也会不等于 1。图 8.6 同理。相比之下，IP 加权在图 8.3–8.6 下都能恰当地校正选择偏倚，因为这套办法不是基于估计给定协变量 <code>L</code> 的条件效应测度，而是先按处理和 <code>L</code> 的取值给个体重新加权，再估计无条件的效应测度。</p>
+
+<p>这是我们第一次讨论这样的情形：即便可交换性、可阳性性、一致性这三个条件都成立，分层也无法用来正确地计算处理的因果效应。在第三部分讨论时变处理的效应时，我们还会遇到结构类似的其他情形。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>1. 本节的加权与生存分析常规做法的差别。</strong> 临床统计教科书处理失访的常规办法是把它当作"非信息性删失"直接丢掉，用 Kaplan-Meier 估计生存曲线、用 Cox 模型拟合风险比。这套做法的隐含前提是删失与结局无关（更严格地说，是删失时间与删失者的结局风险独立），而且它估计的量是"在随访到的那部分人中间"的效应。本节的做法不一样：把删失 <code>C</code> 当成第二个处理，显式建模 <code>Pr[C=0|A,L]</code>，用逆概率把删失者"变回来"，目标是"假如无人删失"时的效应。<strong>两个目标的答案可以差得很远</strong>——8.4 节的芥末试验里，前者是 0.89，后者是 1。对中文读者尤其要提醒的是：在回顾性队列和医院数据库研究中，失访往往同时与处理和预后相关（病情重的人更容易失访，也更容易死亡），这正是本节所说的"删失有偏倚"，此时常规的 KM/Cox 分析并不自动可靠。第 12 章会讲逆概率加权的完整 machinery。</p>
+<p><strong>2. 竞争事件为什么不宜当作删失。</strong> 中文临床统计文献里常见"把非目标死因按删失处理"的做法（如研究心血管结局时把癌症死亡归入删失）。这在数学上做得到，但正如正文所说，它要求一个"其他死因都被去掉"的反事实人群，而这样的干预既无法设想也无法实施。中文语境下的对应处理是竞争风险（competing risks）分析：估计原因别风险而非把其他死因简单删掉，本书第 17 章（因果生存分析）会回到这个话题。</p>
+<p><strong>3. 图 8.10 去哪了。</strong> 图 8.10 是 8.4 节那棵芥末试验树的重画，本页未重复列出，其全部数据已在正文交代；图 8.11 是它按 IP 权重加权后的版本。对照两图看，能直观看出加权做的事：删失分支上的人数被压成 0，未删失分支上的人数被放大到补回原来的规模。</p>
+</aside>
+
+<h2 id="s-8-6">8.6 无偏的选择</h2>
+
+<p>图 8.12 的因果图描绘的是一项假想的研究：二分的变量是手术 <code>A</code>、某遗传单倍型 <code>E</code> 和死亡 <code>Y</code>。按 d-分离规则，手术 <code>A</code> 与单倍型 <code>E</code>（i）边际独立，即有无该遗传单倍型的人接受手术的概率相同；（ii）以 <code>Y</code> 为条件时相关，即把研究限制在比如存活者（<code>Y=0</code>）上时，接受手术的概率随单倍型而变。</p>
+
+<figure class="fig">
+<img src="../figures/ch8--figure-8_12.png" alt="图 8.12">
+<figcaption><strong>图 8.12</strong> 假想的手术研究：手术 <code>A</code> 与遗传单倍型 <code>E</code> 都指向死亡 <code>Y</code>，分析以 <code>Y=0</code>（存活者）为条件，故 <code>Y</code> 外加方框。<code>A</code> 与 <code>E</code> 边际独立，但给定 <code>Y</code> 后条件相关。</figcaption>
+</figure>
+
+<p>确实，以两个独立原因 <code>A</code> 和 <code>E</code> 的共同效应 <code>Y</code> 为条件，总会在 <code>Y</code> 的至少一个层里（比如 <code>Y=1</code>）诱导出 <code>A</code> 与 <code>E</code> 之间的条件关联。不过，有一种特殊情形使得 <code>A</code> 与 <code>E</code> 在另一个层里（比如 <code>Y=0</code>）仍保持条件独立。</p>
+
+<p>假设 <code>A</code> 和 <code>E</code> 通过完全独立的机制影响生存，<code>E</code> 不可能改变 <code>A</code> 对 <code>Y</code> 的效应，反过来也一样。举个例子：手术 <code>A</code> 通过切除肿瘤影响生存，而单倍型 <code>E</code> 通过升高低密度脂蛋白胆固醇、进而增加心脏病发作的风险来影响生存（无论有没有肿瘤）。在这个场景里，我们可以考虑 3 个原因别（cause-specific）的死亡变量：死于肿瘤 Y<sub>A</sub>、死于心脏病发作 Y<sub>E</sub>、死于其他任何原因 Y<sub>O</sub>。观察到的死亡变量 <code>Y</code> 在 <code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code> 或 <code>Y<sub>O</sub></code> 任一个等于 1 时取 1（死亡），在三者都等于 0 时取 0（存活）。图 8.13 的因果图是图 8.12 的扩展，它表示把这些变量连起来的因果结构。我们假定死因数据（<code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code>、<code>Y<sub>O</sub></code>）没有被记录，因此实际测量的变量只有图 8.12 里的那些（<code>A</code>、<code>E</code>、<code>Y</code>）。</p>
+
+<figure class="fig">
+<img src="../figures/ch8--figure-8_13.png" alt="图 8.13">
+<figcaption><strong>图 8.13</strong> 图 8.12 的扩展：<code>A → Y<sub>A</sub></code>、<code>E → Y<sub>E</sub></code>，三个原因别死亡变量 <code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code>、<code>Y<sub>O</sub></code> 共同决定观察到的死亡 <code>Y</code>（均加方框）。<code>A</code> 与 <code>E</code> 之间没有共同原因。</figcaption>
+</figure>
+
+<p>由于从 <code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code>、<code>Y<sub>O</sub></code> 指向 <code>Y</code> 的箭头是确定性的，以观测到的存活（<code>Y=0</code>）为条件，等价于同时以 <code>Y<sub>A</sub>=0</code>、<code>Y<sub>E</sub>=0</code>、<code>Y<sub>O</sub>=0</code> 为条件；换句话说，以 <code>Y=0</code> 为条件就意味着 <code>Y<sub>A</sub>=Y<sub>E</sub>=Y<sub>O</sub>=0</code>。于是把 d-分离用到图 8.13 上可得：给定 <code>Y=0</code> 时 <code>A</code> 与 <code>E</code> 条件独立。也就是说，以碰撞因子 <code>Y=0</code> 为条件时，<code>A</code> 与 <code>E</code> 之间那条经过 <code>Y</code> 的路径，被对非碰撞因子 <code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code>、<code>Y<sub>O</sub></code> 的条件化阻断了。另一方面，以死亡 <code>Y=1</code> 为条件，并不蕴含对 <code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code>、<code>Y<sub>O</sub></code> 的任何特定取值为条件，因为 <code>Y=1</code> 这个事件与 7 种可能的未测事件都相容：（<code>Y<sub>A</sub>=1, Y<sub>E</sub>=0, Y<sub>O</sub>=0</code>）、（<code>Y<sub>A</sub>=0, Y<sub>E</sub>=1, Y<sub>O</sub>=0</code>）、（<code>Y<sub>A</sub>=0, Y<sub>E</sub>=0, Y<sub>O</sub>=1</code>）、（<code>Y<sub>A</sub>=1, Y<sub>E</sub>=1, Y<sub>O</sub>=0</code>）、（<code>Y<sub>A</sub>=0, Y<sub>E</sub>=1, Y<sub>O</sub>=1</code>）、（<code>Y<sub>A</sub>=1, Y<sub>E</sub>=0, Y<sub>O</sub>=1</code>）、（<code>Y<sub>A</sub>=1, Y<sub>E</sub>=1, Y<sub>O</sub>=1</code>）。因此给定 <code>Y=1</code> 时 <code>A</code> 与 <code>E</code> 是相关的：以碰撞因子 <code>Y=1</code> 为条件时，<code>A</code> 与 <code>E</code> 之间经过 <code>Y</code> 的路径并未被阻断。</p>
+
+<p>与图 8.13 描绘的情形不同，只要出现图 8.14–8.16 中的某一种情形，给定 <code>Y=0</code> 时 <code>A</code> 与 <code>E</code> 就不再独立。如果 <code>A</code> 和 <code>E</code> 通过一条共同机制影响生存，那么就会存在一条从 <code>A</code> 指向 <code>Y<sub>E</sub></code> 的箭头，或者一条从 <code>E</code> 指向 <code>Y<sub>A</sub></code> 的箭头，如图 8.14 所示；这时 <code>A</code> 与 <code>E</code> 在 <code>Y</code> 的两个层内都会相依。同样地，如果 <code>Y<sub>A</sub></code> 与 <code>Y<sub>E</sub></code> 由于共同原因 <code>V</code> 而不独立（如图 8.15），<code>A</code> 与 <code>E</code> 在 <code>Y</code> 的两个层内也都会相依。最后，如果 <code>Y<sub>A</sub></code> 与 <code>Y<sub>O</sub></code>、<code>Y<sub>E</sub></code> 与 <code>Y<sub>O</sub></code> 由于共同原因 <code>W<sub>1</sub></code> 和 <code>W<sub>2</sub></code> 而不独立（如图 8.16），<code>A</code> 与 <code>E</code> 在 <code>Y</code> 的两个层内同样会相依。当数据可以由图 8.13 概括时，我们说数据服从乘性生存模型（见技术要点 8.2）。</p>
+
+<figure class="fig">
+<img src="../figures/ch8--figure-8_14.png" alt="图 8.14">
+<figcaption><strong>图 8.14</strong> <code>A</code> 与 <code>E</code> 通过共同机制影响生存：多出一条 <code>A → Y<sub>E</sub></code> 的箭头。此时 <code>A</code> 与 <code>E</code> 在 <code>Y</code> 的两个层内都相依。</figcaption>
+</figure>
+
+<figure class="fig">
+<img src="../figures/ch8--figure-8_15.png" alt="图 8.15">
+<figcaption><strong>图 8.15</strong> <code>Y<sub>A</sub></code> 与 <code>Y<sub>E</sub></code> 有共同原因 <code>V</code>（如吸烟、年龄）。此时 <code>A</code> 与 <code>E</code> 在 <code>Y</code> 的两个层内都相依。</figcaption>
+</figure>
+
+<figure class="fig">
+<img src="../figures/ch8--figure-8_16.png" alt="图 8.16">
+<figcaption><strong>图 8.16</strong> <code>Y<sub>A</sub></code> 与 <code>Y<sub>O</sub></code> 有共同原因 <code>W<sub>1</sub></code>，<code>Y<sub>E</sub></code> 与 <code>Y<sub>O</sub></code> 有共同原因 <code>W<sub>2</sub></code>。此时 <code>A</code> 与 <code>E</code> 在 <code>Y</code> 的两个层内都相依。</figcaption>
+</figure>
+
+<aside class="techpoint"><span class="box-label">技术要点 8.2　乘性生存模型</span>
+
+<p>给定 <code>A</code> 和 <code>E</code> 时的生存条件概率 <code>Pr[Y=0|E=e, A=a]</code> 若等于 <code>e</code> 和 <code>a</code> 各自函数的乘积 <code>g(e)h(a)</code>，我们就说<strong>乘性生存模型</strong>成立。乘性生存模型</p>
+
+<p class="math-block">Pr [Y = 0|E = e, A = a] = g(e)h(a)</p>
+
+<p>等价于这样一个模型：它假定生存比值 <code>Pr[Y=0|E=e, A=a] / Pr[Y=0|E=e, A=0]</code> 不依赖于 <code>e</code>，且等于 <code>h(a)</code>。当 <code>A</code> 与 <code>E</code> 对 <code>Y=0</code> 在乘性尺度上没有交互作用时，数据服从乘性生存模型。证明图 8.13 表示一个乘性生存模型的过程如下：</p>
+
+<p class="math-block">Pr [Y = 0|E = e, A = a] =<br>
+Pr [Y<sub>O</sub> = 0, Y<sub>A</sub> = 0, Y<sub>E</sub> = 0|E = e, A = a] = Pr[Y<sub>O</sub> = 0] Pr [Y<sub>A</sub> = 0|A = a] Pr [Y<sub>E</sub> = 0|E = e],</p>
+
+<p>其中第一个等号来自确定性，第二个来自 DAG 分解。现在令 <code>g(e) = Pr[Y<sub>E</sub> = 0|E = e]</code>、<code>h(a) = Pr[Y<sub>O</sub> = 0] Pr[Y<sub>A</sub> = 0|A = a]</code>。注意，如果 <code>Pr[Y=0|E=e, A=a] = g(e)h(a)</code>，那么 <code>Pr[Y=1|E=e, A=a] = 1 − g(e)h(a)</code> 并不服从乘性死亡模型。因此，当 <code>A</code> 与 <code>E</code> 给定 <code>Y=0</code> 条件独立时，它们给定 <code>Y=1</code> 会条件相依。</p>
+</aside>
+
+<p>图 8.13 有意思的地方在于：通过加入那些在功能上决定观察变量 <code>Y</code> 的未测变量 <code>Y<sub>A</sub></code>、<code>Y<sub>E</sub></code>、<code>Y<sub>O</sub></code>，我们造出了一张<strong>增广因果图</strong>（augmented causal DAG），它同时成功地表示了"给定 <code>Y=0</code> 时 <code>A</code> 与 <code>E</code> 条件独立"和"给定 <code>Y=1</code> 时二者条件相依"。Hernán、Hernández-Díaz 与 Robins（2004）提出的增广因果图可以扩展到表示第 5 章所说的充分成分病因（VanderWeele 与 Robins 2007）。</p>
+
+<p>概括地说，以碰撞因子为条件总会在它的原因之间诱导出关联，但这个关联可能只出现在共同效应的某些层上。换句话说，当分析被限制在共同效应的单一层上时，理论上可能出现"以共同效应为选择条件却不导致选择偏倚"的情形。<strong>碰撞因子分层并不总是选择偏倚的来源。</strong></p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 8.2　选择偏倚的强度与方向</span>
+
+<p>我们一直把选择偏倚说成"非有即无"的问题：要么有偏倚，要么没有。但实践中，考虑偏倚的预期方向和大小很重要。</p>
+
+<p>两个边际独立的原因 <code>A</code> 和 <code>E</code> 在其共同效应 <code>Y</code> 的各层内条件关联的方向，取决于 <code>A</code> 与 <code>E</code> 是通过什么机制共同造成 <code>Y</code> 的。举个例子，假设存在一个未被发现、且与 <code>A</code> 或 <code>E</code> 都不关联的背景因素 <code>U</code>；在 <code>U</code> 存在的情况下，<code>A=1</code> 或 <code>E=1</code> 任一者就足以且必要地导致死亡（一个"或"机制），而在 <code>U</code> 不存在时，<code>A</code> 与 <code>E</code> 都不导致死亡。那么在死亡者（<code>Y=1</code>）中，<code>A</code> 与 <code>E</code> 会负向关联，因为 <code>A=0</code> 的人更有可能是靠 <code>E=1</code> 才死的（<code>A</code> 的缺失提高了 <code>E</code> 是死因的机会）。确实，当人群中 <code>U</code> 的患病率趋近 1.0 时，条件比值比 OR<sub>AE|Y=1</sub> 的对数会趋近负无穷。正文给出的"或"机制只是独立原因在共同效应各层内条件关联的一种解释；其他可能性还存在。</p>
+
+<p>再举例，假设在那个未发现的背景因素 <code>U</code> 存在的情况下，<code>A=1</code> 与 <code>E=1</code> 同时成立才足以且必要地导致死亡（一个"与"机制），而在 <code>U</code> 不存在时 <code>A</code> 与 <code>E</code> 都不导致死亡。那么在死亡者中，<code>A=1</code> 的人更可能有 <code>E=1</code>，即 <code>A</code> 与 <code>E</code> 正相关。图 8.12 这样的标准 DAG 无法区分 <code>A</code> 与 <code>E</code> 通过"或"机制交互和通过"与"机制交互这两种情形。带有充分因果结构（sufficient causation structure）的因果 DAG（VanderWeele 与 Robins 2007）克服了这一缺陷。</p>
+
+<p>无论偏倚的方向如何，另一个关键问题是它的大小。不足以影响研究结论的偏倚，无论偏向上还是偏向下，在实践中都可以放心忽略。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>1. "有些选择不产生偏倚"对中文读者的实践意义。</strong> 教科书往往把"以碰撞因子为条件"当成一条铁律：只要在碰撞因子上做了条件化，就一定会有偏倚。本节给出一个反例——条件关联可以只出现在 <code>Y</code> 的一个层里，而在另一个层里两个原因仍然独立，因为它俩通过完全独立的机制起作用。实践含义有两条。其一，在评审文献时遇到"只纳入存活者/只纳入基线无某病者"这类限制，不要一律判定有偏倚，而要追问两个原因是否通过共享机制影响结局。其二，对中文队列研究里常见的"排除基线已患某病者"（如只纳入无糖尿病者、无高血压者），偏倚是否存在取决于该病与暴露是否共享通路；若二者各走各的路径，按本节结论未必引入偏倚。这与第 6 章"以碰撞因子为条件必然打开路径"的普遍说法并不矛盾：图 8.13 之所以例外，是因为那里 <code>Y</code> 是由三个机制独立的原因别死亡变量<strong>确定性地</strong>复合而成的，普通 DAG 把 <code>Y</code> 画成一个单一节点时看不到这一层结构。</p>
+<p><strong>2. "原因别死亡率"与图 8.13 的现实对应。</strong> 图 8.13 的结构在中国并非纯思辨：肿瘤登记和死因统计登记本来就按死因分类收集数据，一个观察队列里若死因登记足够完整，就能直接估计 Y<sub>A</sub>、Y<sub>E</sub>、Y<sub>O</sub> 这几个原因别死亡率是否近似相乘。若近似相乘（技术要点 8.2 的乘性生存模型），说明这些死因的机制彼此独立，"死于肿瘤"与"死于心梗"在统计上就是可分开处理的竞争风险；反之若数据只给出 <code>Y</code>，研究者就只能依赖本节所说的增广因果图去想象那些未测的原因别变量。</p>
+<p><strong>3. 与第 5 章的联系。</strong> 本节的"增广因果图"正是第 5 章讨论充分成分病因时用的工具：把一个共同效应拆成若干机制上彼此独立的充分成分，就能看清"按共同效应条件化"到底在哪一层上破坏了可交换性。Hernán、Hernández-Díaz 与 Robins（2004）以及 VanderWeele 与 Robins（2007）的工作是这条线索的正式表述。</p>
+</aside>
+
 <!-- CONTENT-END -->
 </article>
 </main>

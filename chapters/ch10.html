@@ -3,31 +3,225 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>第 10 章 · 随机变异 · 翻译进行中 · 因果推断：What If 中文版</title>
+<title>第 10 章 · 随机变异 · 因果推断：What If 中文版</title>
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
 <nav class="cw-nav"><a class="brand" href="../index.html">What If 中文版</a><select aria-label="章节跳转"><option value="../index.html">📖 目录</option><optgroup label="导言"><option value="../chapters/intro.html">导言：少一点“随便”的因果推断</option></optgroup><optgroup label="第一部分 · 无模型的因果推断"><option value="../chapters/ch1.html">第 1 章 · 因果效应的定义</option><option value="../chapters/ch2.html">第 2 章 · 随机化试验</option><option value="../chapters/ch3.html">第 3 章 · 观察性研究</option><option value="../chapters/ch4.html">第 4 章 · 效应修饰</option><option value="../chapters/ch5.html">第 5 章 · 交互作用</option><option value="../chapters/ch6.html">第 6 章 · 因果效应的图形表示</option><option value="../chapters/ch7.html">第 7 章 · 混杂</option><option value="../chapters/ch8.html">第 8 章 · 选择偏倚</option><option value="../chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图</option><option value="../chapters/ch10.html">第 10 章 · 随机变异</option></optgroup><optgroup label="第二部分 · 基于模型的因果推断"><option value="../chapters/ch11.html">第 11 章 · 为什么需要模型</option><option value="../chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型</option><option value="../chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法</option><option value="../chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计</option><option value="../chapters/ch15.html">第 15 章 · 结局回归与倾向性评分</option><option value="../chapters/ch16.html">第 16 章 · 工具变量估计</option><option value="../chapters/ch17.html">第 17 章 · 因果生存分析</option><option value="../chapters/ch18.html">第 18 章 · 变量选择与高维数据</option></optgroup><optgroup label="第三部分 · 时变处理的因果推断"><option value="../chapters/ch19.html">第 19 章 · 时变处理</option><option value="../chapters/ch20.html">第 20 章 · 处理-混杂反馈</option><option value="../chapters/ch21.html">第 21 章 · 时变处理的 g 方法</option><option value="../chapters/ch22.html">第 22 章 · 目标试验模拟</option><option value="../chapters/ch23.html">第 23 章 · 因果中介</option></optgroup></select><span class="spacer"></span><input class="q" type="text" placeholder="站内搜索（按 / 聚焦）" data-base="../"><button class="tbtn" title="切换明暗">🌙</button></nav>
 <main class="content">
 <article>
-<h1>第 10 章 · 随机变异</h1>
-<p class="muted">第一部分 · Hernán &amp; Robins, <em>Causal Inference: What If</em> (2020)</p>
+<header class="ch-head">
+  <p class="ch-kicker">第一部分 · 无模型的因果推断 · Part I — Causal inference without models</p>
+  <h1>第 10 章 · 随机变异</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 10. 本页为中文全文翻译，附译注。</p>
+</header>
 
-<div class="tnote">
-<p><strong>本章翻译进行中。</strong>原书文本已提取完毕，中文译文正在补齐。</p>
-<p>在译文上线前，您可以：</p>
+<!-- CONTENT-START -->
+
+<p class="ch-epigraph">设想一位研究者做了一项随机化试验，要回答的因果问题是："一个人抬头看天，会不会带动路人也抬头？"她发现自己的抬头与路人的抬头之间存在关联。这个关联反映因果效应吗？按随机化试验的定义，这项研究里不该有混杂偏倚。另外也不该有选择偏倚——所有路人的反应（看了或没看）都被记录下来了；也不该有测量偏倚——所有变量都测得完美无缺。然而这里冒出了另一个问题：研究只纳入 4 名路人，每个处理组 2 人。碰巧的是，"抬头"组那 2 人里有 1 人失明，"直视前方"组那 2 人则都不失明。于是，即便这项处理（研究者抬头）对结局（别人抬头）真有很大的平均效应，处理组里也恰好有一半个体对处理免疫。研究人群太小，把处理对结局的估计效应稀释掉了。</p>
+
+<p>因果推断出错的理由在性质上分成两类：系统性偏倚和随机变异。前三章讲的是三类系统性偏倚：选择偏倚、测量偏倚——两者在观察性研究和随机化试验中都可能出现——以及未测混杂，它在随机化试验中不该出现。到目前为止，我们一直把讨论限制在庞大的研究人群上，从而回避了随机变异导致偏倚的可能性。换句话说，我们的一贯做法是假装识别因果效应的唯一障碍只有混杂、选择和测量。是时候面对现实了：在病因学研究中，研究人群的规模很少大到能排除随机变异致偏的可能。这一章讲随机变异，以及我们如何对付它。</p>
+
+<h2 id="s-10-1">10.1 识别与估计</h2>
+
+<p>本书前九章关心的都是在近乎无限的研究人群里计算因果效应。举例来说，第 2 章计算心脏移植对死亡率的因果效应时，研究人群只有 20 个人，但我们把其中每一个个体都当作 10 亿个完全相同个体的代表。只要假装可以为研究招来无限多个个体，我们就能忽略随机波动，把注意力全部放在混杂、选择和测量带来的系统性偏倚上。对于那些可以假定研究人群规模实际上无限的问题，统计学家有个名字：<strong>识别问题</strong>（identification problems）。</p>
+
+<p>到目前为止，我们把因果推断整个化归为一个识别问题。唯一目标一直是识别（或者按我们常说的，"算出"）处理 A 对结局 Y 的平均因果效应。<strong>可识别性</strong>（identifiability）的概念最早在 3.1 节介绍，随后在 7.2 节和 8.4 节继续讨论；在那些地方我们还引入了若干条件，即使研究人群可以任意大，这些条件一般也是识别因果效应所必需的。它们叫作<strong>识别条件</strong>（identifying conditions）：可交换性（exchangeability）、可阳性性（positivity）和一致性（consistency）。</p>
+
+<p>忽略随机变异，在教学上或许便于引出系统性偏倚，但同时也极不现实。在真实的研究项目里，研究人群并非实际上无限，因此我们不能无视随机变异带来的可能性。为此让我们回到那个 20 人的心脏移植与死亡率研究：13 名接受治疗者中有 7 人死亡。</p>
+
+<p>设想我们的 20 人研究人群可以被视为从一个超级总体（super-population）里抽出的随机样本，而这个超级总体大到相对于研究人群而言可以有效地视为无限。再设想我们的目标是对超级总体作推断。举例来说，我们也许想对超级总体的概率（或比例）<code>Pr[Y = 1|A = a]</code> 作推断。我们把超级总体中感兴趣的参数——在这个例子里就是概率 <code>Pr[Y = 1|A = a]</code>——称为<strong>估计目标</strong>（estimand）。<strong>估计量</strong>（estimator）是一条规则，它接受从超级总体抽取的任意样本的数据，为该估计目标产生一个数值。某个特定样本所产生的这个数值，就是该样本给出的<strong>估计值</strong>（estimate）。在接受处理水平 <code>a</code> 的个体中发生结局者的样本比例 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a]</code>，就是超级总体概率 <code>Pr[Y = 1|A = a]</code> 的一个估计量。我们这个样本给出的估计值是 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a] = 7/13</code>。更具体一点，我们说 7/13 是一个<strong>点估计</strong>（point estimate）。估计值取什么，取决于从超级总体中随机抽到的究竟是哪 20 个人。</p>
+
+<p>正如第 1 章非正式地定义过的：若随着样本量增加，估计值（任意地）越来越接近参数，就说估计量对某个估计目标是<strong>一致的</strong>（consistent）（形式定义见技术要点 10.1）。因此样本比例 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a]</code> 一致地估计了超级总体的概率 <code>Pr[Y = 1|A = a]</code>；也就是说，我们研究人群中的个体数 <code>n</code> 越大，<code>Pr[Y = 1|A = a] − <span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a]</code> 的绝对值预期就越小。前几章只关心识别；从现在起我们要关心统计估计了。即便是一致估计量，给出的点估计也可能离超级总体的真值很远。点估计与超级总体比例真值之间的差距，在研究人群规模相对于超级总体越小的时候，越容易变得很大。因此来自更大研究人群的估计自然更值得信赖。在不存在系统性偏倚的情况下，统计理论允许我们以点估计周围一个置信区间的形式，把这种信心量化出来。研究人群越大，置信区间越窄。构造一个 95% 置信区间的常见办法，是用以点估计为中心的 95% Wald 置信区间。算法如下。</p>
+
+<p>第一步，在"研究人群是大得多超级总体的随机样本"这一假定下，估计点估计的标准误。第二步，点估计加上 1.96 倍估计标准误，得到 95% Wald 置信区间的上限；点估计减去 1.96 倍估计标准误，得到下限。举例来说，设我们的估计量为 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a] = p̂</code>，超级总体参数为 <code>Pr[Y = 1|A = a] = p</code>。它的标准误是 <code>√( p(1−p) / n )</code>（即二项分布的标准误），因而它的估计标准误为 <code>√( p̂(1−p̂) / n ) = √( (7/13)(6/13) / 13 ) = 0.138</code>。回顾一下，基于估计量 <code>θ̂</code> 的参数 <code>θ</code> 的 Wald 95% 置信区间是 <code>θ̂ ± 1.96 × se(θ̂)</code>，其中 <code>se(θ̂)</code> 是 <code>θ̂</code> 的（精确的，或大样本的）标准误，1.96 是均值为 0、方差为 1 的标准正态分布的 97.5% 上分位数。因此我们这个估计的 95% Wald 置信区间是 0.27 到 0.81。95% Wald 置信区间的长度和中心位置会随样本而变。</p>
+
+<p>如果估计目标被包含在区间内的频率在 95% 的随机样本中出现，我们就说这个置信区间是<strong>校准的</strong>（calibrated）；若被包含的样本超过 95%，则是<strong>保守的</strong>（conservative）；否则是<strong>反保守的</strong>（anticonservative）。若对真参数的任意取值，该区间都至少以 95% 的概率覆盖真参数，即它要么校准要么保守，我们就说这个置信区间是<strong>有效的</strong>（valid）。我们希望选取宽度最小的那个有效区间。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 1（为什么必须把"识别"和"估计"分开谈）</strong>：这一节的分界线，是理解全书后面十几章的钥匙。识别问的是"这个量在原则上能不能由观测数据唯一决定"；估计问的是"既然能决定，我用样本把它算出来能算得多准"。两者的失败方式完全不同：识别失败是<em>结构性</em>的，把样本扩大到多大都没用（比如没测混杂因素、可阳性性被违反）；估计失败是<em>随机性</em>的，增加样本量就能改善。国内文献与课题申请里最常见的概念混淆，是把"样本量大"当成解决因果问题的通用药方，其实样本量只治第二类病。举一个直接的反例：若某医院 20 年间从未给危重病人做过某项移植手术，那么该院数据中 <code>Pr[A = 1 | 病情危重] = 0</code>，可阳性性被违反。此时无论你把剩下的病人全部纳入（"样本量足够大"），处理组与未处理组在可比人群上的重叠依然为零，识别依然不成立。这类情形必须靠额外数据（外部数据、借用其他医院、目标试验模拟）或重新界定目标人群来解决，而不是靠扩大样本。这也是本书反复强调"先问能不能识别，再问能算多准"的原因。</p>
+</aside>
+
+<p>置信区间的有效性是用"从超级总体反复抽样时的覆盖频率"来定义的，可我们做一项研究时只看到了其中一个样本。我们为什么要关心那些没看到的、假想中的其他样本里会发生什么？一个重要的回答是，置信区间的定义本身还蕴含了下面这件事。设想我们和所有同事余生都在不停做研究。在每一项新研究里，我们都为感兴趣的参数构造一个有效的 95% 置信区间。那么在临终时我们可以回头看所有做过的研究，并得出结论：这些感兴趣的参数至少在 95% 的研究里被"关在"——或者说被覆盖于——相应的置信区间之内。遗憾的是，我们没有任何办法把那个（最多）5% 的、区间没能罩住超级总体真值的研究识别出来。</p>
+
+<p>要强调的是，单项研究给出的 95% 置信区间并不意味着"估计目标落在该区间内的概率是 95%"。在我们的例子里，我们不能断定估计目标位于 0.27 与 0.81 之间的概率为 95%。估计目标是固定的，这就意味着它要么落在这个特定区间（0.27, 0.81）里，要么不落在里面。在这个意义上，估计目标被该区间覆盖的概率不是 0 就是 1。置信区间只有频率学派意义上的解释；它的水平（比如 95%）指的是在一批研究中（或某项研究的假想重复中）该区间罩住所感兴趣的、事先未知的超级总体真值的频率。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 2（Wald 区间的三个坑，与国内期刊的常见误用）</strong>：Wald 区间在中文统计教材和期刊里几乎是默认写法，但它的三个缺陷在真实数据里都会咬人。<em>其一，比例落在 0 或 1 附近时区间会跑出可能范围</em>：本节这个例子只有 13 名治疗者，若 13 人全部存活，Wald 区间会给出小于 0 的下界。国内回顾性研究里"零事件""全事件"的小格子非常常见，妥当的做法是用 Wilson 区间（不对 <code>p̂</code> 作线性加减，而是对 <code>(p̂ + z²/2n) / (1 + z²/n)</code> 直接构造）或 Clopper–Pearson 精确区间。<em>其二，小样本下反保守</em>：本节刚说过，Wald 95% 区间在大样本里才校准，样本小的时候它可能明显窄于真实覆盖率。健康调查与药物警戒中常报告"事件数为 0"的小格子，Wald 区间会严重低估不确定性。<em>其三，只量化随机误差</em>：这一条最要命，详见下面的精细辨析 10.2 与译注 3。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 3（"95% 置信"这句话，在存在系统偏倚时会变成过度自信）</strong>：国内研究者在解读区间时几乎普遍采用一种直觉式说法："该效应有 95% 的把握落在 0.27 到 0.81 之间"。按定义这不成立（见正文）。再往前一步，即便把它改写成频率学派式的正确表述，还有一个更严重的问题：区间宽度只反映随机误差，不含混杂、选择、测量带来的系统偏倚，而后者不随样本量增大而缩小。换句话说，样本越大，"95%"这个数字越显得名不副实——Amrhein 等（2019）与 Greenland（2019）因此建议把这类区间改称<strong>相容区间</strong>（compatibility interval）：在给定调整假设与方法之下，哪些效应量与数据高度相容。这是一种更诚实的措辞。国内写基金申请书、伦理审查材料时若需要交代不确定性，用"相容区间"既准确又显得专业。</p>
+</aside>
+
+<p>与频率学派的 95% 置信区间不同，贝叶斯的 95% 可信区间（credible interval）可以被解读为"估计目标落在该区间内的概率是 95%"。但对贝叶斯主义者而言，概率并不是定义为在假想重复中的频率，而是定义为信念程度。本书采用频率学派的概率定义。关于贝叶斯区间的更多讨论，见精细辨析 11.2。</p>
+
+<p>置信区间常被分为小样本置信区间与大样本置信区间。小样本有效（保守或校准）的置信区间，指的是在它有定义的所有样本量上都有效。小样本校准的置信区间有时称为<strong>精确置信区间</strong>（exact confidence interval）。大样本（等价地，渐近）有效的置信区间，则指它只在大样本下有效；大样本校准的 95% 置信区间，指其覆盖率随着样本量增加任意接近 95%。上面提到的 <code>Pr[Y = 1|A = a] = p</code> 的 Wald 置信区间是一个大样本校准的置信区间，但不是小样本有效的置信区间。（<code>p</code> 确实存在小样本有效的置信区间，只是实践中很少用。）样本量小时，像我们例子中那个 Wald 95% 置信区间这样的大样本有效区间可能并不有效。本书中我们说"95% 置信区间"时，指的是大样本有效的置信区间（比如 Wald 区间），除非另有说明。另见精细辨析 10.1。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 10.1　诚实的置信区间</span>
+<p>一个大样本有效的 95% 置信区间要以至少 95% 的频率覆盖真参数，其所需的最小样本量，可能依赖于真参数那个我们并不知道的取值。若存在某个样本量 <code>n</code>，使得无论真参数取什么值，该区间都保证至少以 95% 的频率覆盖真参数，我们就说这个大样本有效的 95% 置信区间是<strong>一致的</strong>（uniform）或<strong>诚实的</strong>（honest）。我们要求诚实的区间，因为在不具备一致性时，任何有限样本量下都可能存在某些数据生成分布，使得对真参数的覆盖率远低于 95%。遗憾的是，对一个大样本有效的诚实置信区间来说，这样的最小 <code>n</code> 一般是未知的，即便用模拟也很难确定。技术细节见 Robins 与 Ritov（1997）。</p>
+<p>在下文余下部分，当我们说有效的置信区间时，指的是大样本诚实的置信区间。按定义，任何小样本有效的置信区间在它有定义的所有 <code>n</code> 上都是一致或诚实的。</p>
+</aside>
+
+<p>然而，并不是所有一致估计量都能用来给一个有效的 Wald 置信区间定中心，即便在大样本里也不行。多数统计使用者会把"能把有效 Wald 置信区间定中心"的估计量称为无偏的，把做不到的称为有偏的（细节见技术要点 10.1）。目前我们就把"偏倚"一词等同于"无法给有效 Wald 置信区间定中心"。另外别忘了，置信区间只量化随机误差带来的不确定性；因此在存在系统性偏倚时，我们对置信区间的信心可能过强（细节见精细辨析 10.2）。</p>
+
+<h2 id="s-10-2">10.2 因果效应的估计</h2>
+
+<p>设想我们的心脏移植研究是一项<strong>边缘随机化试验</strong>（marginally randomized experiment），并且那 20 个人是一个近乎无限的、我们感兴趣的超级总体中所有人的随机样本。再设想超级总体中的所有个体都被随机分配到 <code>A = 1</code> 或 <code>A = 0</code>，并且所有人都遵守了被分配的处理。那么超级总体中治疗者与未治疗者之间的可交换性成立，即 <code>Pr[Y<sup>a=1</sup> = 1] = Pr[Y = 1|A = a]</code>，因而超级总体中的因果风险差 <code>Pr[Y<sup>a=1</sup> = 1] − Pr[Y<sup>a=0</sup> = 1]</code> 等于超级总体中的关联风险差 <code>Pr[Y = 1|A = 1] − Pr[Y = 1|A = 0]</code>。</p>
+
+<p>由于我们的研究人群是超级总体的随机样本，在观测处理值 <code>A = a</code> 的个体中发生结局者的样本比例 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a]</code>，是超级总体概率 <code>Pr[Y = 1|A = a]</code> 的一个无偏估计量。由于超级总体中存在可交换性，样本比例 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = a]</code> 也是 <code>Pr[Y<sup>a=1</sup> = 1]</code> 的无偏估计量。于是，对因果零假设 <code>Pr[Y<sup>a=1</sup> = 1] = Pr[Y<sup>a=0</sup> = 1]</code> 作传统统计"检验"，就归结为比较样本比例 <code><span style="text-decoration:overline">Pr</span>[Y = 1 | A = 1] = 7/13</code> 与 <code><span style="text-decoration:overline">Pr</span>[Y = 1 | A = 0] = 3/7</code>。标准统计方法同样可以用来计算超级总体中因果风险差和因果风险比的 95% 置信区间，它们的估计值分别是 (7/13) − (3/7) 与 (7/13)/(3/7)。在观察性研究中，稍复杂一些但同样标准的统计程序，被用来为标准化、逆概率加权（IP weighted）或分层的关联度量构造置信区间。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.1　统计推断中的偏倚与一致性</span>
+<p>在前几章里，我们讨论过系统性偏倚（来自未知的混杂、选择或测量误差来源）和一致估计量。这里我们讨论这些以及另一些偏倚概念，并说明它们之间的关系。</p>
+<p>为给出估计目标 <code>θ</code> 的一致估计量的形式定义，设我们观测到 <code>n</code> 个独立同分布（i.i.d.）的向量值随机变量副本，其分布 <code>P</code> 属于一个分布集合 <code>M</code>（我们的模型）。若对每个 <code>P ∈ M</code> 都有 <code>θ̂<sub>n</sub></code> 依概率收敛于 <code>θ(P)</code>，则称估计量 <code>θ̂<sub>n</sub></code> 在模型 <code>M</code> 中对 <code>θ = θ(P)</code> 一致，即对任意 <code>ε &gt; 0</code>、<code>P ∈ M</code>，都有 <code>Pr<sub>P</sub>[ |θ̂<sub>n</sub> − θ(P)| &gt; ε ] → 0</code>，当 <code>n → ∞</code>。</p>
+<p>若对每个 <code>P ∈ M</code> 都有 <code>E<sub>P</sub>[θ̂<sub>n</sub>] = θ(P)</code>，则称估计量 <code>θ̂<sub>n</sub></code> 在模型 <code>M</code> 中<strong>精确无偏</strong>（exactly unbiased）。在 <code>P</code> 下的精确偏倚就是差 <code>E<sub>P</sub>[θ̂<sub>n</sub>] − θ(P)</code>。我们把估计量记作 <code>θ̂<sub>n</sub></code> 而不只是 <code>θ̂</code>，是为强调估计值依赖于样本量 <code>n</code>。另一方面，参数 <code>θ(P)</code> 是一个固定但未知的量，依赖于 <code>P ∈ M</code>。当 <code>P</code> 是生成我们研究数据的分布时，记号中常常略去 <code>P</code>，写成 <code>E[θ̂<sub>n</sub>] = θ</code>。对许多参数 <code>θ</code>——比如风险比 <code>Pr[Y = 1|A = 1] / Pr[Y = 1|A = 0]</code>——精确无偏的估计量并不存在。</p>
+<p>系统性有偏的估计量既不一致也不精确无偏。Robins 与 Morgenstern（1987）论证说，大多数应用研究者（比如流行病学家）只有在估计量能给有效 Wald 置信区间定中心时，才会宣布它无偏。他们证明，在这一"无偏"定义下，一个估计量只有在<strong>一致渐近正态且无偏</strong>（uniformly asymptotic normal and unbiased, UANU）时才无偏，因为只有 UANU 估计量才能在模型 <code>M</code> 下为 <code>θ(P)</code> 定出有效的标准 Wald 区间的中心。具体地，若存在序列 <code>σ<sub>n</sub>(P)</code> 使得 <code>z</code> 统计量 <code>(θ̂<sub>n</sub> − θ(P)) / σ<sub>n</sub>(P)</code> 一致地收敛到标准正态随机变量，即对任意 <code>t ∈ R</code> 有 <code>sup<sub>P ∈ M</sub> | Pr<sub>P</sub>[ √n (θ̂<sub>n</sub> − θ(P)) / σ<sub>n</sub>(P) &lt; t ] − Φ(t) | → 0</code>，当 <code>n → ∞</code>，则称 <code>θ̂<sub>n</sub></code> 在模型 <code>M</code> 中是 UANU 的，其中 <code>Φ(t)</code> 是标准正态累积分布函数（Robins 与 Ritov，1997）。</p>
+<p>所有不一致的估计量，以及一部分一致的估计量（例子见第 18 章），在这一"无偏"定义下都是有偏的。本书中我们说一个估计量"无偏"（不加限定语）时，指的就是它是 UANU 的。</p>
+</aside>
+
+<p>关于随机化试验中的抽样变异，还有另一种思考方式。设想只有研究人群中的个体——而不是超级总体中的所有个体——被随机分配到 <code>A = 1</code> 或 <code>A = 0</code>。由于存在随机抽样变异，我们不能指望可交换性在我们的样本中精确成立。举例来说，设想只有我们研究的那 20 个人被随机分配到心脏移植（<code>A = 1</code>）或药物治疗（<code>A = 0</code>）。再设想在随机化时可以把每个人归为预后良好或预后不良。若 <code>A = 0</code> 组与 <code>A = 1</code> 组包含的预后不良者比例恰好相同，我们就说这两组是可交换的。碰巧的话，被分到 <code>A = 1</code> 的 13 人中可能有 2 人预后不良，被分到 <code>A = 0</code> 的 7 人中可能有 3 人预后不良。但如果把样本量加大，那么 <code>A = 1</code> 组与 <code>A = 0</code> 组之间这种相对不平衡很可能就会减小。</p>
+
+<p>在这样的构想下，推断有两个可能的目标。第一，研究者可能对超级总体是否存在不抱任何信念，把推断限制在那个实际被随机化的样本上。这被称为<strong>基于随机化的推断</strong>（randomization-based inference），它需要处理一些超出本书范围的技术细节。第二，研究者可能仍然对从超级总体作推断感兴趣，即对研究样本被随机抽取自的那个超级总体作推断。从推断的角度看，后一种情形在数学上恰好等价于本节开头所描述的抽样变异的构想——即整个超级总体都被随机分配了处理。换句话说，<strong>先随机化后随机抽样，等于先随机抽样后随机化</strong>。关于基于随机化的推断，可参看 Robins（1988）与 Greenland（1991）。</p>
+
+<p>很多情况下我们对第一个目标并不感兴趣。为什么？设想有一项研究，比较两种一线治疗对癌症患者死亡率的效应。研究结束后我们也许会判定这两种治疗中某一种更值得先用，但这条信息对已经参与研究的实际病人来说已经无关紧要了。研究的目的不是为研究中的病人选择治疗，而是为一群与研究样本相似、但规模更大的个体服务。到目前为止我们都假定存在一个更大的群体——超级总体——研究参与者是从中随机抽取的。现在我们转向超级总体这个概念本身。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 10.2　系统性偏倚带来的不确定性</span>
+<p>通常 Wald 型置信区间的宽度是估计量标准误的函数，因此只反映随机误差带来的不确定性。然而混杂、选择或测量所致系统性偏倚的潜在存在，是另一个重要的不确定性来源。研究人群越大，随机误差越小——无论就绝对值而言还是占总不确定性的比例而言——因此通常的 Wald 置信区间就越会<em>低估</em>真实的不确定性。</p>
+<p>95% 置信区间所声称的那 95% 的信心，随着人群规模增大而变成过度自信，因为该区间排除了系统性偏倚带来的不确定性，而后者并不因样本量增大而减少。因此有些作者主张用一个不那么自信的名字来称呼这类区间，改称<strong>相容区间</strong>（compatibility interval）。这一改名承认了这样一件事：这类区间只能告诉我们，在我们的调整假设与方法之下，哪些效应量与数据高度相容（Amrhein 等 2019；Greenland 2019）。相容这个概念比置信要弱，因为它并不要求我们完全确信自己的调整消除了全部系统性偏倚。</p>
+<p>无论区间叫什么名字，系统性偏倚带来的不确定性通常都是科学论文讨论部分的核心内容。然而多数讨论围绕的是对偏倚潜在方向和量级的非正式判断。有些作者主张，应当使用定量方法，在效应估计周围构造同时整合随机与系统性不确定性来源的区间。这类方法称为<strong>定量偏倚分析</strong>（quantitative bias analysis），参见 Lash、Fox 与 Fink（2009）的专著。贝叶斯替代方案见 Greenland 与 Lash（2008）以及 Greenland（2009a，2009b）。</p>
+</aside>
+
+<h2 id="s-10-3">10.3 超级总体的神话</h2>
+
+<p>正如第 1 章讨论过的，随机性有两个来源：抽样变异和非确定性的反事实。下面我们把两者都谈一谈。</p>
+
+<p>考虑我们那个估计 <code><span style="text-decoration:overline">Pr</span>[Y<sup>ca=1</sup> = 1 | A = 1] = p̂ = 7/13</code>，它针对的超级总体风险是 <code>Pr[Y = 1|A = a] = p</code>。几乎所有研究者都会为概率 <code>p</code> 报告一个二项置信区间 <code>p̂ ± 1.96 √( p̂(1−p̂)/n ) = 7/13 ± 1.96 √( (7/13)(6/13)/13 )</code>。若问他们为什么给这样的区间，他们会说这是为了把随机变异带来的不确定性纳入进来。但这些区间只有在 <code>p̂</code> 具有二项抽样分布时才有效。于是我们必须问：<code>p̂</code> 究竟在什么时候才会具有二项抽样分布？事实上有两个情形。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 4（"超级总体"到底是个什么东西）</strong>：本节批评的"超级总体神话"，指的是把研究样本当成一个假想的、几乎无限的母体的随机抽样，从而断言样本比例 <code>p̂</code> 服从二项分布。这个母体有时也叫<strong>源总体</strong>或<strong>目标总体</strong>。作者说它"通常是个虚构"，指的是现实研究里的入组往往带有严格的纳入排除标准——比如某项医保数据库研究只纳入有完整检验记录的参保人——这些人并不是从任何自然总体里等概率抽出的样本；一旦真按总体去推算分布，"二项分布"这个数学支点就塌了。这一点在中文语境里格外现实：国内绝大多数观察性研究的数据来自医院 HIS、医保结算库或区域健康档案，入组标准往往明明白白写在纳排标准里，而且医院级别本身就决定了中国人群的健康谱——这些研究里，样本对"中国人群"的外推是<strong>需要论证的</strong>，而非默认成立的。反过来，meta 分析中 DerSimonian–Laird 那类随机效应模型里的 <code>τ²</code>，其"真实异质性分布"其实正是另一种超级总体式的虚构，但那个虚构在实践中很有用——作者的立场是"虚构有时是必要的，问题在于是否承认它是虚构并说清后果"。</p>
+</aside>
+
 <ul>
-<li>阅读<a href="chch9.html">上一章</a>与<a href="chch11.html">下一章</a>已完成的译文；</li>
-<li>按上方搜索框检索全站已翻译内容；</li>
-<li>回到<a href="index.html">目录页</a>查看当前进度。</li>
+<li><strong>情形 1。</strong>研究人群从一个本质上无限的超级总体（有时称为源总体或目标总体）中随机抽取，而我们的估计目标是超级总体中接受治疗者里发生结局者的比例 <code>p = Pr[Y = 1|A = 1]</code>。这时在数学上确实成立：在从超级总体治疗者中反复抽取的、样本量为 13 的重复随机样本中，13 人里发生结局的人数是成功概率为 <code>Pr[Y = 1|A = 1]</code> 的二项随机变量。因此上一节算出的 95% Wald 置信区间对 <code>Pr[Y = 1|A = 1]</code> 是渐近校准的。这就是我们迄今一直采用的模型。</li>
+<li><strong>情形 2。</strong>研究人群并非从一个假想的超级总体中抽取。取而代之的是：(i) 13 名接受治疗的个体中，每一个个体 <code>i</code> 都有一个各自的非确定性（随机）反事实概率 <code>p<sub>i</sub><sup>a=1</sup></code>；(ii) 受试者 <code>i</code> 的观测结局 <code>Y<sub>i</sub> = Y<sub>i</sub><sup>a=1</sup></code> 发生的概率是 <code>p<sub>i</sub><sup>a=1</sup></code>；并且 (iii) <code>p<sub>i</sub><sup>a=1</sup></code> 对 13 名治疗者中的每一个都取同一个值，比方说 <code>p</code>。那么 13 名治疗者中发生结局的人数就是成功概率为 <code>p</code> 的二项随机变量，上一节算出的 95% 置信区间因而对 <code>p</code> 是渐近校准的。</li>
 </ul>
-<p class="muted">本章原有小节结构（供对照原书阅读）：</p>
-<ul>    <li>10.1 Identification versus estimation</li>
-    <li>10.2 Estimation of causal effects</li>
-    <li>10.3 The myth of the super-population</li>
-    <li>10.4 The conditionality “principle”</li>
-    <li>10.5 The curse of dimensionality</li></ul>
-</div>
+
+<p>Robins（1988）对这两个情形有更详细的讨论。上文中反复出现的"i.i.d."（独立同分布）这个说法，含义就是：我们的数据是从某个超级总体中抽出的、样本量为 <code>n</code> 的随机样本。</p>
+
+<p>情形 1 假定了一个假想的超级总体，情形 2 则没有。但情形 2 是站不住脚的：由于个体间风险的差异，13 名治疗者中"接受治疗后发生结局的概率" <code>p<sub>i</sub><sup>a=1</sup></code> 几乎肯定各不相同。举例来说，我们会预期死亡概率 <code>p<sub>i</sub><sup>a=1</sup></code> 多少取决于个体的基因构成。如果 <code>p<sub>i</sub><sup>a=1</sup></code> 不是常数，那么在实际研究人群中，我们感兴趣的估计目标一般就是这 13 个 <code>p<sub>i</sub><sup>a=1</sup></code> 的平均值，比方说 <code>p</code>。可这时，治疗者中发生结局的人数就不再是成功概率为 <code>p</code> 的二项随机变量，上一节为 <code>p</code> 算出的 95% 置信区间也就不是渐近校准的，而是保守的。</p>
+
+<p>因此，任何为 <code>Pr[Y = 1|A = a]</code> 报告二项置信区间、同时又承认风险存在个体间差异的研究者，都在暗中假定情形 1：研究个体抽自一个近乎无限的超级总体，且所有推断都是针对该超级总体的量。在情形 1 下，无论底层反事实是确定性的还是随机的，13 名治疗者中发生结局的人数都是二项变量。</p>
+
+<p>在假想的超级总体情形下工作，其好处是：结论不依赖于世界究竟是确定性的还是非确定性的。另一方面，超级总体一般来说是个虚构；在大多数研究中，个体并不是从任何近乎无限的人群中随机抽取的。那么超级总体的神话为什么能延续下来？一个原因是它带来了简单的统计方法。</p>
+
+<p>第二个原因与外推有关。正如上一节提到的，研究者一般希望把他们在研究人群（比如心脏移植研究中的那 20 个人）上发现的治疗效应，外推到某个大的目标人群（比如希腊万神殿里所有不朽者）。最简单的做法就是假定研究人群是从一个由潜在受治者构成的更大总体中随机抽取的。既然这是个虚构，按情形 1 算出的 95% 置信区间就应当被解读为：如果研究个体确实是从一个近乎无限的超级总体中随机抽出的（往往与事实不符），那么该区间覆盖的是超级总体的参数。换句话说，在情形 1 下得到的置信区间应当被看作"假如……会怎样"的陈述。</p>
+
+<p>由上述可以推出：如果潜在受治者的"池子"并不比研究人群大多少，或者潜在受治者的目标人群被认为与研究人群的差异大到无法用抽样变异来解释，那么研究者可能并不愿意接受情形 1。本节接下来就接受"个体是从超级总体中随机抽取的"这一假定，并考察在这一背景下随机变异对因果推断的后果。我们先在一个简单的随机化试验里探讨这个问题。</p>
+
+<h2 id="s-10-4">10.4 条件性"原则"</h2>
+
+<p>表 10.1 汇总了一项随机化试验的数据，用以估计处理 A（1：是，0：否）对 1 年死亡风险 Y（1：是，0：否）的平均因果效应。试验纳入 240 名个体，两个治疗组各 120 人。关联风险差为 <code>Pr[Y = 1|A = 1] − Pr[Y = 1|A = 0] = 24/120 − 42/120 = −0.15</code>。假设试验是在一个近乎无限的超级总体中进行的，治疗者与未治疗者之间可交换，即 <code>Y<sup>a</sup> ⊥⊥ A</code>，于是关联风险差等于因果风险差 <code>Pr[Y<sup>a=1</sup> = 1] − Pr[Y<sup>a=0</sup> = 1]</code>。设想研究者算出了点估计 −0.15 周围的一个 95% 置信区间 (−0.26, −0.04)，并发表论文，得出结论说该处理有益，因为它把死亡风险降低了 15 个百分点。</p>
+
+<p>未调整估计量的估计方差是 <code>(24/120)(96/120)/120 + (42/120)(78/120)/120 = 31/9600</code>，因此 Wald 95% 置信区间为 <code>−0.15 ± (31/9600)<sup>1/2</sup> × 1.96 = (−0.26, −0.04)</code>。</p>
+
+<figure class="fig"><img src="../figures/ch10--table-10_1.png" alt="表 10.1：240 人随机化试验中处理与一年死亡结局的交叉表">
+<figcaption><strong>表 10.1</strong>　随机化试验的原始数据。接受治疗者 120 人中 24 人在一年内死亡（<code>Y = 1</code>），96 人存活；未接受治疗者 120 人中 42 人死亡，78 人存活。关联风险差为 24/120 − 42/120 = −0.15。</figcaption></figure>
+
+<p>可是这项研究人群只有 240 个人，因此完全可能由于偶然，治疗者与未治疗者并不完全可交换。随机分配处理并不保证由试验中这 240 人构成的样本里精确可交换；它只保证偏离可交换性的部分来自随机变异，而非系统性偏倚。事实上，可以把"我们对样本中未测基线风险因素与处理 A 之间偶然相关性的无知"所带来的不确定性，看作构成该置信区间长度 0.22 的一部分。</p>
+
+<p>几个月后，研究者得知还收集了第三个变量——吸烟 <code>L</code>（1：是，0：否）——的信息，决定看一看。按 <code>L</code> 分层的试验数据见表 10.2。令研究者吃惊的是：吸烟者中接受治疗者的比例（80/120）是不吸烟者中（40/120）的两倍，这提示治疗者与未治疗者并不可交换，因此有必要对吸烟作调整。当研究者用分层法调整时，吸烟者中的关联风险差 <code>Pr[Y = 1|A = 1, L = 1] − Pr[Y = 1|A = 0, L = 1]</code> 等于 0；不吸烟者中的关联风险差 <code>Pr[Y = 1|A = 1, L = 0] − Pr[Y = 1|A = 0, L = 0]</code> 也等于 0。调整后的分析提示：在吸烟者与不吸烟者中处理都没有效应，尽管边际风险差 −0.15 提示研究人群中存在一个净获益效应。</p>
+
+<figure class="fig"><img src="../figures/ch10--table-10_2.png" alt="表 10.2：同一试验按吸烟分层后的处理与一年死亡结局交叉表">
+<figcaption><strong>表 10.2</strong>　表 10.1 的数据按吸烟 <code>L</code> 分层。吸烟者中 120 人接受治疗、40 人未接受；不吸烟者中 40 人接受治疗、80 人未接受。两层内的关联风险差均为 0。</figcaption></figure>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 5（"吸烟者中治疗组反而更多"这笔账值得亲手核一遍）</strong>：因为这是全书最容易被误读的地方。<code>L = 1</code> 层共 120 人：<code>A = 1</code> 组 80 人中 4 人死亡（风险 4/80 = 0.05），<code>A = 0</code> 组 40 人中 2 人死亡（风险 2/40 = 0.05），差为 0。<code>L = 0</code> 层也共 120 人：<code>A = 1</code> 组 40 人中 20 人死亡（20/40 = 0.50），<code>A = 0</code> 组 80 人中 40 人死亡（40/80 = 0.50），差同样为 0。可把两层合起来看：治疗组 120 人里 24 死亡，未治疗组 120 人里 42 死亡，差为 −0.15。也就是说，<strong>两个毫无差别的零效应，在合并时凭空生出了一个 15 个百分点的"获益"</strong>。这类现象在亚组汇总数据（aggregate data）里见得最多：一篇报告多个亚组各自风险比的 meta 分析，常会出现"各亚组 OR 都接近 1，但合并 OR 显著不等于 1"的情形。它是辛普森悖论的一部分，本书把它当作随机化语境下条件性原则的直接推论来讲。国内做亚组分析、以及在论文答辩里被追问"为什么你的合并结果和各层结果不一致"的同学，值得把这段算一遍。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 6（条件性原则，与第 7 章的条件独立性说的是同一件事）</strong>：正文后面说条件性原则的形式依据是"辅助统计量"（ancillary statistics）——那套话属于统计学理论史。国内读者更容易接受的等价说法在第 7 章已经给出：把 <code>L</code> 加入调整集之后，条件风险差要等于边际风险差，需要的是后门准则成立；而对<em>随机化</em>试验而言，当 <code>L</code> 与处理 <code>A</code> 在超级总体中相关时，<code>A ⊥ Y<sup>a</sup></code> 这条可交换性前提会被破坏，退化成只能在给定 <code>L</code> 的每一层内部成立，即 <code>Y<sup>a</sup> ⊥ A | L</code>。用中文的话说就是：<strong>"因为分层破坏了这 240 人原有的随机化，所以原有的随机化在每一层内重新有效"</strong>。两个说法的内容完全一致——条件性原则的结论恰好就是条件可交换性成立时的结论。技术要点 10.2 给出的似然分解 <code>∏ f(Y<sub>i</sub>|L<sub>i</sub>, A<sub>i</sub>; sRD, p<sub>0</sub>) × f(A<sub>i</sub>|L<sub>i</sub>; α) × f(L<sub>i</sub>; ρ)</code>，正是这个条件结构的密度函数写法，其中 <code>f(A<sub>i</sub>|L<sub>i</sub>; α)</code> 那一项就是"<code>L</code> 与 <code>A</code> 的偶然关联"在数学上的容身之处。</p>
+</aside>
+
+<p>这些新发现让研究者心神不宁。要么是有人在分配处理时没有真正随机（malfeasance，不端行为），要么是随机化没有带来近似可交换性（运气非常非常差）。研究者之间爆发了一场争论：该不该撤稿并更正结果？如果问题源于不端行为，大家一致认为答案是肯定的——那就会存在吸烟带来的混杂，效应估计应当对吸烟作调整。但大家也都同意，考虑到研究的质控程序，不端行为不可能发生。因此很清楚，吸烟与处理之间的关联完全出于糟糕的运气。即便如此，他们该不该撤稿并更正结果？</p>
+
+<p>一位研究者说不该撤稿。他的论证是这样的："好吧，随机化在吸烟这件事上出错了，但我们凭什么厚此薄彼、看重调整估计量而看轻未调整估计量？很可能，其他未测因素 <code>U</code> 上的不平衡正好抵消了 <code>L</code> 上偶然不平衡的影响，所以未调整估计量在超级总体中仍然更接近真值。"另一位研究者说他们应当撤稿，报告调整后的零结果。她的论证是这样的："我们应当对 <code>L</code> 作调整，因为 <code>L</code> 与 <code>A</code> 之间的强关联在我们的效应估计里引入了混杂。在 <code>L</code> 的各个水平内部，我们各自拥有了一个小型随机化试验，围绕相应点估计的置信区间会反映在给定 <code>L</code> 条件下 <code>U</code> 与 <code>A</code> 可能相关所带来的不确定性。"</p>
+
+<p>要判断哪位研究者正确，先把事实摆清楚。为简明起见，假定真实的因果风险差在各 <code>L</code> 层之间是常数，并设想我们可以把这个随机化试验跑上万亿次。然后我们只挑出（也就是"条件于"）那些 <code>L</code> 与处理 <code>A</code> 的关联像观测数据中那样强正相关的重复试验。我们会发现：在 <code>L</code> 的每一层内部，在这些重复试验中，某个给定的处理前风险因素 <code>U</code> 与 <code>A</code> 正相关的重复次数，与 <code>U</code> 与 <code>A</code> 负相关的重复次数基本相等。（即便 <code>U</code> 与 <code>L</code> 在超级总体与研究数据中都高度相关，这一点依然成立。）</p>
+
+<p>其后果是：处理效应的调整估计量无偏，而在这些重复试验上取平均时，未调整估计量严重有偏。</p>
+
+<p>无条件地——在实验的全部重复上取平均——调整估计量与未调整估计量都是无偏的，但调整估计量的方差小于未调整估计量的方差。也就是说，调整估计量既条件无偏，又无条件更有效。这一无条件效率来自一个事实：当有 <code>L</code> 的数据时，调整估计量就是风险差的最大似然估计（MLE）。因此无论从条件还是无条件的角度看，以调整估计量为中心的 Wald 区间都是更好的分析，论文需要撤稿。第二位研究者是对的。</p>
+
+<p>把观察到的 <code>L</code>–<code>A</code> 关联作为条件来处理的思想，在统计学文献里被称为<strong>条件性原则</strong>（conditionality principle）。在统计学中，观测到的 <code>L</code>–<code>A</code> 关联被称为因果风险差的<strong>辅助统计量</strong>（ancillary statistics）。条件性原则断言：关于某个参数的推断应当在辅助统计量的条件下进行（细节见技术要点 10.2 与 10.3）。</p>
+
+<p>在上面关于随机化试验结果的讨论中，有些研究者是凭直觉遵循了条件性原则的，因为他们认为：如果一个估计量无法在<em>任何</em>辅助统计量的条件下给有效 Wald 置信区间定中心，它就是有偏的。对这类研究者而言，我们先前对"偏倚"的定义还不够严格；他们会说，一个估计量无偏，当且仅当它能在辅助统计量的条件下给有效 Wald 区间定中心。技术要点 10.5 论证说，大多数研究者其实都在不自觉地遵循条件性原则。</p>
+
+<p>当有人抛出那个频率学派的反驳——"对 <code>L</code> 作调整没有必要，因为无条件地——在实验的所有重复上——未调整估计量是无偏的"——那些凭直觉应用条件性原则的研究者会恰当地回敬："别的假想研究中出现各种 <code>L</code>–<code>A</code> 关联，为什么就该影响我在自己研究里该怎么做？在我的研究里 <code>L</code> 扮演了混杂因素的角色，必须通过调整来消除偏倚。"只要像本例的随机化试验那样，所测混杂因素的数量不多，这个论证对随机化试验和观察性研究都是很有说服力的。然而当所测混杂因素很多时，严格遵循条件性原则就不再明智了。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.2　条件性原则的形式化表述</span>
+<p>观测数据的似然有三个因子：给定 <code>A</code> 与 <code>L</code> 时 <code>Y</code> 的密度，给定 <code>L</code> 时 <code>A</code> 的密度，以及 <code>L</code> 的边际密度。考虑一个简单例子：只有一个二值 <code>L</code>，满足可交换性 <code>Y<sup>a</sup> ⊥⊥ A | L</code>，已知层别特异的风险差 <code>sRD = Pr(Y = 1|L = l, A = 1) − Pr(Y = 1|L = l, A = 0)</code> 跨 <code>L</code> 的各层为常数，并且感兴趣的参数是层别特异的因果风险差。则数据的似然为</p>
+<p style="text-align:center">∏<sub>i=1</sub><sup>n</sup> f(Y<sub>i</sub>|L<sub>i</sub>, A<sub>i</sub>; sRD, p<sub>0</sub>) × f(A<sub>i</sub>|L<sub>i</sub>; α) × f(L<sub>i</sub>; ρ)</p>
+<p>其中 <code>p<sub>0</sub> = (p<sub>01</sub>, p<sub>02</sub>)</code>，<code>p<sub>0l</sub> = Pr(Y = 1|L = l, A = 0)</code>，而 <code>α</code> 与 <code>ρ</code> 是分别与"给定 <code>A</code>、<code>L</code> 时 <code>Y</code> 的条件密度""给定 <code>L</code> 时 <code>A</code> 的条件密度""<code>L</code> 的边际密度"对应的干扰参数（nuisance parameters）。</p>
+<p>当给定 <code>A</code> 与 <code>L</code> 时数据的分布依赖于感兴趣的参数，但 <code>A</code> 与 <code>L</code> 的联合密度与 <code>f(Y<sub>i</sub>|L<sub>i</sub>, A<sub>i</sub>; sRD, p<sub>0</sub>)</code> 不共用参数时，我们说 <code>A</code> 与 <code>L</code> 的数据对感兴趣的参数是 <strong>S-辅助的</strong>（S-ancillary）。条件性原则断言：对感兴趣的参数的推断，总应当在任何 S-辅助统计量的条件下进行。因此应当在 S-辅助统计量 <code>{A<sub>i</sub>, L<sub>i</sub>; i = 1, …, n}</code> 的条件下进行。类似地，若已知跨 <code>L</code> 各层为常数的是风险比（而非风险差），<code>{A<sub>i</sub>, L<sub>i</sub>; i = 1, …, n}</code> 依然是关于风险比的 S-辅助统计量。</p>
+<p><strong>精确辅助统计量</strong>（exact ancillary statistics）定义为边际分布已知的 S-辅助统计量。在我们的例子里，这要求 <code>α</code> 与 <code>ρ</code> 已知。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.3　近似辅助性</span>
+<p>设层别特异的风险差（<code>sRD<sub>l</sub></code>）已知会随 <code>L</code> 的各层而变。在我们通常的识别假定下，人群中的因果风险差由标准化风险差 <code>RD<sub>std</sub> = ∑<sub>l</sub> [ Pr(Y = 1|L = l, A = 1; υ) − Pr(Y = 1|L = l, A = 0; υ) ] f(l; ρ)</code> 识别，它依赖于参数 <code>υ = {sRD<sub>l</sub>, p<sub>0,l</sub>; l = 0, 1}</code> 与 <code>ρ</code>（见技术要点 10.2）。在无条件随机化试验中，由于超级总体中 <code>A ⊥ L</code>，<code>RD<sub>std</sub></code> 等于关联风险差 <code>Pr(Y = 1|A = 1) − Pr(Y = 1|A = 0)</code>。由于 <code>RD<sub>std</sub></code> 依赖于 <code>ρ</code>，<code>{A<sub>i</sub>, L<sub>i</sub>; i = 1, …, n}</code> 不再是精确辅助的，事实上不存在任何精确辅助统计量。</p>
+<p>考虑统计量 <code>S<sub>e</sub> = (OR<sub>AL</sub> − 1) / se(ÔR<sub>AL</sub> − 1)</code>，其中 <code>OR<sub>AL</sub> = OR<sub>AL</sub>(α) = Pr(A=1|L=1; α)·Pr(A=0|L=0; α) / [ Pr(A=1|L=0; α)·Pr(A=0|L=1; α) ]</code> 是超级总体中的 <code>A</code>–<code>L</code> 比值比，而 <code>ÔR<sub>AL</sub></code> 是 <code>OR<sub>AL</sub></code> 但其中总体比例 <code>Pr(A = a|L = l; α)</code> 被换成了经验样本比例 <code><span style="text-decoration:overline">Pr</span>(A = a|L = l)</code>。在给定 <code>L<sub>i</sub></code> 的条件下 <code>S<sub>e</sub></code> 渐近正态、均值为 0，因此它的分布依赖于 <code>α</code>。令 <code>Ŝ<sub>b</sub> = S<sub>e</sub> / se(S<sub>e</sub>)</code>，其中 <code>se(S<sub>e</sub>)</code> 是 <code>S<sub>e</sub></code> 标准误的估计。样本量大时 <code>S<sub>e</sub></code> 的分布收敛到标准正态分布，所以 <code>Ŝ<sub>b</sub></code> 在一个标准化尺度上刻画数据中的 <code>A</code>–<code>L</code> 关联。举例来说，若 <code>Ŝ<sub>b</sub> = 2</code>，则 <code>Ŝ<sub>b</sub></code> 比其（渐近）期望值 0 高出两个标准差。</p>
+<p>当 <code>OR<sub>AL</sub></code> 的真值已知时，<code>Ŝ<sub>b</sub></code> 被称为<strong>近似（或大样本）辅助统计量</strong>。理由如下：考虑一个满足 <code>OR<sub>AL</sub> = 1</code> 的随机化试验。此时 <code>Ŝ<sub>b</sub></code> 与精确辅助统计量一样：i) 可以从数据算出（即 <code>Ŝ<sub>b</sub></code> = (ÔR<sub>AL</sub> − 1)/se(ÔR<sub>AL</sub> − 1)）；ii) 它有一个近似已知的分布；iii) 似然可以分解为一项 <code>f(A|L; α)</code>（它支配 <code>Ŝ<sub>e</sub></code> 的分布）与一项 <code>f(Y|L, A; υ)f(L; ρ)</code>（它不依赖于 <code>α</code>）；iv) 在 <code>Ŝ<sub>b</sub></code> 的条件下，<code>RD<sub>std</sub></code> 的调整估计无偏，而其未调整估计有偏（技术要点 10.4 定义并比较了调整与未调整估计量）。任何其他量化 <code>A</code>–<code>L</code> 关联 <code>Pr(A=1|L=1) / <span style="text-decoration:overline">Pr</span>(A=1|L=0)</code> 的统计量都可以代替 <code>S</code>。</p>
+<p>现在考虑<strong>连续性原则</strong>（continuity principle）：对估计目标的推断不应因数据生成分布的任意微小已知改变而发生不连续的跳变（Buehler 1982）。如果同时接受条件性原则与连续性原则，就应当在近似辅助统计量的条件下作推断。举例来说，当 <code>OR<sub>AL</sub> = 1</code> 已知时，若 <code>sRD<sub>l</sub></code> 已知为常数就依条件性原则把 <code>RD<sub>std</sub></code> 的未调整估计当作有偏，而 <code>sRD<sub>l</sub></code> 几乎为常数时又把它当作无偏，那就违反了连续性原则。我们把总是对精确辅助统计量与近似辅助统计量都取条件的研究者，称为遵循<strong>扩展条件性原则</strong>（extended conditionality principle）的人。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.4　调整估计量与未调整估计量的比较</span>
+<p>技术要点 10.3 中 <code>RD<sub>std</sub></code> 的调整估计量是参数化最大似然估计 <code>RD̂<sub>MLE</sub></code>，它把 <code>RD<sub>std</sub></code> 中的总体比例换成了样本比例。<code>RD<sub>std</sub></code> 的未调整估计量则是 <code>RD̂<sub>UN</sub> = <span style="text-decoration:overline">Pr</span>(Y = 1|A = 1) − <span style="text-decoration:overline">Pr</span>(Y = 1|A = 0)</code>。无条件地，<code>RD̂<sub>MLE</sub></code> 与 <code>RD̂<sub>UN</sub></code> 都对 <code>RD<sub>std</sub></code> 渐近正态且无偏，其渐近方差分别记作 <code>aVar(RD̂<sub>MLE</sub>)</code> 与 <code>aVar(RD̂<sub>UN</sub>)</code>。</p>
+<p>正文中我们说 <code>RD̂<sub>UN</sub></code> 既无条件低效又条件有偏。下面说明这两条性质在逻辑上是等价的。Robins 与 Morgenstern（1987）证明，<code>RD̂<sub>MLE</sub></code> 在近似辅助统计量 <code>Ŝ<sub>b</sub></code> 条件下的渐近分布与它无条件时的渐近分布相同，即 <code>aVar(RD̂<sub>MLE</sub>) = aVar(RD̂<sub>MLE</sub> | Ŝ<sub>b</sub>)</code>。他们还证明 <code>aVar(RD̂<sub>MLE</sub>) = aVar(RD̂<sub>UN</sub>) − [aCov(Ŝ<sub>b</sub>, RD̂<sub>UN</sub>)]²</code>。因此 <code>RD̂<sub>UN</sub></code> 无条件低效，当且仅当 <code>aCov(Ŝ<sub>b</sub>, RD̂<sub>UN</sub>) ≠ 0</code>，也就是说 <code>Ŝ<sub>b</sub></code> 与 <code>RD̂<sub>UN</sub></code> 无条件地相关。另外，条件渐近偏倚 <code>aE[RD̂<sub>UN</sub> | Ŝ<sub>b</sub>] − RD<sub>std</sub></code> 被证明等于 <code>aCov(Ŝ<sub>b</sub>, RD̂<sub>UN</sub>)</code>。因此 <code>RD̂<sub>UN</sub></code> 条件有偏，当且仅当它无条件低效。</p>
+<p>可以证明 <code>aCov(Ŝ<sub>b</sub>, RD̂<sub>UN</sub>) = 0</code> 当且仅当 <code>L ⊥ Y | A</code>。因此，当有 <code>Y</code> 的某个已测风险因素的数据时，应优先选用 <code>RD̂<sub>MLE</sub></code> 而非 <code>RD̂<sub>UN</sub></code>。估计量 <code>RD̂<sub>UN</sub> − aCov(Ŝ<sub>b</sub>, RD̂<sub>UN</sub>)·Ŝ<sub>b</sub></code> 纠正了 <code>RD̂<sub>UN</sub></code> 的偏倚，因而它在给定近似辅助统计量 <code>Ŝ<sub>b</sub></code> 条件下与 <code>RD̂<sub>MLE</sub></code> 有相同的渐近分布。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.5　多数研究者直觉上遵循扩展条件性原则</span>
+<p>再次考虑表 10.2 的随机化试验数据。不失一般性地假定二值 <code>L</code> 各层上的 <code>sRD<sub>l</sub></code> 为常数，则 <code>sRD</code> 的最大似然估计的估计方差为 <code>V̂<sub>0</sub>V̂<sub>1</sub> / (V̂<sub>0</sub> + V̂<sub>1</sub>)</code>，其中 <code>V̂<sub>1</sub></code> 是 <code>RD̂<sub>1</sub></code> 的估计方差、<code>V̂<sub>0</sub></code> 是 <code>RD̂<sub>0</sub></code> 的估计方差。<code>V̂<sub>1</sub></code> 有两个可能的取法：<code>V̂<sub>1</sub><sup>obs</sup> = (4/80)(76/80)/80 + (2/40)(38/40)/40 = 1.78 × 10<sup>−3</sup></code>，以及 <code>V̂<sub>1</sub><sup>exp</sup> = (4/80)(76/80)/60 + (2/40)(38/40)/60 = 1.58 × 10<sup>−3</sup></code>。二者的区别仅在于：<code>V̂<sub>1</sub><sup>obs</sup></code> 除以的是 <code>L = 1</code> 层中实际观测到的 <code>A = 1</code> 与 <code>A = 0</code> 人数（分别为 80 与 40），而 <code>V̂<sub>1</sub><sup>exp</sup></code> 除以的是在 <code>A ⊥ L</code> 下的期望人数（60）。在数学上，<code>V̂<sub>1</sub><sup>obs</sup></code> 是基于<strong>观测信息</strong>（observed information）的方差估计量，<code>V̂<sub>1</sub><sup>exp</sup></code> 是基于<strong>期望信息</strong>（expected information）的方差估计量。</p>
+<p>依我们的经验，几乎所有研究者都会在 <code>V̂<sub>1</sub><sup>obs</sup></code> 与 <code>V̂<sub>1</sub><sup>exp</sup></code> 之间选择前者作为合适的方差估计量。Efron 与 Hinkley（1978）以及 Robins 与 Morgenstern（1987）的结果意味着，这样做的研究者其实是在隐含地对一个近似辅助统计量 <code>Ŝ<sub>b</sub></code> 取条件，因而无论是否意识到这一点，都在遵循扩展条件性原则。具体地说，这些作者证明：<code>RD̂<sub>l</sub></code>（进而 MLE）的方差在给定近似辅助统计量 <code>Ŝ<sub>b</sub></code> 的条件下，与无条件方差之差为 <code>n<sup>−3/2</sup></code> 量级。（如技术要点 10.4 所述，MLE 的条件渐近方差与无条件渐近方差是相等的，因为渐近方差相等只意味着在 <code>n<sup>−1</sup></code> 量级上相等。）他们进一步证明，基于观测信息的方差估计量与条件方差的差小于 <code>n<sup>−3/2</sup></code> 量级，而基于期望信息的估计量与无条件方差的差小于 <code>n<sup>−3/2</sup></code> 量级。因此，偏好 <code>V̂<sub>1</sub><sup>obs</sup></code> 而非 <code>V̂<sub>1</sub><sup>exp</sup></code>，就意味着偏好条件推断而非无条件推断。</p>
+</aside>
+
+<p>回到正文。把这两层的数据代进技术要点 10.5 的公式：<code>L = 1</code> 层的方差 <code>V̂<sub>1</sub><sup>obs</sup> = (4/80)(76/80)/80 + (2/40)(38/40)/40 = 1.78 × 10<sup>−3</sup></code>，<code>L = 0</code> 层的方差 <code>V̂<sub>0</sub> = (20/40)(20/40)/40 + (40/80)(40/80)/80 = 9.38 × 10<sup>−3</sup></code>，于是 <code>V̂ = V̂<sub>0</sub>V̂<sub>1</sub>/(V̂<sub>0</sub>+V̂<sub>1</sub>) ≈ 0.0387</code>。共同风险差的调整点估计为 0，因此它的 Wald 95% 置信区间是 <code>0 ± 0.0387 × 1.96 = (−0.076, 0.076)</code>——比未调整情形的 (−0.26, −0.04) 窄得多，而且这次不包含零。</p>
+
+<h2 id="s-10-5">10.5 维度灾难</h2>
+
+<p>前面几节的推导都建立在一个渐近理论之上，而这个理论假定 <code>L</code> 的层数相对于样本量来说很小。本节我们研究另一种情形：向量 <code>L</code> 的层数可以非常大，甚至远大于样本量。</p>
+
+<p>假设研究者测量的不是 1 个而是 100 个处理前二值变量，那么由这 100 个变量组合而成的处理前变量 <code>L = (L<sub>1</sub>, …, L<sub>100</sub>)</code> 就有 2<sup>100</sup> 个层。像这样处理前变量的取值组合极多，我们说数据具有<strong>高维性</strong>（high dimensionality）。为简明起见，假设不存在由 <code>L</code> 引起的加性效应修饰，即超级总体的风险差 <code>Pr[Y = 1|A = 1, L = l] − Pr[Y = 1|A = 0, L = l]</code> 在这 2<sup>100</sup> 个层上是常数。特别地，假设这个层别特异的常风险差为 0。</p>
+
+<p>研究者又面临要不要撤稿、报告分层风险差估计的问题。到这一步他们已经同意，应当遵循条件性原则，因为未调整的风险差 −0.15 是条件有偏的。然而他们发现：当有 2<sup>100</sup> 个层时，基于调整估计量的风险差 95% 置信区间比基于未调整估计量的宽得多。这与 <code>L</code> 只有两个层时的结果恰好相反。事实上，基于调整估计量的 95% 置信区间可能宽到完全不带信息。</p>
+
+<p>原因不难看清：由于 2<sup>100</sup> 远大于个体数（240），最多只会有少数几个 <code>L</code> 的层里同时含有接受处理者和未接受处理者。假设 2<sup>100</sup> 个层中只有一个层含有 1 名治疗者与 1 名未治疗者，其余任何层都不同时含有一名治疗者和一名未治疗者。那么，基于调整估计量的共同风险差 95% 置信区间是 (−1, 1)，因而完全不带信息——因为在那个唯一同时有治疗者和未治疗者的层里，经验风险差可以是 −1、0 或 1，取决于每个人 <code>Y</code> 的取值。相比之下，基于未调整估计量的共同风险差 95% 置信区间仍然如前为 (−0.26, −0.04)，因为它的宽度不受"测了更多协变量"这一事实的影响。这些结果反映出：只有在个体数与未知参数个数之比足够大时，调整估计量才保证比未调整估计量更有效；一个常用的经验法则是这个比值至少取 10，不过最小比值还取决于数据的具体特点。</p>
+
+<p>研究者该怎么办？在只有单个二值变量的简单设定里，他们为了做对的事——遵循条件性原则——而把自己逼进了死角；到了高维设定里就彻底动不了。这就是<strong>维度灾难</strong>（curse of dimensionality）：给定全部 100 个协变量取条件之后，边际估计量仍然有偏，而此时条件估计量已经不提供任何信息。这说明：条件性在简单例子中如此有说服力，不应被抬升为一条原则，因为它在高维模型里根本没法贯彻到底。虽然我们是在随机化试验的语境下讨论这个问题，但同样的讨论完全适用于观察性研究（见技术要点 10.6）。Robins 与 Ritov（1997）对维度灾难给出了技术性的描述。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 7（维度灾难在国内大样本临床数据里长什么样）</strong>：教科书上的 2<sup>100</sup> 个层听上去像是人为极端的极端，但国内真实数据里同类现象非常具体。<em>其一，医保与电子病历的高维协变量</em>：一份包含百万级就诊记录的医保数据库里，年龄、性别、诊断编码、科室、就诊年份、医保类别、既往就诊次数、检验指标加起来轻易过百。此时若按"条件于所有已测混杂因素"的朴素逻辑去做加权，正属于本节警告的情形。<em>其二，倾向性评分模型的数据稀疏化</em>：倾向性评分模型把上百个协变量压成一个倾向分，这本身是规避维度灾难的手段，但两头的权重估计并不会因此自动可靠——协变量数量远大于倾向分格数时，落入极端倾向分格子的个位数个体会产生巨大权重。<em>其三，结局事件数才是真正的瓶颈</em>：临床研究里起作用的其实不是"样本量 ÷ 协变量数"，而是"结局事件数 ÷ 协变量数"。Peduzzi 等（1996）提出的经验规则是每个变量至少 10 个结局事件；国内不少期刊至今仍要求写明这一比值，读者见到"纳入 800 例、调整了 30 个变量"却只有 7 个结局事件的报告，应当直接存疑。<em>其四，高维倾向性评分与机器学习筛协变量的连带风险</em>：当研究者用随机森林或 LASSO 从数千个候选变量里筛协变量，筛选这一过程本身会引入过拟合与选择偏倚（第 18 章给出相应的推断策略）。本节末尾提到的"是否可能同时做到条件无偏与更高效"，正是第 18 章要回答的问题。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.6　维度灾难能被扭转吗</span>
+<p>在 <code>L</code> 层数众多的高维情形下，无论采用哪个估计量，都不可能在精确辅助统计量 <code>{A<sub>i</sub>, L<sub>i</sub>; i = 1, …, n}</code> 的条件下，对共同风险差作出有信息的条件推断。但在边缘随机化试验的无条件推断中，情况并非如此。举例来说，未调整估计量 <code>RD̂<sub>UN</sub></code> 的无条件统计行为不受 <code>L</code> 维数的影响；特别地，它保持无偏，且相应 Wald 95% 置信区间的宽度正比于 1/<code>n</code><sup>1/2</sup>。由于 <code>RD̂<sub>UN</sub></code> 依赖 MLE 所未使用的先验信息，只有在已知 <code>A ⊥ L</code> 于超级总体时，它才是共同风险差的无偏估计量。</p>
+<p>然而，即便无条件地，与 MLE（即调整估计量）相联系的置信区间依然不提供信息。这就引出一个问题：能否利用 <code>L</code> 的数据构造出这样一个估计量——它既无条件无偏，又比未调整估计量更有效？第 18 章将说明，这在某些情况下是可能的。</p>
+</aside>
+
+<aside class="techpoint"><span class="box-label">技术要点 10.7　随机变异对因果发现的影响</span>
+<p>在精细辨析 6.3 中我们解释过，在忠实性（faithfulness）假定下，如果拥有无限量的数据，我们有时能够学到因果结构。有了本章引入的概念之后，我们现在可以来考察：只有有限样本这对因果发现意味着什么。</p>
+<p>设想我们有三个变量 <code>Z</code>、<code>A</code>、<code>Y</code> 的数据，并且知道它们的时间顺序是 <code>Z</code> 在前、<code>A</code> 其次、<code>Y</code> 最后。数据分析发现，在 <code>A</code> 的每个水平上 <code>Y</code> 与 <code>Z</code> 的经验比值比都等于 1，而所有其他比值比——边际的和条件的——都远离 1。在精细辨析 6.3 中我们证明过：若超级总体中 <code>Z ⊥ Y | A</code>（这需要无限样本量），则在忠实性下唯一可能的因果图是 <code>Z → A → Y</code>，此外还可能存在 <code>Z</code> 与 <code>A</code> 的共同原因（或者取代 <code>Z</code> 到 <code>A</code> 的箭头）。由此可推出，风险差 <code>E[Y|A = 1] − E[Y|A = 0]</code> 就是 <code>A</code> 对 <code>Y</code> 的平均因果效应。但实践中，条件独立或边际独立的证据必定是基于有限样本量得到的。</p>
+<p>Robins 等（2003）证明，即便人们愿意接受忠实性假定，基于忠实性的推断也是非一致的：无论样本量 <code>n</code> 多大——即使 <code>Y</code> 与 <code>Z</code> 在 <code>A</code> 的每个水平上的经验比值比确实都等于 1——总存在这样的忠实分布：a) 由于抽样变异，<code>Y</code> 与 <code>Z</code> 在 <code>A</code> 各层上的真实比值比虽不等于 1，却接近到"经验条件比值比为 1"不足为奇；而且 b) <code>A</code> 对 <code>Y</code> 的平均因果效应为零。其后果是：即便 <code>E[Y|A = 1] − E[Y|A = 0]</code> 的经验风险差估计相当大（比如 0.2），并且达到其标准误的许多倍（比如 30 倍），任何诚实的 95% 频率派置信区间也永远不可能排除 0 这个值。</p>
+<p>即便如此，因果发现的支持者仍可以有力地论证：给定上述经验数据，一位相信忠实性的贝叶斯分析者（先验不依赖于样本量）一般会得到一个关于 <code>A</code> 对 <code>Y</code> 平均因果效应的 95% 可信区间（最高后验密度），它几乎以经验风险差为中心，宽度不比经验风险差的标准误大多少。因此，只要给那些 <code>Z</code> 与 <code>Y</code> 被 <code>A</code> d-分离的图一个不可忽略的先验概率，这个可信区间就很容易排除零。</p>
+<p>诚实的频率派置信区间与这些可信区间之间的显著差别，源于这样一个事实：在因果发现的设定下，关于因果效应的贝叶斯推断可以对先验的选择极为敏感。举例来说，许多流行病学家——包括本书作者——会主张，在观察性研究中，任何缺少 <code>A</code> 与 <code>Y</code> 共同原因的因果图（比如 <code>Z → A → Y</code>），其先验概率应当基本为零。要相信别的，<code>A</code> 与 <code>Y</code> 就必须从宇宙大爆炸起就没有过任何共同原因。一位持有与我们相同先验信念的贝叶斯分析者，其 95% 可信区间可能（取决于先验的其他方面）宽得多，中心也更靠近 0。</p>
+<p>总之，在有限样本下、即便有忠实性假定，数据本身也无法把因果图 <code>Z → A → Y</code>（该图下超级总体中 <code>Z ⊥ Y | A</code>）与另一张因果图（该图下超级总体中给定 <code>A</code> 时 <code>Z</code> 几乎与 <code>Y</code> 独立）区分开来。因此，从观察性数据作因果发现，其有效性在很大程度上依赖于关于各张因果图合理性的先验领域知识。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>译注 8（技术要点 10.7 的一段现实警告：数据不能替你发现因果结构）</strong>：本章最后这个技术要点讨论的是因果发现（causal discovery）。给定 <code>Z</code>、<code>A</code>、<code>Y</code> 三个变量的数据，若在 <code>A</code> 的每个水平上 <code>Y</code> 与 <code>Z</code> 的经验比值比都等于 1，其余比值比都远离 1，忠实性会引导我们认定唯一的因果结构是 <code>Z → A → Y</code>。但这个推断依赖无限样本。Robins 等（2003）证明：无论样本量多大——即使经验条件比值比确实等于 1——总存在忠实的分布满足"真实的条件比值比虽不为 1、却接近到经验上出现 1 毫不奇怪"，同时"A 对 Y 的平均因果效应为零"。结果是：<strong>哪怕经验风险差高达 0.2、且达到标准误的 30 倍，任何诚实的 95% 频率派置信区间都不可能排除 0</strong>。这段讨论对国内做孟德尔随机化、工具变量筛选，以及用观察性数据反推机制的研究者是一记提醒：数据本身无法把"<code>Z</code> 通过 <code>A</code> 影响 <code>Y</code>"和"<code>Z</code> 与 <code>Y</code> 只是恰好条件独立"这两种世界区分开，结论的合法性很大程度上依赖先前的领域知识。</p>
+</aside>
+
+<p>解决维度灾难是个困难问题，也是一个活跃的研究领域。第 18 章我们回顾这方面研究并给出一些实用建议。第 11 章至第 17 章则提供了在因果推断中使用模型所需的背景知识。</p>
+
 <!-- CONTENT-END -->
 </article>
 </main>
