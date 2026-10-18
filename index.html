@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>因果推断：What If · 中文版</title>
+<link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Hernán & Robins《Causal Inference: What If》全书中文翻译，在线阅读，附译者注。">
+</head>
+<body>
+<!--NAV-->
+<main class="content">
+<article>
+  <div class="home-hero">
+    <img class="cover" src="figures/cover.png" alt="Causal Inference: What If 封面">
+    <div class="intro">
+      <h1 style="margin-top:0;">因果推断：What If<span style="color:var(--muted);font-size:20px;"> 中文版</span></h1>
+      <p>Miguel A. Hernán &amp; James M. Robins 著，Chapman &amp; Hall/CRC 出版（2020，2024 年 1 月 2 日电子版）。这是目前因果推断领域引用最广的教科书之一：从反事实框架讲到 DAG、混杂、选择偏倚，再到逆概率加权、g 算法、工具变量、目标试验模拟——全书围绕一个问题：如何用数据回答"如果当初……会怎样"。</p>
+      <p>本站为全书中文翻译，<strong>23 章 + 导言全文收录</strong>，原书全部图表按原样保留，另加译者注补充背景。全书分为三部分：</p>
+      <ul style="margin:10px 0 0 18px;">
+        <li><strong>第一部分 · 无模型的因果推断</strong>（第 1–10 章）：反事实、随机化、可交换性、DAG 与三大偏倚，不用任何统计模型就能把因果问题想清楚。</li>
+        <li><strong>第二部分 · 基于模型的因果推断</strong>（第 11–18 章）：逆概率加权、标准化与 g 算法、g 估计、倾向性评分、工具变量、生存分析。</li>
+        <li><strong>第三部分 · 时变处理的因果推断</strong>（第 19–23 章）：时变处理与 g 方法、处理-混杂反馈、目标试验模拟、因果中介。</li>
+      </ul>
+      <p style="margin-top:14px;">可用右上角搜索框（或按 <code>/</code>）做全文检索。</p>
+    </div>
+  </div>
+
+  <div style="margin-top:34px;">
+    <div class="toc-part">导言</div>
+    <ul class="toc">
+      <li><a href="chapters/intro.html">导言：少一点“随便”的因果推断<span class="en">Towards less casual causal inferences</span></a></li>
+    </ul>
+    <div class="toc-part">第一部分 · 无模型的因果推断（Part I — Causal inference without models）</div>
+    <ul class="toc">
+      <li><a href="chapters/ch1.html">第 1 章 · 因果效应的定义<span class="en">A definition of causal effect</span></a></li>
+      <li><a href="chapters/ch2.html">第 2 章 · 随机化试验<span class="en">Randomized experiments</span></a></li>
+      <li><a href="chapters/ch3.html">第 3 章 · 观察性研究<span class="en">Observational studies</span></a></li>
+      <li><a href="chapters/ch4.html">第 4 章 · 效应修饰<span class="en">Effect modification</span></a></li>
+      <li><a href="chapters/ch5.html">第 5 章 · 交互作用<span class="en">Interaction</span></a></li>
+      <li><a href="chapters/ch6.html">第 6 章 · 因果效应的图形表示<span class="en">Graphical representation of causal effects</span></a></li>
+      <li><a href="chapters/ch7.html">第 7 章 · 混杂<span class="en">Confounding</span></a></li>
+      <li><a href="chapters/ch8.html">第 8 章 · 选择偏倚<span class="en">Selection bias</span></a></li>
+      <li><a href="chapters/ch9.html">第 9 章 · 测量偏倚与“非因果”图<span class="en">Measurement bias and “noncausal” diagrams</span></a></li>
+      <li><a href="chapters/ch10.html">第 10 章 · 随机变异<span class="en">Random variability</span></a></li>
+    </ul>
+    <div class="toc-part">第二部分 · 基于模型的因果推断（Part II — Causal inference with models）</div>
+    <ul class="toc">
+      <li><a href="chapters/ch11.html">第 11 章 · 为什么需要模型<span class="en">Why model?</span></a></li>
+      <li><a href="chapters/ch12.html">第 12 章 · 逆概率加权与边际结构模型<span class="en">IP weighting and marginal structural models</span></a></li>
+      <li><a href="chapters/ch13.html">第 13 章 · 标准化与参数化 g 算法<span class="en">Standardization and the parametric g-formula</span></a></li>
+      <li><a href="chapters/ch14.html">第 14 章 · 结构嵌套模型的 g 估计<span class="en">G-estimation of structural nested models</span></a></li>
+      <li><a href="chapters/ch15.html">第 15 章 · 结局回归与倾向性评分<span class="en">Outcome regression and propensity scores</span></a></li>
+      <li><a href="chapters/ch16.html">第 16 章 · 工具变量估计<span class="en">Instrumental variable estimation</span></a></li>
+      <li><a href="chapters/ch17.html">第 17 章 · 因果生存分析<span class="en">Causal survival analysis</span></a></li>
+      <li><a href="chapters/ch18.html">第 18 章 · 变量选择与高维数据<span class="en">Variable selection and high-dimensional data</span></a></li>
+    </ul>
+    <div class="toc-part">第三部分 · 时变处理的因果推断（Part III — Causal inference for time-varying treatments）</div>
+    <ul class="toc">
+      <li><a href="chapters/ch19.html">第 19 章 · 时变处理<span class="en">Time-varying treatments</span></a></li>
+      <li><a href="chapters/ch20.html">第 20 章 · 处理-混杂反馈<span class="en">Treatment-confounder feedback</span></a></li>
+      <li><a href="chapters/ch21.html">第 21 章 · 时变处理的 g 方法<span class="en">G-methods for time-varying treatments</span></a></li>
+      <li><a href="chapters/ch22.html">第 22 章 · 目标试验模拟<span class="en">Target trial emulation</span></a></li>
+      <li><a href="chapters/ch23.html">第 23 章 · 因果中介<span class="en">Causal mediation</span></a></li>
+    </ul>
+  </div>
+
+  <p class="disclaimer">本站为个人学习目的的中文翻译（译注为译者补充），原书版权归 Miguel A. Hernán 与 James M. Robins 所有（Chapman &amp; Hall/CRC）。原书电子版可在作者网站免费获取：hsph.harvard.edu/miguel-hernan/causal-inference-book。如版权方认为本翻译不合适，请联系删除。翻译仅供学习交流，引用请以英文原版为准。</p>
+</article>
+</main>
+<script src="assets/site.js"></script>
+</body>
+</html>

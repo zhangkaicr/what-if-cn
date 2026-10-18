@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "requested": "pack",
+  "selected": "pack",
+  "decision_policy": "single-first-v1",
+  "skill_budget": 8,
+  "promoted_count": 7,
+  "capability_count": 14,
+  "reasons": [
+    "用户显式选择 pack，auto 决策器不覆盖用户选择"
+  ],
+  "alternative": "single（1 个入口 + 14 张内部能力卡）",
+  "user_confirmed": true,
+  "preserve_strategy_on_update": true
+}

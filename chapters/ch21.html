@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 21 章 · 时变处理的 g 方法 · 因果推断：What If 中文版</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<!--NAV-->
+<main class="content">
+<article>
+<header class="ch-head">
+  <p class="ch-kicker">第三部分 · 时变处理的因果推断 · Part III — Causal inference for time-varying treatments</p>
+  <h1>第 21 章 · 时变处理的 g 方法</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Chapter 21. 本页为中文全文翻译，附译注。</p>
+</header>
+
+<!-- CONTENT-START -->
+
+<p>在上一章，我们描述了一个带有时变处理（time-varying treatment）与处理－混杂反馈（treatment-confounder feedback）的数据集。我们说明，当把传统混杂调整方法用到这份数据时，它们无法正确地调整混杂。尽管这个时变处理对结局的因果效应为零，传统调整方法却给出了偏离零的效应估计。本章给出传统方法在处理－混杂反馈下产生偏倚的解法：使用 g 方法——g 公式、逆概率加权（IP weighting），以及 g 估计，还有它们各自的双重稳健推广。沿用上一章同一份数据，我们在此展示三种 g 方法都能给出正确的（即为零的）效应估计。对于时点固定的处理，我们在第 13 章介绍了 g 公式，在第 12 章介绍了边际结构模型的逆概率加权，在第 15 章介绍了结构嵌套模型的 g 估计。这里我们在第 19 章所述的可识别性条件——序贯可交换性（sequential exchangeability）、可阳性性（positivity）与一致性（consistency）——之下，引入这三种 g 方法，用于比较静态处理策略。</p>
+
+<h2 id="s-21-1">21.1 时变处理的 g 公式</h2>
+
+<p>再来看第 20.1 节那个序贯随机化实验（sequentially randomized experiment）的数据，为方便起见，我们把它重列为表 21.1。假如我们只关心时点固定的处理 <code>A1</code> 的效应，也就是说，我们想比较反事实（counterfactual）结局均值 <code>E[Y<sup>a1=1</sup>]</code> 与 <code>E[Y<sup>a1=0</sup>]</code>。在第一、二部分我们已说明：在可识别性条件之下，每个均值 <code>E[Y<sup>a1</sup>]</code> 都是条件于（时点固定的）处理与混杂因素的结局条件均值 <code>E[Y | A1=a1, L1=ℓ1]</code> 的一个加权平均。具体地，<code>E[Y<sup>a1</sup>]</code> 等于加权平均</p>
+
+<div class="eqn">∑<sub>ℓ1</sub> E[Y | A1=a1, L1=ℓ1] f(ℓ1)，其中 f(ℓ1) = Pr[L1=ℓ1]。</div>
+
+<p>这是因为，如上一章所示，只需 <code>L1</code> 就足以让接受处理者（<code>A1=1</code>）与未接受处理者（<code>A1=0</code>）在条件意义下可交换。这个加权平均就是 <code>E[Y<sup>a1</sup>]</code> 的 g 公式：把均值结局标准化到研究人群中混杂因素（这里只有 <code>L1</code>）的分布上。</p>
+
+<p>可是，在表 21.1 的序贯随机化实验里，处理 <code>A=(A0, A1)</code> 是时变的，而且如上一章所见，存在处理－混杂反馈。这意味着，传统调整方法不可靠，无法无偏地估计时变处理 <code>A</code> 的因果效应。例如，即便在一个序贯可交换性成立的序贯随机化实验中，传统方法也可能无法给出“始终处理”（<code>E[Y<sup>a0=1,a1=1</sup>]</code>）与“从不处理”（<code>E[Y<sup>a0=0,a1=0</sup>]</code>）这两种反事实下的均值结局的有效估计。相反，g 公式可以用来计算序贯随机化实验中反事实均值 <code>E[Y<sup>a0,a1</sup>]</code>。为此，需要把上面那个时点固定处理的 g 公式推广。</p>
+
+<figure class="fig"><img src="../figures/ch21--table-21_1.png" alt="表 21.1">
+<figcaption><strong>表 21.1</strong> 一个序贯随机化实验的数据（取自表 20.1）。每一行代表一种处理与协变量历史，<code>Mean Y</code> 为该历史下随访结束时的平均结局。</figcaption></figure>
+
+<table class="datatable">
+<thead><tr><th>N</th><th>A0</th><th>L1</th><th>A1</th><th>Mean Y</th></tr></thead>
+<tbody>
+<tr><td>2400</td><td>0</td><td>0</td><td>0</td><td>84</td></tr>
+<tr><td>1600</td><td>0</td><td>0</td><td>1</td><td>84</td></tr>
+<tr><td>2400</td><td>0</td><td>1</td><td>0</td><td>52</td></tr>
+<tr><td>9600</td><td>0</td><td>1</td><td>1</td><td>52</td></tr>
+<tr><td>4800</td><td>1</td><td>0</td><td>0</td><td>76</td></tr>
+<tr><td>3200</td><td>1</td><td>0</td><td>1</td><td>76</td></tr>
+<tr><td>1600</td><td>1</td><td>1</td><td>0</td><td>44</td></tr>
+<tr><td>6400</td><td>1</td><td>1</td><td>1</td><td>44</td></tr>
+</tbody>
+</table>
+
+<p>在（第 19 章描述的）可识别性条件之下，<code>E[Y<sup>a0,a1</sup>]</code> 的 g 公式仍然是一个加权平均，只不过现在它是对条件于时变处理以及为达到序贯可交换性所必需的混杂因素的结局均值 <code>E[Y | A0=a0, A1=a1, L1=ℓ1]</code> 取加权平均。权重是已知既往（即对应于所施加干预的既往处理取值）的混杂因素 <code>L1</code> 的分布。具体说，g 公式</p>
+
+<div class="eqn">∑<sub>ℓ1</sub> E[Y | A0=a0, A1=a1, L1=ℓ1] f(ℓ1|a0)</div>
+
+<p>等于在（静态）序贯可交换性对 <code>Y<sup>a0,a1</sup></code> 成立时的 <code>E[Y<sup>a0,a1</sup>]</code>。也就是说，对于时变处理，可识别性条件下反事实均值结局的 g 公式估计量，就是把均值结局标准化到研究人群中混杂因素的分布上，表达式里的每一个因子都条件于既往的处理与协变量历史。这种对既往历史的 conditioning（条件化）在时点固定的情形下并不需要，因为那时处理与混杂因素都在单一时点被测量。</p>
+
+<p>只有当对任意满足 <code>f(ℓ1|a0) ≠ 0</code> 的 ℓ1，人群中都存在个体满足 <code>(A0=a0, A1=a1, L1=ℓ1)</code> 时，g 公式才可计算（即定义良好）。这等价于技术要点 19.2 给出的可阳性性定义，也是技术要点 3.1 中关于可阳性性讨论向时变处理的推广。</p>
+
+<p>我们用 g 公式来估计源自表 21.1 序贯随机化实验的因果效应 <code>E[Y<sup>a0=1,a1=1</sup>] − E[Y<sup>a0=0,a1=0</sup>]</code>。“从不处理”均值 <code>E[Y<sup>a0=0,a1=0</sup>]</code> 的 g 公式估计是 <code>84×0.25 + 52×0.75 = 60</code>。“始终处理”均值 <code>E[Y<sup>a0=1,a1=1</sup>]</code> 的 g 公式估计是 <code>76×0.50 + 44×0.50 = 60</code>。因此因果效应 <code>E[Y<sup>a0=1,a1=1</sup>] − E[Y<sup>a0=0,a1=0</sup>]</code> 的估计为 0，与预期一致。传统方法失败之处，g 公式成功了。</p>
+
+<figure class="fig"><img src="../figures/ch21--figure-21_1.png" alt="图 21.1">
+<figcaption><strong>图 21.1</strong> 表 21.1 数据的结构化树图（带因果解释的版本）。每个节点给出该处理与协变量历史下随访结束时的平均结局。</figcaption></figure>
+
+<p>理解 g 公式的另一种方式是把它当作一次模拟。在 <code>Y</code> 与 <code>L̄</code> 联合序贯可交换的条件下，g 公式模拟出：如果研究人群中每个人都遵循处理策略 ā，本应观察到的反事实结局 <code>Y<sup>ā</sup></code> 与协变量历史 <code>L̄<sup>ā</sup></code>。换言之，g 公式模拟（识别）了策略 a 下反事实 <code>Y<sup>ā</sup>, L̄<sup>ā</sup></code> 的联合分布。要看到这一点，先看图 21.1 中带因果解释的结构化树图（structured tree graph），它是表 21.1 数据的另一种呈现。在上述可识别性条件之下，g 公式可以看作一个构建新树的步骤：让所有人都遵循策略 ā。例如，图 21.2 中带因果解释的结构化树图展示了“如果所有人遵循‘始终处理’策略（a0=1, a1=1）”本应观察到的反事实人群。</p>
+
+<figure class="fig"><img src="../figures/ch21--figure-21_2.png" alt="图 21.2">
+<figcaption><strong>图 21.2</strong> “始终处理”策略（a0=1, a1=1）下的反事实人群，由 g 公式模拟得到。</figcaption></figure>
+
+<p>要模拟这个反事实人群，我们（i）给时点 k=0 与 k=1 分别赋以接受处理 a0=1 与 a1=1 的概率为 1；（ii）赋予与原始研究人群相同的 <code>Pr[L1=ℓ1 | A0=a0]</code> 与相同的 <code>E[Y | A0=a0, A1=a1, L1=ℓ1]</code>。有两点很重要。第一，g 公式的取值依赖于我们是否（以及在多大程度上）把 <code>L</code> 纳入。举个例子：假设我们没有收集 <code>L1</code> 的数据，因为我们错误地认为（如图 20.8 中去掉从 L1 指向 A1 的箭头后那样）我们的研究无需 L1。于是我们以为 L1 不是混杂因素，从而识别时不需要它。那么，在没有 L1 数据时，g 公式就退化为 <code>E[Y | A0=a0, A1=a1]</code>，因为没有需要调整的协变量历史。然而，由于我们的研究实际上是由图 20.8 所刻画（在该图下处理分配 A1 受 L1 影响），这个不含 L1 的 g 公式就不再具有因果解释了。</p>
+
+<p>第二，即便 g 公式具有因果解释，它的各个组成部分也可能各自都没有因果解释。举例来说，考虑图 20.9 的因果图，在它之下只有静态序贯可交换性成立。包含 L1 的 g 公式正确地识别了 <code>Y<sup>a</sup></code> 的均值。引人注目的是，无论我们是否加上从 A0、A1 指向 Y 的箭头，g 公式作为 <code>E[Y<sup>ā</sup>]</code> 始终保有其因果解释，尽管它的两个组成部分——<code>E[Y | A0=a0, A1=a1, L1=ℓ1]</code> 与 <code>Pr[L1=ℓ1 | A0=a0]</code>——都完全没有任何因果解释。也就是说，<code>Pr[L1=ℓ1 | A0=a0] ≠ Pr[L1<sup>a0</sup>=ℓ1]</code>，且 <code>E[Y | A0=a0, A1=a1, L1=ℓ1] ≠ E[Y<sup>a0,a1</sup> | L1<sup>a0</sup>=ℓ1]</code>。这两个不等号在图 20.1 与 20.2 所代表的序贯随机化试验中会变成等号。</p>
+
+<aside class="finepoint"><span class="box-label">精细辨析 21.1　处理与协变量历史</span>在描述 g 方法时，我们常提到为达到序贯可交换性所必需的处理与协变量历史。对 g 公式，我们说它的各个组成部分条件于既往的处理与协变量历史。例如，对应于时点 k=2 处离散混杂因素 L2 的概率因子
+
+<div class="eqn">f(ℓ2 | A1=ā1, L1=l̄1) = Pr[L2=ℓ2 | A0=a0, A1=a1, L0=l0, L1=l1]</div>
+
+条件于时点 0 与 1 的处理和混杂因素；时点 k=3 的因子条件于时点 0、1、2 的处理和混杂因素，依此类推。不过，“历史”一词不必按时间顺序来定义，因为如精细辨析 7.4 所述，混杂因素在理论上可以处在某个处理的“时间未来”。反过来，如与图 7.4 一起讨论的那样，调整处理“时间过去”中的某些变量可能引入选择偏倚（所谓 M 偏倚）。因此，在本书中，时点 k 处因果意义相关的“历史”，应当理解为：为达到处理 Ak 的条件可交换性所需的那一组处理与混杂因素。多数情况下，这种“历史”的用法会对应于按时间先后排列的历史。</aside>
+
+<p>现在把 g 公式推广到含多个时点 k 的高维情形。g 公式为</p>
+
+<div class="eqn">∑<sub>l̄</sub> E[Y | Ā=ā, L̄=l̄] ∏<sub>k=0</sub><sup>K</sup> f(ℓk | ā<sub>k−1</sub>, l̄<sub>k−1</sub>)</div>
+
+<p>其中求和遍历所有可能的 l̄ 历史（l̄<sub>k−1</sub> 是截至时点 k−1 的历史）。这个对 l̄ 的求和也可以写成 <code>∑<sub>ℓK</sub> … ∑<sub>ℓ1</sub> ∑<sub>ℓ0</sub></code>。在每个时点 k，给定 L̄k、Āk 对 <code>Y<sup>ā</sup></code> 的序贯可交换性成立时，这个表达式等于处理策略 ā 下的反事实均值 <code>E[Y<sup>ā</sup>]</code>。精细辨析 21.1 给出了“历史”一词更细致的定义。</p>
+
+<p>然而在实践里，如果数据是高维的（正如在带多个混杂因素或多个时点的观察性研究中预期的那样），g 公式的各个组成部分无法被直接计算。量 <code>E[Y | Ā=ā, L̄=l̄]</code> 与 <code>f(ℓk | ā<sub>k−1</sub>, l̄<sub>k−1</sub>)</code> 需要被估计。例如，我们可以拟合一个线性回归模型来估计随访结束时结局变量的条件均值 <code>E[Y | Ā=ā, L̄=l̄]</code>，并拟合逻辑回归模型来估计每个时点 k≠0 处离散混杂因素 Lk 的分布（L0 的分布可以如第 13.3 节所述无需模型地估计）。这些模型的估计值 <code>Ê[Y | Ā=ā, L̄=l̄]</code> 与 <code>f̂(ℓk | ā<sub>k−1</sub>, l̄<sub>k−1</sub>)</code> 随后会被代入 g 公式。自第 13 章起，我们把这个估计量称为<strong>插入式 g 公式</strong>（plug-in g-formula）；当插入式 g 公式里使用的估计值基于参数化模型时，我们称之为<strong>参数化 g 公式</strong>（parametric g-formula）。</p>
+
+<p>为简洁起见，本章大体聚焦在确定性策略下的 g 公式。不过，在序贯可交换性之下，g 公式也能用来计算随机处理策略 <code>f<sup>int</sup></code> 下的反事实结局均值。随机（静态）策略的一个例子是“在每个时点 k 独立地以概率 0.3 处理、以概率 0.7 不处理”，其中 <code>f<sup>int</sup>(1 | ā<sub>k−1</sub>, l̄k) = 0.3</code>。也就是说，<code>f<sup>int</sup>(ak | ā<sub>k−1</sub>, l̄k)</code> 是在处理策略下时点 k 给予处理 ak 的条件概率。</p>
+
+<aside class="techpoint"><span class="box-label">技术要点 21.1　g 公式密度</span>对 Y、L 在取值 y、l̄ 处、针对确定性静态策略 ā 的 g 公式密度为
+
+<div class="eqn">f<sub>Y<sup>ā</sup>, L̄<sup>ā</sup></sub>(y, l̄) = f(y | ā<sub>K</sub>, l̄<sub>K</sub>) ∏<sub>k=0</sub><sup>K</sup> f(ℓk | ā<sub>k−1</sub>, l̄<sub>k-1</sub>)</div>
+
+对 Y 的静态 g 公式密度，不过是 Y、L 的 g 公式密度中 Y 的边际密度：
+
+<div class="eqn">∫ … ∫ f(y | ā<sub>K</sub>, l̄<sub>K</sub>) ∏<sub>k=0</sub><sup>K</sup> dF(ℓk | ā<sub>k−1</sub>, l̄<sub>k-1</sub>)</div>
+
+其中积分记号用来容纳 Lk 某些分量为连续变量的情形。对动态确定性策略 g=(g0,…,gK)（其中 gk 取值于 Ak 的支撑），g 公式密度只需在以上公式中把 ak 替换为 <code>a<sup>g</sup><sub>k</sub></code>；这里 <code>a<sup>g</sup><sub>k</sub></code> 对 k=0,…,K 递归地定义为 <code>a<sup>g</sup><sub>k</sub> ≡ g<sub>k</sub>(a<sup>g</sup><sub>k-1</sub>, l̄k) ≡ g<sub>k</sub>(g<sub>k-1</sub>(…g<sub>0</sub>(a<sup>g</sup><sub>-1</sub>, l̄0)…), l̄k)</code>，并约定 <code>a<sup>g</sup><sub>-1</sub>=0</code>。静态策略是动态策略中每个 gk 都为常值函数的特例。更一般地，给定观测数据 <code>O=Ā, X, Y</code> 与未观测数据 U（其中 X 是除处理 Ā 与结局 Y 之外所有被测量变量的集合），g 公式的输入是（i）一个确定性处理策略 g，（ii）一个表示观测数据（及其未测量共同原因）的因果 DAG，（iii）一个我们希望调整的 X 的子集 L，以及（iv）一个与 DAG 拓扑一致的 L、Ā、Y 的全序（即每个变量都排在其祖先之后）。向量 Lk 由排序中处于 Ak−1 之后、Ak 之前的 L 中全部变量构成。所选择的排序通常（但不总是）是按时间先后的，正如精细辨析 21.1 所讨论的。当对所选排序的 <code>Y<sup>g</sup></code> 序贯可交换性与可阳性性成立时，Y 的 g 公式密度等于：如果所有人都遵循策略 g，研究人群中本会观测到的密度 <code>f<sub>Y<sup>g</sup></sub>(y)</code>。否则，g 公式仍可计算，但没有因果解释。当对 Y、L 的可交换性与阳性性成立时（例如，没有任何变量——无论属于 U 还是属于 X 但不属于 L——有箭头直接指向任一处理变量），Y、L 的 g 公式密度等于密度 <code>f<sub>Y<sup>g</sup>, L<sup>g</sup></sub>(y, l̄)</code>。</aside>
+
+<p>更一般地，对于随机处理策略（或干预）<code>f<sup>int</sup></code>，g 公式的一般表达式为</p>
+
+<div class="eqn">∑<sub>ā, l̄</sub> E[Y | Ā=ā, L̄=l̄] ∏<sub>k=0</sub><sup>K</sup> f(ℓk | ā<sub>k-1</sub>, l̄<sub>k-1</sub>) ∏<sub>k=0</sub><sup>K</sup> f<sup>int</sup>(ak | ā<sub>k-1</sub>, l̄k)</div>
+
+<p>注意，如果我们把 <code>f<sup>int</sup>(ak | ā<sub>k-1</sub>, l̄k)</code> 替换为观测到的处理条件概率 <code>f(ak | ā<sub>k-1</sub>, l̄k)</code>，这就是 Y 的观测均值的公式。这个 g 公式表达式足够一般，既能容纳确定性策略，也能容纳随机策略。在确定性处理策略下，<code>f<sup>int</sup>(ak | ā<sub>k-1</sub>, l̄k)</code> 对策略规定的 ak 取值总是 1，对其他取值为 0。例如在“从不处理”策略 ā=(0,0,…0) 下，<code>f<sup>int</sup>(0 | ā<sub>k-1</sub>, l̄k)=1</code> 对所有 k 成立。由于对规定的处理取值 <code>f<sup>int</sup></code> 因子为 1、对其余取值为 0，上述公式中就无需包含 <code>f<sup>int</sup></code> 因子以及对 ā 的求和。我们公开的软件实现了 g 公式的这个一般表达式，因而能容纳任意处理策略。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>关于 g 公式的软件实现：Robins 在 1986、1987 年提出时变处理的 g 公式后，实证研究中常用参数化版本。正文提到的 R 包 <code>gfoRmula</code>（Lin 等，2019，可通过 CRAN 安装）与 SAS 宏 GFORMULA 是两套主流工具；对应的中文流行病学教材常把它译为“g 计算法”或“参数化 g 公式”。在国内队列研究（如中国 Kadoorie 生物库、心血管队列）中做时变暴露的因果效应估计时，它常被用来模拟“若所有人都采取某干预策略”的结局。</aside>
+
+<!-- CONTENT-END -->
+</article>
+</main>
+<script src="../assets/site.js"></script>
+</body>
+</html>

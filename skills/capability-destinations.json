@@ -1,0 +1,65 @@
+{
+  "generated_by": "cangjie-tools v2.5.0",
+  "bundle_id": "bundle.causal-inference-what-if",
+  "router_entrypoint": "causal-inference-what-if",
+  "entrypoint_count": 8,
+  "capability_count": 14,
+  "destinations": {
+    "cap.what-if.target-trial-emulation": {
+      "promoted_to": "target-trial-emulation",
+      "router_view": "causal-inference-what-if/references/capabilities/target-trial-emulation.md"
+    },
+    "cap.what-if.causal-dag-identification": {
+      "promoted_to": "causal-dag-identification",
+      "router_view": "causal-inference-what-if/references/capabilities/causal-dag-identification.md"
+    },
+    "cap.what-if.bias-structure-diagnosis": {
+      "promoted_to": "bias-structure-diagnosis",
+      "router_view": "causal-inference-what-if/references/capabilities/bias-structure-diagnosis.md"
+    },
+    "cap.what-if.selection-bias-immortal-time": {
+      "promoted_to": "selection-bias-immortal-time",
+      "router_view": "causal-inference-what-if/references/capabilities/selection-bias-immortal-time.md"
+    },
+    "cap.what-if.standardization-gformula": {
+      "promoted_to": "standardization-gformula",
+      "router_view": "causal-inference-what-if/references/capabilities/standardization-gformula.md"
+    },
+    "cap.what-if.ip-weighting-msm": {
+      "promoted_to": "ip-weighting-msm",
+      "router_view": "causal-inference-what-if/references/capabilities/ip-weighting-msm.md"
+    },
+    "cap.what-if.time-varying-gmethods": {
+      "promoted_to": "time-varying-gmethods",
+      "router_view": "causal-inference-what-if/references/capabilities/time-varying-gmethods.md"
+    },
+    "cap.what-if.identifiability-conditions": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/identifiability-conditions.md"
+    },
+    "cap.what-if.g-estimation-snm": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/g-estimation-snm.md"
+    },
+    "cap.what-if.doubly-robust-estimation": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/doubly-robust-estimation.md"
+    },
+    "cap.what-if.instrumental-variable": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/instrumental-variable.md"
+    },
+    "cap.what-if.effect-modification-interaction": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/effect-modification-interaction.md"
+    },
+    "cap.what-if.causal-mediation": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/causal-mediation.md"
+    },
+    "cap.what-if.variable-selection-causal": {
+      "served_by": "causal-inference-what-if",
+      "card": "causal-inference-what-if/references/capabilities/variable-selection-causal.md"
+    }
+  }
+}

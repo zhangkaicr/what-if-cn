@@ -1,0 +1,29 @@
+  skill: bias-structure-diagnosis       72 行    5254 字节
+  skill: causal-dag-identification      67 行    5316 字节
+  skill: causal-inference-what-if       71 行    8966 字节
+  skill: ip-weighting-msm               74 行    5419 字节
+  skill: selection-bias-immortal-time   67 行    5442 字节
+  skill: standardization-gformula       72 行    5436 字节
+  skill: target-trial-emulation         71 行    5606 字节
+  skill: time-varying-gmethods          75 行    5894 字节
+
+共扫描 26 个 .md，其中 8 个 SKILL.md
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\bias-structure-diagnosis\SKILL.md: frontmatter 缺失或不可解析
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-dag-identification\SKILL.md: frontmatter 缺失或不可解析
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.causal-dag-identification.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.target-trial-emulation.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.bias-structure-diagnosis.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.time-varying-gmethods.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.ip-weighting-msm.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.standardization-gformula.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.variable-selection-causal.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.identifiability-conditions.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.effect-modification-interaction.md` 不存在
+ERROR [broken-ref] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\causal-inference-what-if\SKILL.md: `references/capabilities/cap.what-if.doubly-robust-estimation.md` 不存在
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\ip-weighting-msm\SKILL.md: frontmatter 缺失或不可解析
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\selection-bias-immortal-time\SKILL.md: frontmatter 缺失或不可解析
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\standardization-gformula\SKILL.md: frontmatter 缺失或不可解析
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\target-trial-emulation\SKILL.md: frontmatter 缺失或不可解析
+ERROR [frontmatter] C:\WorkBuddy\what-if-cn\.staging-run-20261018-112937-773329-skills\time-varying-gmethods\SKILL.md: frontmatter 缺失或不可解析
+
+结果: 17 errors, 0 warnings

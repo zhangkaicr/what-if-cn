@@ -1,0 +1,6 @@
+_build/
+figures/raw/
+_tools/__pycache__/
+_cangjie/__pycache__/
+.staging-run-*/
+*.pyc

@@ -1,0 +1,12 @@
+  skill: bias-structure-diagnosis       72 行    5255 字节
+  skill: causal-dag-identification      67 行    5317 字节
+  skill: causal-inference-what-if       71 行    8715 字节
+  skill: ip-weighting-msm               74 行    5420 字节
+  skill: selection-bias-immortal-time   67 行    5443 字节
+  skill: standardization-gformula       72 行    5437 字节
+  skill: target-trial-emulation         71 行    5607 字节
+  skill: time-varying-gmethods          75 行    5895 字节
+
+共扫描 26 个 .md，其中 8 个 SKILL.md
+
+结果: 0 errors, 0 warnings

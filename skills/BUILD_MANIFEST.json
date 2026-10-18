@@ -1,0 +1,52 @@
+{
+  "tool": "cangjie-tools v2.5.0",
+  "published_hashes": {
+    "bias-structure-diagnosis\\SKILL.md": "0ef79241790f4ae41984dbbb9dc9bed1f4028d5102dfd17b4e0a8f6587c56144",
+    "capability-destinations.json": "317ee3cf2a72808cdb534eeea2266bda300bc92caad6e573170265cbb00059b3",
+    "causal-dag-identification\\SKILL.md": "4b29efd24f2623caf232ed4e114933c25b3aa3027076fe0dcd83869ae399bcf4",
+    "causal-inference-what-if\\references\\capabilities\\bias-structure-diagnosis.md": "ea76f37f5d1d3980b0f6afe2360cad4a355d4fbd2b0156bf6927eae815237a3d",
+    "causal-inference-what-if\\references\\capabilities\\causal-dag-identification.md": "34737496adfb8f09f5ef03462cf21a11bc846824919a7d89601b75d2101f0530",
+    "causal-inference-what-if\\references\\capabilities\\causal-mediation.md": "65db29fe584faf8321d9b8d4666dbe5d08332f8bd37bab02f92e99818cf3ec71",
+    "causal-inference-what-if\\references\\capabilities\\doubly-robust-estimation.md": "d298e895827b8b2d5b3a983438a2ebeef4690871c18fac30ca2dc7fe485a7233",
+    "causal-inference-what-if\\references\\capabilities\\effect-modification-interaction.md": "73d109c6b62f2ad816bdcaae3e67a540830df959a0f12e10c9b40572bd5a9f6a",
+    "causal-inference-what-if\\references\\capabilities\\g-estimation-snm.md": "de2d1f9b75cccd8060dcd9daf1e534753c3e3c0a78ad24398d4260602b6fd82d",
+    "causal-inference-what-if\\references\\capabilities\\identifiability-conditions.md": "c45c6e6b8a94a2ba546f9fb6f1818b262ada1a1abf0f6b8f0fdba857277b707c",
+    "causal-inference-what-if\\references\\capabilities\\instrumental-variable.md": "fd9fc286c21ebdb96f85af93f55f6faa68a47fd7863e124cd0ecfa2089ac81f3",
+    "causal-inference-what-if\\references\\capabilities\\ip-weighting-msm.md": "665fc3f13b709acc933a116de03c18e828e1bcb3532a407c81491b50c233e6ca",
+    "causal-inference-what-if\\references\\capabilities\\selection-bias-immortal-time.md": "d2679cc6629e35548effbf645d499e3900e3ae8976befccb0a84579f0abc595e",
+    "causal-inference-what-if\\references\\capabilities\\standardization-gformula.md": "7d71eb735b37e7ae4f0e4b3395815832f4067951ec6a32d055b01a5f97be5080",
+    "causal-inference-what-if\\references\\capabilities\\target-trial-emulation.md": "fc0f2dd5b9363ea6b08202937a9ab35963b285a646da18821176eb6f2e905fb5",
+    "causal-inference-what-if\\references\\capabilities\\time-varying-gmethods.md": "b4a184dc05a32f67cf0751ec7e4dea68597013a0f9f6a3c305deb238a87fac84",
+    "causal-inference-what-if\\references\\capabilities\\variable-selection-causal.md": "f366a6234d0b1986f8030506cf98422b883c998eb291285858044d9312de9a22",
+    "causal-inference-what-if\\references\\capability-index.md": "aef9b117b8975f58b180c1d796f335bf9e2b450541cd210f63be51ded3b3011a",
+    "causal-inference-what-if\\references\\cheatsheet.md": "6da97c38ebbf23978cb788380a4eb027f658dc897582b183cb81081060148a3e",
+    "causal-inference-what-if\\references\\glossary.md": "da37115389975a5a0314220bb336d9154bbbd36879b66d1447a43f9f1882ecb7",
+    "causal-inference-what-if\\references\\overview.md": "3aed333f2e1e556e8592f4b95f1d5a4ddc88fe865d06647ba94018556fd43e5f",
+    "causal-inference-what-if\\SKILL.md": "d8d3ae5ed5e1723a33d408c3465c154f1671ebe7aceac8567e62c6e6a8f4d441",
+    "ip-weighting-msm\\SKILL.md": "c23907f8619ff3abb0549113ed7d49f208d71f85410f93f7085b75e1be1e9c69",
+    "selection-bias-immortal-time\\SKILL.md": "5a2fca11086bbb05b578157a074ea8c7dff804c515c315cc52a65f519a8f2ea3",
+    "standardization-gformula\\SKILL.md": "20109a358ac69e2782617e8cebf92a029cbc734bc940398341ee00a3c6aee85c",
+    "target-trial-emulation\\SKILL.md": "f3f394aba6f4bff63408bc8054084189b4a388f61bb955b8fdcc009cff3255b7",
+    "time-varying-gmethods\\SKILL.md": "062d8430d818802ad672acbfe8a12354fff67ed214d9a019276b56059c6f36b1"
+  },
+  "note": "update/重编译前比对 published_hashes；检测到本地手改不得静默覆盖",
+  "bundle_id": "bundle.causal-inference-what-if",
+  "bundle_sha256": "2df9ea85ceb1dc6bb503bc0b2e5f4331b3fad5473109443d25b496c6d6d03fa6",
+  "variant": "pack",
+  "run_id": "run-20261018-113146-c4ade3",
+  "decision": {
+    "schema_version": 1,
+    "requested": "pack",
+    "selected": "pack",
+    "decision_policy": "single-first-v1",
+    "skill_budget": 8,
+    "promoted_count": 7,
+    "capability_count": 14,
+    "reasons": [
+      "用户显式选择 pack，auto 决策器不覆盖用户选择"
+    ],
+    "alternative": "single（1 个入口 + 14 张内部能力卡）",
+    "user_confirmed": true,
+    "preserve_strategy_on_update": true
+  }
+}

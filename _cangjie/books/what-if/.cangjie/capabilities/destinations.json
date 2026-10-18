@@ -1,0 +1,47 @@
+{
+  "bundle_id": "bundle.causal-inference-what-if",
+  "destinations": {
+    "cap.what-if.target-trial-emulation": {
+      "promoted_to": "target-trial-emulation"
+    },
+    "cap.what-if.causal-dag-identification": {
+      "promoted_to": "causal-dag-identification"
+    },
+    "cap.what-if.bias-structure-diagnosis": {
+      "promoted_to": "bias-structure-diagnosis"
+    },
+    "cap.what-if.selection-bias-immortal-time": {
+      "promoted_to": "selection-bias-immortal-time"
+    },
+    "cap.what-if.standardization-gformula": {
+      "promoted_to": "standardization-gformula"
+    },
+    "cap.what-if.ip-weighting-msm": {
+      "promoted_to": "ip-weighting-msm"
+    },
+    "cap.what-if.time-varying-gmethods": {
+      "promoted_to": "time-varying-gmethods"
+    },
+    "cap.what-if.identifiability-conditions": {
+      "served_by": "causal-inference-what-if"
+    },
+    "cap.what-if.g-estimation-snm": {
+      "served_by": "causal-inference-what-if"
+    },
+    "cap.what-if.doubly-robust-estimation": {
+      "served_by": "causal-inference-what-if"
+    },
+    "cap.what-if.instrumental-variable": {
+      "served_by": "causal-inference-what-if"
+    },
+    "cap.what-if.effect-modification-interaction": {
+      "served_by": "causal-inference-what-if"
+    },
+    "cap.what-if.causal-mediation": {
+      "served_by": "causal-inference-what-if"
+    },
+    "cap.what-if.variable-selection-causal": {
+      "served_by": "causal-inference-what-if"
+    }
+  }
+}

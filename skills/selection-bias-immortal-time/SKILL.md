@@ -1,0 +1,66 @@
+---
+name: selection-bias-immortal-time
+description: |
+  当用户的研究存在'必须先存活/满足某条件才能进入治疗组'的结构，或入组与治疗开始不同步时用。
+  永恒时间偏倚是选择偏倚的特例：条件于一个发生在治疗之后、又是结局共同结果的事件。
+  触发信号：永恒时间偏倚 / immortal time bias / 时间零点 / time zero / 入组和用药不同步 / 生存分析里的存活者偏倚 / 删失失访怎么校正。
+  不适用于：治疗不随时间变化且时间零点已对齐的常规混杂问题（走因果图识别）、
+  以及时变混杂反馈导致的偏倚（走时变 G 方法）。
+metadata:
+  cangjie.generated-by: cangjie-tools v2.5.0
+  cangjie.capability-id: cap.what-if.selection-bias-immortal-time
+  cangjie.capability-revision: 1
+  cangjie.bundle-id: bundle.causal-inference-what-if
+  cangjie.source-title: Causal Inference - What If
+  cangjie.tags: causal-inference, bias, survival-analysis, study-design
+---
+<!-- capability_id: cap.what-if.selection-bias-immortal-time | revision: 1 | status: active -->
+<!-- 来源: Causal Inference: What If (Hernan & Robins, 2020) / 第 8 章（8.1-8.6）；第 8.4 节 Selection bias and censoring；第 22.4 节 Time zero；第 21.5 节 Censoring is a time-varying treatment -->
+
+## R — 原文
+
+结构定位：第 8.1 节 "The structure of selection bias"；第 8.4 节 "Selection bias and censoring"；第 8.5 节 "How to adjust for selection bias"；第 8.6 节 "Selection without bias"；第 22.4 节 "Time zero"。
+
+## I — 自述
+
+选择偏倚的图结构是：**条件于治疗与结局的共同结果**。永恒时间偏倚是它最阴险的一个特例，因为触发它的那个"条件"常常藏在研究设计里，而不是分析代码里。
+
+典型结构：研究比较"用药者"与"未用药者"的死亡风险。但入组发生在时间 T0，用药发生在 T1 > T0，而且只有活到 T1 的人才可能用药。于是"用药"这个分组变量，隐含地以"活到 T1"为条件——而"活到 T1"正是治疗与死亡的共同结果。用药组在 [T0, T1] 这段区间内**不可能死亡**，这段"永生时间"被算进了用药组的分母，凭空造出生存优势。
+
+修法不是换模型，而是**把时间零点对齐**：让入组、治疗分配、随访开始落在同一时刻，使每一组的随访风险从同一个起点开始计。做不到对齐时，就得把"治疗"重新定义为随时间变化的处理，用处理策略（如"立即启动" vs "永不启动"）来表述，并交给时变 G 方法。
+
+## A1 — 书中案例
+
+- **第 8.2 节 "Examples of selection bias"**：作者给出若干经典实例，说明"暴露组看起来更健康"往往只是因为他们必须先满足某个准入条件。
+- **第 8.4 节 "Selection bias and censoring"**：把删失与失访统一到选择偏倚的图结构中，为 Part III 用 IP 加权处理删失铺路。
+- **第 22.4 节 "Time zero"**：作者把时间零点单列一节，正是因为它是目标试验模拟中最容易做错、后果最严重的一个组件。
+- **第 21.5 节 "Censoring is a time-varying treatment"**：把删失彻底当成一种时变处理来处理，用同一套 G 方法校正。
+
+## A2 — 未来触发
+
+场景：
+1. 用户比较"用药 vs 不用药"，但两组的起点时间不同。
+2. 用户的队列里，暴露组必须先存活或先满足某个条件才能被归为暴露。
+3. 用户报告"药物效果出奇地好"，尤其是生存结局。
+4. 用户在设计真实世界研究，需要确定 time zero。
+
+语言信号：永恒时间偏倚 / immortal time bias / 时间零点 / time zero / 入组和用药不在同一天 / 存活者偏倚 / survivor bias / 删失 / 失访怎么校正。
+
+与相邻能力区分：本能力专治**时间结构错配**导致的选择偏倚。若是一般性的"该调整哪些变量"，走因果图识别；若是治疗随时间变化且受既往治疗影响，走时变 G 方法；若只是要给偏倚定类，走偏倚结构化分类。
+
+## E — 执行步骤
+
+1. 写下三个时间点：入组（eligibility 判定）、治疗分配（策略开始）、随访开始。
+2. **检查三者是否同一时刻。** 若不是，标记存在永恒时间偏倚风险。
+3. 找出那个"必须先发生的事件"（如存活到用药日、完成某项检查、出院）。判断它是否是治疗与结局的共同结果。
+4. 若是，把研究重述为**随时间变化的治疗策略**对比："立即启动" vs "全程不启动"，而不是"用药者 vs 未用药者"。
+5. 用克隆-加权或目标试验模拟的方式对齐时间零点（第 22.3 节）。
+6. 对删失与失访：按第 8.4 / 21.5 节，用逆概率删失加权（IPCW）处理，而非简单剔除。
+7. 完成标准：重新分析后，每一组的随访风险都从同一个时间零点起算，且能说明"永生时间"去了哪里。
+
+## B — 边界
+
+- **不要只靠剔除"早期死亡者"来修。** 这会换一种方式引入选择偏倚。
+- **第 8.6 节提醒：有的选择不带偏倚。** 条件于一个不是共同结果的变量是安全的；不要见"选择"就恐慌。
+- **生存分析的常规方法（如条件于在研时间）不会自动修复此偏倚**，反而可能掩盖它。
+- 若研究者无法获得治疗开始的确切时间，本偏倚通常**无法从数据内部修复**，只能做敏感性分析并如实报告。

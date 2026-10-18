@@ -1,0 +1,874 @@
+schema_version: 1
+bundle_id: bundle.causal-inference-what-if
+book:
+  title: Causal Inference - What If
+  authors:
+  - Miguel A. Hernan
+  - James M. Robins
+  year: 2020
+  slug: what-if
+  source_id: src-main-book
+  original_language: en
+entry:
+  name: causal-inference-what-if
+  title: 因果推断：What If（Hernán & Robins）
+  description: 'Hernán & Robins《Causal Inference: What If》蒸馏出的因果推断能力集，覆盖目标试验模拟、因果图识别、偏倚结构诊断，以及 IP 加权 / g-formula / G 方法等估计路径。
+
+    触发：设计或审查观察性研究、判断该调整哪些变量、诊断偏倚类型、选择并实施因果估计方法、解读 ITT / per-protocol / LATE 等 estimand 的含义。
+
+    不触发：纯预测建模、统计软件操作教程、与因果推断无关的通用数据分析。'
+  core_principles:
+  - 识别先于估计：先问「在给定假设下这个效应能否被数据唯一确定」，再问用什么方法把它算出来。
+  - 干预必须定义明确：说不出可执行操作的「效应」没有单一答案，一致性条件首先就过不了。
+  - 按因果图的结构认偏倚，不按名字认偏倚：共同原因是混杂，条件于共同结果是选择偏倚，变量测错是测量偏倚。
+  - 目标试验先行：拿到观察性数据先写清 eligibility、治疗策略、时间零点、结局与因果对比，再选估计方法。
+  - 同一个 estimand 有多条算法路径：g-formula 建在结局上，IP 加权建在治疗上，G-estimation 建在效应上。
+  - 治疗一旦随时间变化并改变自身的混杂因子，传统回归无论怎么调整都有偏，只能用 G 方法。
+  - 效应修饰依赖尺度，交互要求干预可被联合施加——两者不是一回事。
+  out_of_scope:
+  - 纯预测 / 预后建模（不问干预效应）
+  - 统计软件操作、代码调试与包用法教学
+  - 与因果推断无关的通用数据清洗与可视化
+  - 哲学层面的因果本体论讨论（本书明确声明不做）
+  - 本书未覆盖的主题：干扰（interference / spillover）、贝叶斯因果推断、网络实验设计
+  stop_conditions:
+  - 干预写不出可执行的操作时停止估计，先回到问题定义（目标试验模拟）。
+  - 正值性结构性违反（某类患者从不接受某种治疗）时，该亚群的效应不可识别，不要硬估。
+  - 可交换性无法论证时应转向敏感性分析或工具变量，并明确报告未测混杂的存在。
+  - 路由表与能力索引都无法命中的意图，明确说明超出本书范围，不要硬套某张能力卡。
+router_entry:
+  name: causal-inference-what-if
+  title: 因果推断：What If — 能力路由入口
+  description: 全书 14 个能力的统一入口，含未晋级能力卡与索引。
+promotion_budget: 8
+capabilities:
+- capability_id: cap.what-if.target-trial-emulation
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: target-trial-emulation
+  title: 目标试验模拟：先写试验方案，再碰数据
+  importance: critical
+  importance_rationale: 第 3.6 节与第 22 章是全书的方法论枢纽；作者自称本书围绕'把因果问题说清楚'展开，其余各章的估计方法都在方案定型之后才登场。
+  one_liner: 拿到观察性数据先别建模，先把'我本来想做的那个随机试验'的 7 项方案写出来。
+  intents:
+  - 用真实世界数据估计某个治疗/暴露的因果效应
+  - 判断一个回顾性分析能不能回答所提的因果问题
+  - 厘清 ITT 效应与 per-protocol（依从方案）效应的区别
+  - 确定队列研究的时间零点与入组标准
+  keywords:
+  - 目标试验
+  - target trial
+  - 真实世界证据
+  - RWE
+  - ITT
+  - per-protocol
+  - time zero
+  - 时间零点
+  - eligibility
+  also_read:
+  - identifiability-conditions
+  - selection-bias-immortal-time
+  - ip-weighting-msm
+  card: cards/target-trial-emulation.md
+  frontmatter:
+    description: '当用户要用观察性/真实世界数据回答''X 对 Y 的因果效应''时，先把目标试验方案写实：
+
+      eligibility、治疗策略、分配机制、时间零点、随访终点、结局、因果对比（ITT 或 per-protocol）、分析计划。
+
+      触发信号：真实世界研究、回顾性队列、目标试验、target trial、时间零点怎么定、ITT 还是 per-protocol、这个研究设计能不能回答因果问题。
+
+      不适用于：纯预测/预后问题（不问干预效果）、干预本身无法定义成可执行动作、以及只需选估计方法而方案已定的场景（那种情况直接走 IP 加权或 g-formula）。'
+    tags:
+    - causal-inference
+    - study-design
+    - framework
+  source_evidence:
+  - source_id: src-main-book
+    location: 导言 p.vii；第 3.6 节 The target trial；第 22 章目标试验模拟（22.1-22.5）
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.causal-dag-identification
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: causal-dag-identification
+  title: 因果图识别与后门准则
+  importance: critical
+  importance_rationale: 第 6、7 章是 Part I 的识别论核心，后门准则被第 7.3、7.6 节确立为混杂调整的操作标准，并被 Part II/III 所有估计方法默认依赖。
+  one_liner: 把假设画成箭头，再用后门准则挑调整集合——调整不该靠'把所有变量都塞进模型'。
+  intents:
+  - 画出某个研究问题的因果图（DAG）
+  - 判断该调整哪些变量、不该调整哪些
+  - 用后门准则找出可识别的调整集合
+  - 判断某变量是混杂因子、中介还是对撞节点
+  keywords:
+  - DAG
+  - 因果图
+  - directed acyclic graph
+  - backdoor criterion
+  - 后门准则
+  - d-separation
+  - collider
+  - 对撞节点
+  - confounder
+  - 混杂
+  also_read:
+  - bias-structure-diagnosis
+  - variable-selection-causal
+  - identifiability-conditions
+  card: cards/causal-dag-identification.md
+  frontmatter:
+    description: '当用户需要画因果图、判断调整集合、或问''这个变量该不该放进模型''时用。
+
+      以 d-分离判断边际/条件独立，用后门准则挑选足以阻断所有后门路径的协变量集合。
+
+      触发信号：画 DAG / 因果图 / 混杂怎么调整 / backdoor / d-separation / collider / 对撞节点 / 这个变量该不该调整 / 调整集合。
+
+      不适用于：纯粹的变量筛选（走因果变量选择）、时间依赖的时变混杂（走时变 G 方法）、以及只想问''这是哪种偏倚''（走偏倚结构化分类）。'
+    tags:
+    - causal-inference
+    - identification
+    - diagram
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 6 章（6.1-6.6）；第 7.3 节 Confounding and the backdoor criterion；第 7.6 节 Confounding adjustment
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.bias-structure-diagnosis
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: bias-structure-diagnosis
+  title: 偏倚的结构化分类：按图的结构认偏倚，不按名字认偏倚
+  importance: critical
+  importance_rationale: 第 6.5 节提出的分类是 Part I 后半段（第 7、8、9 章）的组织骨架，作者明确指出三类偏倚只是图结构不同。
+  one_liner: 混杂 = 共同原因；选择偏倚 = 条件于共同结果；测量偏倚 = 变量测错了或测的是代理。
+  intents:
+  - 判断一个观察到的偏倚属于混杂、选择偏倚还是测量偏倚
+  - 用一个统一的框架梳理研究中所有可能的偏倚来源
+  - 判断某偏倚能否用已有数据校正
+  keywords:
+  - 偏倚
+  - bias
+  - 混杂
+  - confounding
+  - 选择偏倚
+  - selection bias
+  - 测量偏倚
+  - measurement bias
+  - 结构分类
+  - structural classification
+  also_read:
+  - causal-dag-identification
+  - selection-bias-immortal-time
+  - variable-selection-causal
+  card: cards/bias-structure-diagnosis.md
+  frontmatter:
+    description: '当用户问''这算混杂还是选择偏倚''''这个偏倚能不能校正''时用。
+
+      按因果图的结构给偏倚定类：共同原因 → 混杂；条件于共同结果（对撞节点）→ 选择偏倚；
+
+      变量测错或用了代理 → 测量偏倚。定类之后才知道该调整什么、能不能调整。
+
+      触发信号：这是哪种偏倚 / 混杂 vs 选择偏倚 / 能不能校正 / bias 分类 / collider 引入的偏倚。
+
+      不适用于：只想找调整集合（走因果图识别）、已经确定是时间零点不对齐导致的永恒时间偏倚（走专项能力）、
+
+      以及纯统计的随机误差问题（走识别与估计的区分）。'
+    tags:
+    - causal-inference
+    - bias
+    - diagnosis
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 6.5 节 A structural classification of bias；第 7 章 Confounding；第 8 章 Selection bias；第 9 章 Measurement bias and
+      「Noncausal」 diagrams
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.selection-bias-immortal-time
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: selection-bias-immortal-time
+  title: 选择偏倚与永恒时间偏倚：时间零点一错，全盘皆错
+  importance: critical
+  importance_rationale: 第 8 章专章讨论，第 22.4 节单列 'Time zero'；永恒时间偏倚是真实世界研究最高发、也最难自查的设计性错误，本书把它归入选择偏倚的图结构。
+  one_liner: 入组、治疗分配、随访开始必须落在同一时刻；只要它们错开，就有人必须先活够一段时间才'配'被治疗。
+  intents:
+  - 识别并改正永恒时间偏倚（immortal time bias）
+  - 判断研究中是否存在因条件于未来事件而产生的选择偏倚
+  - 为生存/随访研究确定正确的时间零点
+  - 处理删失与失访带来的选择偏倚
+  keywords:
+  - 永恒时间偏倚
+  - immortal time bias
+  - 选择偏倚
+  - selection bias
+  - time zero
+  - 时间零点
+  - 删失
+  - censoring
+  - 失访
+  - survivor bias
+  also_read:
+  - target-trial-emulation
+  - bias-structure-diagnosis
+  - time-varying-gmethods
+  card: cards/selection-bias-immortal-time.md
+  frontmatter:
+    description: '当用户的研究存在''必须先存活/满足某条件才能进入治疗组''的结构，或入组与治疗开始不同步时用。
+
+      永恒时间偏倚是选择偏倚的特例：条件于一个发生在治疗之后、又是结局共同结果的事件。
+
+      触发信号：永恒时间偏倚 / immortal time bias / 时间零点 / time zero / 入组和用药不同步 / 生存分析里的存活者偏倚 / 删失失访怎么校正。
+
+      不适用于：治疗不随时间变化且时间零点已对齐的常规混杂问题（走因果图识别）、
+
+      以及时变混杂反馈导致的偏倚（走时变 G 方法）。'
+    tags:
+    - causal-inference
+    - bias
+    - survival-analysis
+    - study-design
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 8 章（8.1-8.6）；第 8.4 节 Selection bias and censoring；第 22.4 节 Time zero；第 21.5 节 Censoring is a time-varying
+      treatment
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.standardization-gformula
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: standardization-gformula
+  title: 标准化与 g-formula：把结局模型铺到整个人群上
+  importance: critical
+  importance_rationale: 第 2.3 节在 Part I 就给出无模型版标准化，第 13 章升级为参数 g-formula，第 21.1 节推广到时变处理——是全书两条主干估计路径之一。
+  one_liner: 给每个人预测'若治疗'和'若不治疗'两个结局，再对全人群各求一次平均，两个平均相减。
+  intents:
+  - 用标准化（standardization）估计平均因果效应
+  - 用参数 g-formula 估计治疗效应
+  - 比较 IP 加权与标准化的取舍
+  - 估计时变处理的 g-formula
+  keywords:
+  - 标准化
+  - standardization
+  - g-formula
+  - g-formula 参数
+  - parametric g-formula
+  - outcome regression
+  - 结局回归
+  - average causal effect
+  also_read:
+  - ip-weighting-msm
+  - time-varying-gmethods
+  - doubly-robust-estimation
+  card: cards/standardization-gformula.md
+  frontmatter:
+    description: '当用户要用结局模型估计平均因果效应，或在 IP 加权与标准化之间取舍时用。
+
+      标准化（g-formula）先拟合 E[Y|A,L]，对每个个体分别预测 A=1 与 A=0 下的结局，
+
+      再对全人群各取平均并相减；时变情形推广为多期 g-formula。
+
+      触发信号：标准化 / standardization / g-formula / 结局回归估计因果效应 / IP 加权还是标准化 / 怎么估计平均因果效应 / 时变处理的 g-formula。
+
+      不适用于：需要估计边际结构模型参数的时变情形（走时变 G 方法的 IP 加权路径）、
+
+      无模型可用的非参数快速核对（第 2.3 节的非参数标准化仍是首选）、以及未测混杂的内生性问题。'
+    tags:
+    - causal-inference
+    - estimation
+    - g-methods
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 2.3 节 Standardization；第 13 章 Standardization and the parametric g-formula（13.1-13.5）；第 21.1 节 The g-formula
+      for time-varying treatments
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.ip-weighting-msm
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: ip-weighting-msm
+  title: IP 加权与边际结构模型：造一个治疗与混杂无关的人群
+  importance: critical
+  importance_rationale: 第 2.4 节引入，第 12 章整章展开，第 17.4 节推广到生存结局，第 21.2 节推广到时变处理；是全书使用面最广的估计方法。
+  one_liner: 给每个人加一个权重 1/P(A|L)，造出一个'治疗与混杂无关'的伪人群，再在里面比较结局。
+  intents:
+  - 用逆概率加权（IPTW）估计平均因果效应
+  - 拟合边际结构模型（MSM）
+  - 计算并诊断稳定化权重
+  - 用 IP 加权处理删失与缺失数据
+  keywords:
+  - IP 加权
+  - IPTW
+  - inverse probability weighting
+  - 边际结构模型
+  - MSM
+  - marginal structural model
+  - 稳定化权重
+  - stabilized weights
+  - 倾向性评分
+  - propensity score
+  also_read:
+  - standardization-gformula
+  - time-varying-gmethods
+  - doubly-robust-estimation
+  card: cards/ip-weighting-msm.md
+  frontmatter:
+    description: '当用户要用逆概率加权估计因果效应、拟合边际结构模型、或遇到权重诊断问题时用。
+
+      IP 加权给每个个体一个权重，使加权人群中治疗与已测混杂独立，再用加权回归估计边际效应；
+
+      稳定化权重可显著降低方差。
+
+      触发信号：IPTW / IP 加权 / 倾向性评分加权 / 边际结构模型 / MSM / 稳定化权重 / 权重太大怎么办 / 权重分布怎么检查 / 删失用加权校正。
+
+      不适用于：倾向于建结局模型的场景（走标准化）、时变混杂反馈（需先走时变 G 方法）、
+
+      以及未测混杂（加权无能为力）。'
+    tags:
+    - causal-inference
+    - estimation
+    - weighting
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 2.4 节 Inverse probability weighting；第 12 章 IP weighting and marginal structural models（12.1-12.6）；第 17.4 节
+      IP weighting of marginal structural models；第 21.2 节 IP weighting for time-varying treatments
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.time-varying-gmethods
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: time-varying-gmethods
+  title: 时变处理的 G 方法：当治疗会改变它自己的混杂因子
+  importance: critical
+  importance_rationale: Part III（第 19-21 章）整部分围绕此展开；第 20 章论证传统方法在此结构下不可修复，是本书相对其他因果推断教材最独特的内容。
+  one_liner: 一旦治疗会改变日后的混杂因子，传统回归无论怎么调整都有偏——只能用 g-formula、IP 加权或 G-estimation。
+  intents:
+  - 估计随时间变化的治疗策略的效应
+  - 处理治疗-混杂反馈（treatment-confounder feedback）
+  - 判断传统回归在纵向数据中为何失效
+  - 用多期 g-formula / 时变 IP 加权 / G-estimation 分析纵向数据
+  keywords:
+  - 时变治疗
+  - time-varying treatment
+  - 治疗混杂反馈
+  - treatment-confounder feedback
+  - g-methods
+  - sequential exchangeability
+  - 顺序可交换性
+  - 纵向数据
+  - marginal structural model
+  also_read:
+  - ip-weighting-msm
+  - standardization-gformula
+  - target-trial-emulation
+  card: cards/time-varying-gmethods.md
+  frontmatter:
+    description: '当治疗随随访多次变更、且既往治疗会影响后续混杂因子（治疗-混杂反馈）时用。
+
+      传统回归条件于时变混杂会同时阻断路径并引入对撞偏倚，必须用三类 G 方法：
+
+      多期 g-formula、时变 IP 加权（MSM）、或结构嵌套模型的 G-estimation。
+
+      触发信号：时变治疗 / time-varying treatment / 治疗混杂反馈 / treatment-confounder feedback / 纵向数据因果推断 / 顺序可交换性 / 传统回归为什么有偏 / 多期 g-formula。
+
+      不适用于：治疗在时间零点一次性固定的研究（走 IP 加权或常规标准化）。'
+    tags:
+    - causal-inference
+    - longitudinal
+    - g-methods
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 19 章 Time-varying treatments（19.1-19.6）；第 20 章 Treatment-confounder feedback（20.1-20.5）；第 21 章 G-methods for
+      time-varying treatments（21.1-21.6）
+  promotion:
+    destination: promoted
+    gate:
+      independent_intent: true
+      independent_contract: true
+      independent_run: true
+      independent_reuse: true
+      independent_eval: true
+    notes: 晋级为独立 Skill：具备独立意图、独立契约与独立评测，可被直接触发。
+- capability_id: cap.what-if.identifiability-conditions
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: identifiability-conditions
+  title: 可识别性三条件：可交换性、正值性、一致性
+  importance: high
+  importance_rationale: 第 3.1-3.5 节是 Part I 的识别论基础，第 6.4 节在图语言中重述；所有估计方法都以这三条件为前提，是贯穿全书的检查清单。
+  one_liner: 数据能回答因果问题，当且仅当：可交换、正值、且干预定义明确（一致性）。
+  intents:
+  - 检查某个观察性研究是否满足可识别性条件
+  - 理解并解释可交换性、正值性、一致性
+  - 判断干预是否被明确定义（well-defined intervention）
+  - 区分识别问题与估计问题
+  keywords:
+  - 可交换性
+  - exchangeability
+  - 正值性
+  - positivity
+  - 一致性
+  - consistency
+  - identifiability
+  - 可识别性
+  - well-defined intervention
+  - 反事实
+  also_read:
+  - causal-dag-identification
+  - target-trial-emulation
+  - bias-structure-diagnosis
+  card: cards/identifiability-conditions.md
+  frontmatter:
+    description: '当用户需要检查一项观察性研究''有没有资格''回答因果问题，或要向读者交代假设时用。
+
+      三条件：可交换性（治疗组与未治疗组的潜在结局可互换）、正值性（每层都有接受各种治疗的机会）、
+
+      一致性（干预定义明确且观测结局等于对应反事实结局）。
+
+      触发信号：这个研究能不能回答因果问题 / 需要哪些假设 / 可交换性 / 正值性 / 一致性 / well-defined intervention / 识别和估计有什么区别。
+
+      不适用于：已确认条件满足、只需挑估计方法的场景（走 IP 加权 / 标准化）。'
+    tags:
+    - causal-inference
+    - identification
+    - assumptions
+  source_evidence:
+  - source_id: src-main-book
+    location: '第 3.1 节 Identifiability conditions；3.2 Exchangeability；3.3 Positivity；3.4 Consistency: First, define the counterfactual
+      outcome；3.5 Consistency: Second, link counterfactuals to the observed data；第 6.4 节 Positivity and consistency in causal
+      diagrams'
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。
+- capability_id: cap.what-if.g-estimation-snm
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: g-estimation-snm
+  title: G-estimation 与结构嵌套模型：直接给效应建模
+  importance: medium
+  importance_rationale: 第 14 章专章，第 17.6 节推广到生存结局，第 21.4 节推广到时变处理；是三类 G 方法中最不常用但在某些结构下唯一可行的一个。
+  one_liner: 不去建治疗或结局的模型，而是直接给'效应'建一个模型，再搜索让治疗与反事实独立的那个参数值。
+  intents:
+  - 用 G-estimation 估计结构嵌套均值模型（SNMM）
+  - 理解 G-estimation 相对 IP 加权与 g-formula 的定位
+  - 判断秩保持（rank preservation）假设是否可接受
+  keywords:
+  - G-estimation
+  - G 估计
+  - 结构嵌套模型
+  - structural nested model
+  - SNMM
+  - rank preservation
+  - 秩保持
+  - g-methods
+  also_read:
+  - time-varying-gmethods
+  - ip-weighting-msm
+  - standardization-gformula
+  card: cards/g-estimation-snm.md
+  frontmatter:
+    description: '当用户需要直接对效应建模（而非对治疗或结局建模），或处理时变处理且倾向用结构嵌套模型时用。
+
+      G-estimation 为效应参数搜索一个值，使得在扣除该效应后治疗与反事实结局独立。
+
+      触发信号：G-estimation / G 估计 / 结构嵌套模型 / SNMM / rank preservation / 时变处理的 G-estimation / 三类 G 方法怎么选。
+
+      不适用于：常规单期、只需边际效应的场景（IP 加权或标准化更简单）。'
+    tags:
+    - causal-inference
+    - estimation
+    - g-methods
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 14 章 G-estimation of structural nested models（14.1-14.6）；第 17.6 节 G-estimation of structural nested models；第
+      21.4 节 G-estimation for time-varying treatments
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。
+- capability_id: cap.what-if.doubly-robust-estimation
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: doubly-robust-estimation
+  title: 双重稳健估计：两个模型，对一个就够
+  importance: medium
+  importance_rationale: 第 18.4 节专讲双重稳健机器学习估计量，第 21.3 节给出时变版本；是本书与现代因果机器学习（TMLE、DML）的接口。
+  one_liner: 同时建结局模型和治疗模型，只要其中一个是正确的，估计就一致——但不是两个都错也无所谓。
+  intents:
+  - 用双重稳健估计量（AIPTW/TMLE 类）估计因果效应
+  - 在高维数据或机器学习 nuisance 模型下估计因果效应
+  - 理解双重稳健性的含义与代价
+  keywords:
+  - 双重稳健
+  - doubly robust
+  - AIPTW
+  - TMLE
+  - 双重机器学习
+  - double machine learning
+  - nuisance model
+  - 因果机器学习
+  - cross-fitting
+  also_read:
+  - ip-weighting-msm
+  - standardization-gformula
+  - variable-selection-causal
+  card: cards/doubly-robust-estimation.md
+  frontmatter:
+    description: '当用户在高维数据上估计因果效应、或想用机器学习拟合 nuisance 模型时用。
+
+      双重稳健估计同时需要结局模型与治疗模型，只要其中一个正确设定，效应估计即一致；
+
+      配合交叉拟合（cross-fitting）可让机器学习方法保持有效推断。
+
+      触发信号：双重稳健 / doubly robust / AIPTW / TMLE / 双重机器学习 / DML / 因果推断配机器学习 / cross-fitting / 高维协变量。
+
+      不适用于：协变量很少、模型设定有把握的简单场景（IP 加权或标准化已足够）。'
+    tags:
+    - causal-inference
+    - estimation
+    - machine-learning
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 18.3 节 Causal inference and machine learning；18.4 Doubly robust machine learning estimators；第 21.3 节 A doubly
+      robust estimator for time-varying treatments
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。
+- capability_id: cap.what-if.instrumental-variable
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: instrumental-variable
+  title: 工具变量估计：当可交换性没法假设时
+  importance: high
+  importance_rationale: 第 16 章专章，是本书唯一系统讲授的「在未测混杂下仍可识别」的路径；四个识别条件的讨论（16.1-16.4）是其核心。
+  one_liner: 三个条件（相关性、排除限制、独立性）之外，还必须有第四个：同质性或单调性——否则估出来的东西没有因果解释。
+  intents:
+  - 用工具变量估计因果效应
+  - 检查某个变量能否作为工具变量
+  - 理解 IV 的四个识别条件与 LATE 的含义
+  - 比较工具变量与其他方法的取舍
+  keywords:
+  - 工具变量
+  - instrumental variable
+  - IV
+  - LATE
+  - monotonicity
+  - 单调性
+  - exclusion restriction
+  - 排除限制
+  - 弱工具变量
+  - Mendelian randomization
+  also_read:
+  - identifiability-conditions
+  - ip-weighting-msm
+  - standardization-gformula
+  card: cards/instrumental-variable.md
+  frontmatter:
+    description: '当存在未测混杂、无法假设可交换性，但存在一个满足条件的工具变量时用。
+
+      IV 需满足三个条件（与治疗相关、无直接通向结局的路径、与未测混杂独立），
+
+      外加第四个识别条件：同质性或单调性；在单调性下估计的是 LATE（依从者平均因果效应）。
+
+      触发信号：工具变量 / instrumental variable / IV 估计 / 未测混杂怎么办 / 孟德尔随机化 / LATE / monotonicity / 弱工具变量。
+
+      不适用于：已测混杂已能满足可交换性的场景（IP 加权或标准化更高效）。'
+    tags:
+    - causal-inference
+    - identification
+    - instrumental-variable
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 16 章 Instrumental variable estimation（16.1-16.6）：16.1 三个工具条件；16.2 通常的 IV 估计量；16.3 第四个识别条件：同质性；16.4 另一个第四个条件：单调性；16.5
+      三个条件重述；16.6 IV 与其他方法的比较
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。
+- capability_id: cap.what-if.effect-modification-interaction
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: effect-modification-interaction
+  title: 效应修饰与交互：两个常被混为一谈的概念
+  importance: high
+  importance_rationale: 第 4、5 章连续两章专门辨析；作者指出「效应修饰」与「交互」在因果推断中是不同的对象，混淆二者是文献中最普遍的解读错误之一。
+  one_liner: 效应修饰：效应大小随某变量变（换尺度就可能消失，不是「交互」）；交互：两个干预必须联合施加才能谈。
+  intents:
+  - 判断某变量是否是效应修饰因子
+  - 区分效应修饰（effect modification）与交互（interaction）
+  - 正确解读亚组分析与分层结果
+  - 理解充分原因交互与反事实交互的区别
+  keywords:
+  - 效应修饰
+  - effect modification
+  - 交互
+  - interaction
+  - 亚组分析
+  - subgroup
+  - 异质性
+  - heterogeneity
+  - sufficient cause
+  - 充分原因
+  - scale dependence
+  - 尺度依赖
+  also_read:
+  - causal-dag-identification
+  - standardization-gformula
+  - variable-selection-causal
+  card: cards/effect-modification-interaction.md
+  frontmatter:
+    description: '当用户做亚组分析、解读异质性、或问''这两个因素有没有交互''时用。
+
+      效应修饰是效应大小随某变量变化（且依赖效应尺度，非因果性的''交互''）；
+
+      交互则要求两个干预可被联合施加，是真正的因果概念。
+
+      触发信号：效应修饰 / effect modification / 交互作用 / interaction / 亚组分析 / 异质性 / heterogeneity / 分层分析 / 尺度依赖 / 充分原因交互。
+
+      不适用于：只想选变量（走因果变量选择）或只想要单一边际效应（走标准化）。'
+    tags:
+    - causal-inference
+    - heterogeneity
+    - interpretation
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 4 章 Effect modification（4.1-4.6）；第 5 章 Interaction（5.1-5.6）：5.1 交互需要联合干预；5.3 反事实反应类型与交互；5.4 充分原因；5.5 充分原因交互；第
+      6.6 节 The structure of effect modification
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。
+- capability_id: cap.what-if.causal-mediation
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: causal-mediation
+  title: 因果中介分析：在「调整中介」之前先问能不能干预它
+  importance: medium
+  importance_rationale: 第 23 章专章，作者直面学界的批评（23.1）并给出辩护（23.2-23.4）；是把全书的干预主义立场推到最远处的一章。
+  one_liner: 中介分析的前提是中介变量可被干预；只有当「把中介固定在某值」是一个可执行操作时，直接/间接效应才有因果意义。
+  intents:
+  - 正确地做因果中介分析
+  - 区分总效应、直接效应与间接效应
+  - 判断某变量能否作为中介被干预
+  - 理解传统中介分析方法受批评的原因
+  keywords:
+  - 中介分析
+  - mediation
+  - 直接效应
+  - direct effect
+  - 间接效应
+  - indirect effect
+  - controlled direct effect
+  - 干预主义
+  - interventionist
+  - 机制
+  also_read:
+  - causal-dag-identification
+  - identifiability-conditions
+  - effect-modification-interaction
+  card: cards/causal-mediation.md
+  frontmatter:
+    description: '当用户要拆解机制、估计直接效应与间接效应，或问「这个变量是不是中介」时用。
+
+      干预主义立场：只有当「把中介变量设定为某值」是一个可执行的干预时，直接/间接效应才有因果意义。
+
+      触发信号：中介分析 / mediation / 直接效应 / 间接效应 / 机制分析 / controlled direct effect / 调整了中介之后的效应 / 中介分析被批评。
+
+      不适用于：只需总效应的场景；也不适用于中介无法被干预的情形（那时应直接说明不可识别）。'
+    tags:
+    - causal-inference
+    - mediation
+    - mechanism
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 23 章 Causal mediation（23.1-23.4）：23.1 Mediation analysis under attack；23.2 A defense of mediation analysis；23.3
+      Empirically verifiable mediation；23.4 An interventionist theory of mediation
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。
+- capability_id: cap.what-if.variable-selection-causal
+  revision: 1
+  status: active
+  aliases: []
+  supersedes: []
+  merged_into: null
+  split_into: []
+  slug: variable-selection-causal
+  title: 因果推断中的变量选择：目标不是预测结局
+  importance: high
+  importance_rationale: 第 18.1、18.2 节明确指出变量选择在因果推断与预测中目标不同，18.5 节坦承这是一个困难问题；是实践中最高频的困惑来源。
+  one_liner: 选变量不看「能不能预测结局」，而看它在 DAG 上的位置——调整对撞节点和强工具变量会主动放大偏倚。
+  intents:
+  - 为因果分析选择要调整的协变量
+  - 判断某个变量该不该纳入调整集合
+  - 理解为什么数据驱动的变量选择会伤害因果估计
+  - 区分预测建模与因果推断的变量选择标准
+  keywords:
+  - 变量选择
+  - variable selection
+  - 调整集合
+  - adjustment set
+  - 对撞节点
+  - collider
+  - 工具变量误调
+  - 混杂选择
+  - 高维数据
+  - confounder selection
+  also_read:
+  - causal-dag-identification
+  - bias-structure-diagnosis
+  - doubly-robust-estimation
+  card: cards/variable-selection-causal.md
+  frontmatter:
+    description: '当用户问「该把哪些变量放进模型」、或想用逐步回归/LASSO 选混杂时用。
+
+      因果推断的变量选择目标是阻断后门路径，不是提高结局预测精度；
+
+      条件于对撞节点或强工具变量反而会放大偏倚与方差。
+
+      触发信号：该调整哪些变量 / 变量选择 / 逐步回归选混杂 / LASSO 选变量 / 这个变量要不要放进模型 / 调整集合 / 高维协变量怎么选。
+
+      不适用于：已经用 DAG 定好调整集合的场景（直接走因果图识别）。'
+    tags:
+    - causal-inference
+    - variable-selection
+    - practice
+  source_evidence:
+  - source_id: src-main-book
+    location: 第 18.1 节 The different goals of variable selection；18.2 Variables that induce or amplify bias；18.3 Causal inference
+      and machine learning；18.5 Variable selection is a difficult problem
+  promotion:
+    destination: router
+    gate:
+      independent_intent: false
+      independent_contract: true
+      independent_run: true
+      independent_reuse: false
+      independent_eval: true
+    notes: 保留为来源路由入口内的能力卡：与相邻能力共享意图入口，经路由入口可达。

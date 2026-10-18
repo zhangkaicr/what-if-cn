@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>导言：少一点"随便"的因果推断 · 因果推断：What If 中文版</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<!--NAV-->
+<main class="content">
+<article>
+<header class="ch-head">
+  <p class="ch-kicker">导言 · Introduction</p>
+  <h1>导言：少一点"随便"的因果推断</h1>
+  <p class="ch-src">Hernán MA, Robins JM（2020）. Causal Inference: What If. Introduction. 本页为中文全文翻译，附译注。</p>
+</header>
+
+<!-- CONTENT-START -->
+
+<h2 id="s-0-1">书名与我们自己的取舍</h2>
+
+<p>把一本书叫作《因果推断》（Causal Inference），说实话有点狂妄。因果推断是一项复杂的科学工程，靠的是把多个来源的证据拼到一起，再套用各种各样的方法。没有任何一本书能穷尽各学科因果推断方法学的全貌，写《因果推断》的人，总得先决定自己要强调哪些部分。</p>
+
+<p>这则导言的标题，反映的正是我们自己的取舍：写一本帮科学家——尤其是健康与社会科学家——去收集和分析数据的书，让他们做出的因果推断，既能把因果问题说清楚，也能把数据分析背后那些无法验证的假设摆到台面上。可惜现状并不如意：科学文献里充斥着这样的研究，因果问题从不说清，研究者那些经不起验证的假设也从不声明。这种对待因果推断的"随便"（casual）态度，制造了大量混乱。比方说，常常会看到一些研究，效果估计很难解释，因为它的数据分析方法在研究者自己的假设之下（假如这些假设被声明的话）根本答不了那个因果问题（假如这个问题被说清的话）。</p>
+
+<h2 id="s-0-2">"随便"对待因果推断的代价</h2>
+
+<p>在本书里，我们强调：你得足够认真地对待因果问题，认真到把它讲明白，并且把数据和假设在因果推断里各自扮演的角色分清楚。有了这些地基，因果推断就必然不再那么"随便"，混乱也就能少一些。本书介绍种种数据分析方法，用来在收集到总体中每个人的数据之后，在给定的假设集合下估计我们关心的因果效应。本书的一个核心信息是：因果推断不能简化成一套数据分析的操作手册。</p>
+
+<h2 id="s-0-3">这不是哲学书：识别与估计</h2>
+
+<p>这不是一本哲学书。我们对"因果""原因"这类形而上学概念基本持不可知态度。我们关心的，是总体中因果效应的识别（identification）与估计（estimation），也就是在不同干预下，某个结局的分布发生变化时所对应的那些数值量。举个例子：我们讨论的是，对重度心力衰竭患者来说，如果接受心脏移植、与不接受心脏移植相比，死亡风险会是多大。我们要做的是能落地的因果推断，好帮决策者做出更好的决策。</p>
+
+<h2 id="s-0-4">全书的三部分与阅读对象</h2>
+
+<p>全书分三部分，难度递增：第一部分讲无模型的因果推断（也就是因果效应的非参数识别），第二部分讲带模型的因果推断（也就是用参数模型去估计因果效应），第三部分讲来自复杂纵向数据的因果推断（也就是时变处理的因果效应估计）。正文里穿插着"精细辨析"（Fine Point）和"技术要点"（Technical Point），对正文提到的一些话题做展开。"精细辨析"写给所有读者都能看懂，"技术要点"则面向有中等统计训练的读者。本书把目前散落在多个学科期刊里的因果推断概念与方法，做了一次连贯的整理。我们预期它对所有做因果推断的从业者都有用，包括流行病学家、统计学家、心理学家、经济学家、社会学家、政治科学家、计算机科学家……</p>
+
+<h2 id="s-0-5">本书的由来与致谢</h2>
+
+<p>本书脱胎于我们的教学与研究。一代又一代爱追问的哈佛学生，帮我们把内容磨得更利落。数十年来，我们在健康领域量化因果效应的方法学工作，帮我们看清了实践中真正要紧的东西，也帮我们在研究中分清主次。因此，这本书应当被看作对我们教学与研究经验的一次（但愿有用的）综合，而不是对所有前人工作的系统综述。书里列了数百条文献——大约三分之一是引我们自己——但要说把因果推断方法学每一项重要贡献都照顾到，我们当然没做到。再者，这个领域又大又在长，没有任何教科书能永远跟得上。我们预先向那些可能没在这里看到自己工作的同行致歉，也欢迎他们联系我们。（在正式出版前的约二十年里，这本书一直放在网上，不少人这么做过；书也因此变得更好。）对某个方法学发展历史感兴趣的读者，我们鼓励你去读正文各处引用的学术论文。</p>
+
+<p>许多人促成了这本书，我们在此致谢。Stephen Cole、Issa Dahabreh、Sander Greenland、Jay Kaufman、Eleanor Murray、Thomas Richardson、Sonja Swanson、Tyler VanderWeele 和 Jan Vandenbroucke 提供了详尽的批注。Goodarz Danaei、Kosuke Kawai、Martin Lajous 和 Kathleen Wirth 帮忙构建了 NHEFS 数据集。第二部分的示例代码由 Roger Logan 用 SAS 写成，Eleanor Murray 和 Roger Logan 用 Stata，Joy Shi 和 Sean McGrath 用 R，James Fiedler 用 Python。Roger Logan 还是我们的 LaTeX 高手。Randall Chaput 制作了第 1、2 章的图。Josh McKible 设计了书的封面。我们的出版人 Rob Calver 很有耐心，他鼓励我们写这本书，也支持我们把它免费放在网上。</p>
+
+<p>此外，还有多位同行帮我们改进了书稿，找出了错别字、指出了费解之处。我们特别感谢 Kafui Adjaye-Gbewonyo、Álvaro Alonso、Katherine Almendinger、Ingelise Andersen、Juan José Beunza、Karen Biala、Joanne Brady、Alex Breskin、Shan Cai、Yu-Han Chiu、Alexis Dinno、John Ferguson、James Fiedler、Birgitte Frederiksen、Tadayoshi Fushiki、Leticia Grize、Dominik Hangartner、Michael Hudgens、John Jackson、Marshall Joffe、Luke Keele、Laura Khan、Dae Hyun Kim、Lauren Kunz、Martín Lajous、Angeliki Lambrou、Wen Wei Loh、Haidong Lu、Mohammad Ali Mansournia、Giovanni Marchetti、Lauren McCarl、Shira Mitchell、Louis Mittel、Hannah Oh、Ibironke Olofin、Robert Paige、Jeremy Pertman、Melinda Power、Bruce Psaty、Brian Sauer、Tomohiro Shinozaki、Ian Shrier、Yan Song、Øystein Sørensen、Etsuji Suzuki、Denis Talbot、Mohammad Tavakkoli、Sarah Taubman、Evan Thacker、Kun-Hsing Yu、Vera Zietemann、Helmut Wasserbacher、Jessica Young 和 Dorith Zimmermann。</p>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>"casual" 与 "causal" 的双关。</strong> 标题 <em>Towards less casual causal inferences</em> 玩了一个英文同音近形的文字游戏：<em>causal</em>（因果的）和 <em>casual</em>（随便的、偶然的）读音几乎一样。作者借此讽刺一种常见态度——研究者"随随便便"地做因果推断，既不说清问题，也不摊开假设。中文没法靠字形复刻这个双关，这里把 casual 译作"随便"，并在正文保留英文原词，请读者记住：本书要对抗的，正是这种 <em>casual</em> 的态度。把书名译作"少一点'随便'的因果推断"，是想把这个弦外之音留下来。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>本书在因果推断谱系里的位置。</strong> Hernán 与 Robins 属于以 Rubin 为代表的"潜在结局 / 反事实"（potential outcomes）学派，全书的概念框架就建立在这套语言上（后文的 <code>Y<sup>a</sup></code>、一致性、可交换性等皆源于此）。与之并列的另一条路线是 Pearl 的因果图（DAG）学派，本书第 6 章起才会系统引入并与之对话。中文读者若先读过 Pearl《因果论》（<em>The Book of Why</em>），会发现本书的进入角度不同：它从反事实定义出发，把图模型当作工具而非本体。两个谱系并不冲突，本书正是把它们织在了一起。</p>
+</aside>
+
+<aside class="tnote"><span class="box-label">译注</span>
+<p><strong>给中文读者的阅读建议。</strong> 第一，正文里的"精细辨析"与"技术要点"是两种不同的东西：前者面向所有人，后者假定你已有中等统计功底，跳读不亏，但别跳太早。第二，本书一个反复出现的主题是——因果推断 = 识别 + 估计，即"在假设下，数据能否回答这个问题"（识别）与"用样本怎么算出来"（估计）是两件事，导言与第 1 章就在打这个地基。第三，作者爱用希腊神话人物（宙斯、赫拉……）举例子，并自嘲"以奥林匹亚式的确定性"（Olympian certainty）做计算，看到这些不必较真神话设定，那只是贯穿全书的轻松修辞。</p>
+</aside>
+
+<!-- CONTENT-END -->
+</article>
+</main>
+<script src="../assets/site.js"></script>
+</body>
+</html>
